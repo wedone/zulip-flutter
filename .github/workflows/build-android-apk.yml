@@ -30,34 +30,34 @@ jobs:
   build-apk:
     name: ${{ github.event.inputs.job_name }}
     runs-on: ubuntu-24.04
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
         ref: ${{ github.event.inputs.branch }}
         fetch-depth: 1
-    
+
     - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
-    
+
     - name: Clone Flutter SDK
       run: |
         echo "Cloning Flutter SDK..."
         ./tools/ci/clone-flutter-sdk
-    
+
     - name: Download Flutter SDK artifacts
       run: flutter precache --universal
-    
+
     - name: Install dependencies
       run: flutter pub get
-    
+
     - name: Enable Android platform
       run: flutter config --enable-android
-    
+
     - name: Build APK (${{ github.event.inputs.build_name }})
       run: |
         case "${{ github.event.inputs.build_name }}" in
@@ -71,15 +71,15 @@ jobs:
             flutter build apk --profile
             ;;
         esac
-    
+
     - name: Upload APK artifact
       uses: actions/upload-artifact@v4
       with:
-        name: zulip-app-${{ github.event.inputs.build_name }}-${{ github.event.inputs.branch }}
+        name: zulip-android-apk
         path: build/app/outputs/flutter-apk/app-*.apk
         if-no-files-found: error
         retention-days: 30
-    
+
     - name: Generate build summary
       run: |
         echo "## Build Summary" >> $GITHUB_STEP_SUMMARY
