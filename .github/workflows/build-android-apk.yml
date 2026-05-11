@@ -1,0 +1,95 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_name:
+        description: 'Build name (e.g., debug, release)'
+        required: true
+        default: 'release'
+        type: choice
+        options:
+          - debug
+          - release
+          - profile
+      branch:
+        description: 'Branch to build from'
+        required: true
+        default: 'main'
+        type: string
+      job_name:
+        description: 'Custom job name for this workflow run'
+        required: false
+        default: 'Build Android APK'
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  build-apk:
+    name: ${{ github.event.inputs.job_name }}
+    runs-on: ubuntu-24.04
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.inputs.branch }}
+        fetch-depth: 1
+    
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+    
+    - name: Clone Flutter SDK
+      run: |
+        echo "Cloning Flutter SDK..."
+        ./tools/ci/clone-flutter-sdk
+    
+    - name: Download Flutter SDK artifacts
+      run: flutter precache --universal
+    
+    - name: Install dependencies
+      run: flutter pub get
+    
+    - name: Enable Android platform
+      run: flutter config --enable-android
+    
+    - name: Build APK (${{ github.event.inputs.build_name }})
+      run: |
+        case "${{ github.event.inputs.build_name }}" in
+          debug)
+            flutter build apk --debug
+            ;;
+          release)
+            flutter build apk --release
+            ;;
+          profile)
+            flutter build apk --profile
+            ;;
+        esac
+    
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: zulip-app-${{ github.event.inputs.build_name }}-${{ github.event.inputs.branch }}
+        path: build/app/outputs/flutter-apk/app-*.apk
+        if-no-files-found: error
+        retention-days: 30
+    
+    - name: Generate build summary
+      run: |
+        echo "## Build Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "- **Branch**: ${{ github.event.inputs.branch }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Build Type**: ${{ github.event.inputs.build_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Job Name**: ${{ github.event.inputs.job_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Triggered by**: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### APK Files" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        ls -lh build/app/outputs/flutter-apk/*.apk 2>/dev/null || echo "No APK files found" >> $GITHUB_STEP_SUMMARY
