@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:intl/intl.dart' as intl;
 
@@ -18,7 +19,7 @@ import 'dialog.dart';
 import 'icons.dart';
 import 'image.dart';
 import 'inset_shadow.dart';
-import 'katex.dart';
+import 'math_widget.dart';
 import 'lightbox.dart';
 import 'message_list.dart';
 import 'poll.dart';
@@ -789,25 +790,16 @@ class MathBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final contentTheme = ContentTheme.of(context);
-
-    final nodes = node.nodes;
-    if (nodes == null) {
-      return _CodeBlockContainer(
-        borderColor: contentTheme.colorMathBlockBorder,
-        child: Text.rich(TextSpan(
-          style: contentTheme.codeBlockTextStyles.plain,
-          children: [TextSpan(text: node.texSource)])));
-    }
-
     return Center(
       child: Directionality(
         textDirection: TextDirection.ltr,
         child: SingleChildScrollViewWithScrollbar(
           scrollDirection: Axis.horizontal,
-          child: KatexWidget(
+          child: MathWidget(
+            texSource: node.texSource,
+            displayMode: true,
             ambientTextStyle: ContentTheme.of(context).textStylePlainParagraph,
-            nodes: nodes))));
+          ))));
   }
 }
 
@@ -1157,20 +1149,23 @@ class _InlineContentBuilder {
           child: InlineImage(node: node, ambientTextStyle: widget.style));
 
       case MathInlineNode():
-        final nodes = node.nodes;
-        return nodes == null
-          ? TextSpan(
-              style: ContentTheme.of(_context!).textStyleInlineMath
-                .copyWith(fontSize: widget.style.fontSize! * kInlineCodeFontSizeFactor),
-              children: [TextSpan(text: node.texSource)])
-          : WidgetSpan(
-              alignment: PlaceholderAlignment.baseline,
-              baseline: TextBaseline.alphabetic,
-              child: KatexWidget(ambientTextStyle: _resolveStyleStack(), nodes: nodes));
+        return WidgetSpan(
+            alignment: PlaceholderAlignment.baseline,
+            baseline: TextBaseline.alphabetic,
+            child: MathWidget(
+              texSource: node.texSource,
+              displayMode: false,
+              ambientTextStyle: _resolveStyleStack(),
+            ));
 
       case GlobalTimeNode():
         return WidgetSpan(alignment: PlaceholderAlignment.middle,
           child: GlobalTime(node: node, ambientTextStyle: _resolveStyleStack()));
+
+      case InlineSvgNode():
+        return WidgetSpan(
+            alignment: PlaceholderAlignment.middle,
+            child: InlineSvgWidget(node: node, ambientTextStyle: _resolveStyleStack()));
 
       case UnimplementedInlineContentNode():
         return _errorUnimplemented(node, context: _context!);
@@ -1468,6 +1463,33 @@ class GlobalTime extends StatelessWidget {
               const SizedBox(width: 1),
               Text(text, style: ambientTextStyle),
             ]))));
+  }
+}
+
+class InlineSvgWidget extends StatelessWidget {
+  const InlineSvgWidget({
+    super.key,
+    required this.node,
+    required this.ambientTextStyle,
+  });
+
+  final InlineSvgNode node;
+  final TextStyle ambientTextStyle;
+
+  @override
+  Widget build(BuildContext context) {
+    final fontSize = ambientTextStyle.fontSize ?? 16.0;
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxHeight: fontSize * 10,
+        maxWidth: screenWidth,
+      ),
+      child: SvgPicture.string(
+        node.svgSource,
+        fit: BoxFit.contain,
+      ),
+    );
   }
 }
 
