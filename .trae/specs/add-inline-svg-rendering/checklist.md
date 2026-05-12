@@ -1,0 +1,8 @@
+- [ ] InlineSvgNode 数据模型已创建，包含 svgSource 字段
+- [ ] 文本节点解析逻辑能检测 <svg...></svg> 模式
+- [ ] InlineSvgWidget 使用 SvgPicture.string() 渲染 SVG
+- [ ] SVG 渲染尺寸限定为最大高度 10em
+- [ ] SVG 解析失败时正确回退为纯文本
+- [ ] InlineContent 中 InlineSvgNode 渲染分支已添加
+- [ ] 模型层测试通过
+- [ ] Widget 层测试通过

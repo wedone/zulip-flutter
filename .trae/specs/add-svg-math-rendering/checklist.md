@@ -1,0 +1,20 @@
+- [x] flutter_svg 和 flutter_tex 依赖已添加到 pubspec.yaml，且项目可正常编译
+- [x] TeX → SVG 转换服务实现完成（使用 flutter_tex 内置的 TeXRenderingServer 和缓存）
+- [x] SvgMathWidget 组件实现完成，使用 Math2SVG 渲染
+- [x] SvgMathWidget 在 TeX → SVG 转换失败时正确回退为 TeX 源码纯文本
+- [x] MathBlock 使用 SvgMathWidget 渲染，保留居中、LTR、水平滚动功能
+- [x] MathInline 使用 SvgMathWidget 渲染，保留基线对齐
+- [x] parseMath 函数仅提取 TeX 源码，不再调用 _KatexParser
+- [x] _KatexParser 及其 800+ 行 CSS 解析代码已移除
+- [x] MathNode 仅保留 texSource 字段，nodes/debugHardFailReason/debugSoftFailReason 已移除
+- [x] KatexNode/KatexSpanNode/KatexStrutNode 等节点类型已移除
+- [x] KatexSpanStyles/KatexSpanFontWeight 等样式类型已移除
+- [x] csslib 依赖已从 pubspec.yaml 移除
+- [x] KatexWidget 及其内部组件已移除
+- [x] NegativeLeftOffset/RenderNegativePadding 已移除
+- [x] 20 个 KaTeX 字体文件已删除
+- [x] pubspec.yaml 中 KaTeX 字体声明已移除
+- [x] 所有测试文件已更新（model 测试 + widget 测试 + 语料库回归测试）
+- [x] flutter analyze 通过（lib/ 和 test/ 无错误）
+- [x] 所有修改文件 GetDiagnostics 无错误
+- [x] Android/iOS 平台配置已更新
