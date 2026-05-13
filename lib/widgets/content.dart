@@ -1478,7 +1478,7 @@ class InlineSvgWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fontSize = ambientTextStyle.fontSize ?? 16.0;
+    final fontSize = ambientTextStyle.fontSize ?? kBaseFontSize;
     final screenWidth = MediaQuery.sizeOf(context).width;
     return ConstrainedBox(
       constraints: BoxConstraints(
@@ -1488,6 +1488,8 @@ class InlineSvgWidget extends StatelessWidget {
       child: SvgPicture.string(
         node.svgSource,
         fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) =>
+          Text(node.svgSource, style: ambientTextStyle),
       ),
     );
   }
