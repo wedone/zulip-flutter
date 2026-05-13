@@ -1,5 +1,3 @@
-import 'package:checks/checks.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/widgets/math_widget.dart';
