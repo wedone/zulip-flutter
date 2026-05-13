@@ -1074,8 +1074,9 @@ class MathInlineNode extends MathNode implements InlineContentNode {
   });
 }
 
-// SVG content in text nodes comes from the Zulip server's KaTeX rendering,
-// which strips <svg> tags for XSS security and outputs them as escaped text.
+// SVG content in text nodes: the Zulip server escapes raw HTML tags (like <svg>)
+// for XSS security, outputting them as &lt;svg&gt;...&lt;/svg&gt;. The client's
+// HtmlParser auto-unescapes these back to <svg>...</svg> in dom.Text nodes.
 // We trust the server has already sanitized this content.
 final _svgPattern = RegExp(r'<svg\b[^>]*>.*?</svg>', dotAll: true);
 
@@ -1308,11 +1309,7 @@ class _ZulipInlineContentParser {
     InlineContentNode unimplemented() => UnimplementedInlineContentNode(htmlNode: node);
 
     if (node is dom.Text) {
-      final text = node.text;
-      if (_svgPattern.hasMatch(text)) {
-        return InlineSvgNode(svgSource: text, debugHtmlNode: debugHtmlNode);
-      }
-      return TextNode(text, debugHtmlNode: debugHtmlNode);
+      return TextNode(node.text, debugHtmlNode: debugHtmlNode);
     }
     if (node is! dom.Element) {
       return unimplemented();
@@ -1422,7 +1419,32 @@ class _ZulipInlineContentParser {
   }
 
   List<InlineContentNode> parseInlineContentList(List<dom.Node> nodes) {
-    return nodes.map(parseInlineContent).toList(growable: false);
+    final result = <InlineContentNode>[];
+    for (final node in nodes) {
+      if (node is dom.Text) {
+        final text = node.text;
+        final debugHtmlNode = kDebugMode ? node : null;
+        final matches = _svgPattern.allMatches(text).toList();
+        if (matches.isEmpty) {
+          result.add(TextNode(text, debugHtmlNode: debugHtmlNode));
+          continue;
+        }
+        int start = 0;
+        for (final match in matches) {
+          if (match.start > start) {
+            result.add(TextNode(text.substring(start, match.start), debugHtmlNode: debugHtmlNode));
+          }
+          result.add(InlineSvgNode(svgSource: match.group(0)!, debugHtmlNode: debugHtmlNode));
+          start = match.end;
+        }
+        if (start < text.length) {
+          result.add(TextNode(text.substring(start), debugHtmlNode: debugHtmlNode));
+        }
+      } else {
+        result.add(parseInlineContent(node));
+      }
+    }
+    return result;
   }
 
   /// Parse the children of a [BlockInlineContainerNode], making up a
