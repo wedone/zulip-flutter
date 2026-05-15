@@ -13,13 +13,28 @@ on:
         required: true
         default: 'math-fork'
         type: string
+      release_title:
+        description: 'Release 标题'
+        required: false
+        default: ''
+        type: string
+      release_body:
+        description: 'Release 说明（支持 Markdown）'
+        required: false
+        default: ''
+        type: string
+      is_draft:
+        description: '是否保存为草稿'
+        required: false
+        default: 'true'
+        type: string
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build-release:
-    name: 构建稳定版客户端
+    name: 构建并发布客户端
     runs-on: ubuntu-24.04
 
     steps:
@@ -84,3 +99,16 @@ jobs:
         echo "### 📥 下载" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "请在下方 **Artifacts** 部分下载 APK 文件。" >> $GITHUB_STEP_SUMMARY
+
+    - name: 创建 GitHub Release
+      if: github.event.inputs.release_title != ''
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.event.inputs.version }}
+        release_name: ${{ github.event.inputs.release_title }}
+        body: ${{ github.event.inputs.release_body }}
+        draft: ${{ github.event.inputs.is_draft == 'true' }}
+        asset_name: zulip-android-${{ github.event.inputs.version }}.apk
+        asset_path: build/app/outputs/flutter-apk/zulip-android-${{ github.event.inputs.version }}.apk
