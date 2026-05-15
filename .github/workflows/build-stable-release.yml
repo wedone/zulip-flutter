@@ -1,0 +1,114 @@
+name: 构建稳定版客户端
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: '发布版本号（例如：30.0.272-for-math.1）'
+        required: true
+        default: '30.0.272-for-math.1'
+        type: string
+      branch:
+        description: '构建分支'
+        required: true
+        default: 'math-fork'
+        type: string
+      release_title:
+        description: 'Release 标题'
+        required: false
+        default: ''
+        type: string
+      release_body:
+        description: 'Release 说明（支持 Markdown）'
+        required: false
+        default: ''
+        type: string
+      is_draft:
+        description: '是否保存为草稿'
+        required: false
+        default: 'true'
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    name: 构建并发布客户端
+    runs-on: ubuntu-24.04
+
+    steps:
+    - name: 检出代码
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.inputs.branch }}
+        fetch-depth: 1
+
+    - name: 配置 JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: 克隆 Flutter SDK
+      run: |
+        echo "正在克隆 Flutter SDK..."
+        ./tools/ci/clone-flutter-sdk
+
+    - name: 下载 Flutter SDK 组件
+      run: flutter precache --universal
+
+    - name: 安装依赖
+      run: flutter pub get
+
+    - name: 启用 Android 平台
+      run: flutter config --enable-android
+
+    - name: 构建 Release APK
+      run: flutter build apk --release
+
+    - name: 重命名 APK 文件
+      run: |
+        VERSION=${{ github.event.inputs.version }}
+        APK_DIR=build/app/outputs/flutter-apk
+        LATEST_APK=$(ls $APK_DIR/app-*.apk | head -n 1)
+        NEW_NAME="zulip-android-${VERSION}.apk"
+        cp "$LATEST_APK" "$APK_DIR/$NEW_NAME"
+        echo "已创建: $NEW_NAME"
+
+    - name: 上传 APK 文件
+      uses: actions/upload-artifact@v4
+      with:
+        name: zulip-stable-release
+        path: build/app/outputs/flutter-apk/zulip-android-*.apk
+        if-no-files-found: error
+        retention-days: 90
+
+    - name: 生成构建摘要
+      run: |
+        echo "## 📦 稳定版客户端构建" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 构建信息" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "- **版本**: ${{ github.event.inputs.version }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **分支**: ${{ github.event.inputs.branch }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **提交**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **构建时间**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+        echo "- **触发者**: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📥 下载" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "请在下方 **Artifacts** 部分下载 APK 文件。" >> $GITHUB_STEP_SUMMARY
+
+    - name: 创建 GitHub Release
+      if: github.event.inputs.release_title != ''
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.event.inputs.version }}
+        release_name: ${{ github.event.inputs.release_title }}
+        body: ${{ github.event.inputs.release_body }}
+        draft: ${{ github.event.inputs.is_draft == 'true' }}
+        asset_name: zulip-android-${{ github.event.inputs.version }}.apk
+        asset_path: build/app/outputs/flutter-apk/zulip-android-${{ github.event.inputs.version }}.apk
