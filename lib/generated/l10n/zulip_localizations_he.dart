@@ -1415,4 +1415,31 @@ class ZulipLocalizationsHe extends ZulipLocalizations {
 
   @override
   String get topicListEmptyPlaceholderHeader => 'There are no topics here yet.';
+
+  @override
+  String get mathSymbolsButtonTooltip => 'Math symbols';
+
+  @override
+  String get mathSymbolsRecentLabel => 'Recent';
+
+  @override
+  String get mathSymbolsNoRecentHint => 'No recent symbols';
+
+  @override
+  String get mathSymbolsCategoryCommon => 'Common';
+
+  @override
+  String get mathSymbolsCategoryGreek => 'Greek';
+
+  @override
+  String get mathSymbolsCategoryRelations => 'Relations';
+
+  @override
+  String get mathSymbolsCategoryTemplates => 'Templates';
+
+  @override
+  String get mathSymbolsCategoryFunctions => 'Functions';
+
+  @override
+  String get mathSymbolsCategoryRecent => 'Recent';
 }

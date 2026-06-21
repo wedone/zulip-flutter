@@ -1437,4 +1437,31 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   @override
   String get topicListEmptyPlaceholderHeader =>
       'Póki co pusto, bo brak wątków.';
+
+  @override
+  String get mathSymbolsButtonTooltip => 'Math symbols';
+
+  @override
+  String get mathSymbolsRecentLabel => 'Recent';
+
+  @override
+  String get mathSymbolsNoRecentHint => 'No recent symbols';
+
+  @override
+  String get mathSymbolsCategoryCommon => 'Common';
+
+  @override
+  String get mathSymbolsCategoryGreek => 'Greek';
+
+  @override
+  String get mathSymbolsCategoryRelations => 'Relations';
+
+  @override
+  String get mathSymbolsCategoryTemplates => 'Templates';
+
+  @override
+  String get mathSymbolsCategoryFunctions => 'Functions';
+
+  @override
+  String get mathSymbolsCategoryRecent => 'Recent';
 }

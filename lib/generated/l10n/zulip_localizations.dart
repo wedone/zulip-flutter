@@ -2498,29 +2498,29 @@ abstract class ZulipLocalizations {
   /// **'Greek'**
   String get mathSymbolsCategoryGreek;
 
-  /// Tab label for the operators math symbols category.
-  ///
-  /// In en, this message translates to:
-  /// **'Operators'**
-  String get mathSymbolsCategoryOperators;
-
   /// Tab label for the relations math symbols category.
   ///
   /// In en, this message translates to:
   /// **'Relations'**
   String get mathSymbolsCategoryRelations;
 
-  /// Tab label for the sets math symbols category.
-  ///
-  /// In en, this message translates to:
-  /// **'Sets'**
-  String get mathSymbolsCategorySets;
-
   /// Tab label for the templates math symbols category.
   ///
   /// In en, this message translates to:
   /// **'Templates'**
   String get mathSymbolsCategoryTemplates;
+
+  /// Label for the math symbols toolbar functions category tab.
+  ///
+  /// In en, this message translates to:
+  /// **'Functions'**
+  String get mathSymbolsCategoryFunctions;
+
+  /// Label for the math symbols toolbar recent category tab.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent'**
+  String get mathSymbolsCategoryRecent;
 }
 
 class _ZulipLocalizationsDelegate

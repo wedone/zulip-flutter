@@ -1726,20 +1726,20 @@
   "@mathSymbolsCategoryGreek": {
     "description": "Tab label for the Greek letters math symbols category."
   },
-  "mathSymbolsCategoryOperators": "Operators",
-  "@mathSymbolsCategoryOperators": {
-    "description": "Tab label for the operators math symbols category."
-  },
   "mathSymbolsCategoryRelations": "Relations",
   "@mathSymbolsCategoryRelations": {
     "description": "Tab label for the relations math symbols category."
   },
-  "mathSymbolsCategorySets": "Sets",
-  "@mathSymbolsCategorySets": {
-    "description": "Tab label for the sets math symbols category."
-  },
   "mathSymbolsCategoryTemplates": "Templates",
   "@mathSymbolsCategoryTemplates": {
     "description": "Tab label for the templates math symbols category."
+  },
+  "mathSymbolsCategoryFunctions": "Functions",
+  "@mathSymbolsCategoryFunctions": {
+    "description": "Label for the math symbols toolbar functions category tab."
+  },
+  "mathSymbolsCategoryRecent": "Recent",
+  "@mathSymbolsCategoryRecent": {
+    "description": "Label for the math symbols toolbar recent category tab."
   }
 }

@@ -1432,16 +1432,16 @@ class ZulipLocalizationsEn extends ZulipLocalizations {
   String get mathSymbolsCategoryGreek => 'Greek';
 
   @override
-  String get mathSymbolsCategoryOperators => 'Operators';
-
-  @override
   String get mathSymbolsCategoryRelations => 'Relations';
 
   @override
-  String get mathSymbolsCategorySets => 'Sets';
+  String get mathSymbolsCategoryTemplates => 'Templates';
 
   @override
-  String get mathSymbolsCategoryTemplates => 'Templates';
+  String get mathSymbolsCategoryFunctions => 'Functions';
+
+  @override
+  String get mathSymbolsCategoryRecent => 'Recent';
 }
 
 /// The translations for English, as used in the United Kingdom (`en_GB`).

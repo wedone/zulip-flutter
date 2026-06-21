@@ -1572,9 +1572,9 @@
   "mathSymbolsRecentLabel": "最近使用",
   "mathSymbolsNoRecentHint": "暂无记录",
   "mathSymbolsCategoryCommon": "常用",
-  "mathSymbolsCategoryGreek": "希腊",
-  "mathSymbolsCategoryOperators": "运算",
   "mathSymbolsCategoryRelations": "关系",
-  "mathSymbolsCategorySets": "集合",
-  "mathSymbolsCategoryTemplates": "模板"
+  "mathSymbolsCategoryGreek": "希腊",
+  "mathSymbolsCategoryTemplates": "模板",
+  "mathSymbolsCategoryFunctions": "函数",
+  "mathSymbolsCategoryRecent": "最近"
 }

@@ -33,7 +33,7 @@ class MathSymbolsButton extends StatelessWidget {
       width: 44,
       child: IconButton(
         icon: Icon(
-          Icons.functions,
+          Icons.keyboard,
           color: isActive
             ? designVariables.icon
             : designVariables.foreground.withFadedAlpha(0.5),

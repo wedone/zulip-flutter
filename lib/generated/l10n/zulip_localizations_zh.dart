@@ -1415,6 +1415,33 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
 
   @override
   String get topicListEmptyPlaceholderHeader => 'There are no topics here yet.';
+
+  @override
+  String get mathSymbolsButtonTooltip => 'Math symbols';
+
+  @override
+  String get mathSymbolsRecentLabel => 'Recent';
+
+  @override
+  String get mathSymbolsNoRecentHint => 'No recent symbols';
+
+  @override
+  String get mathSymbolsCategoryCommon => 'Common';
+
+  @override
+  String get mathSymbolsCategoryGreek => 'Greek';
+
+  @override
+  String get mathSymbolsCategoryRelations => 'Relations';
+
+  @override
+  String get mathSymbolsCategoryTemplates => 'Templates';
+
+  @override
+  String get mathSymbolsCategoryFunctions => 'Functions';
+
+  @override
+  String get mathSymbolsCategoryRecent => 'Recent';
 }
 
 /// The translations for Chinese, as used in China, using the Han script (`zh_Hans_CN`).
@@ -2554,16 +2581,16 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
   String get mathSymbolsCategoryGreek => '希腊';
 
   @override
-  String get mathSymbolsCategoryOperators => '运算';
-
-  @override
   String get mathSymbolsCategoryRelations => '关系';
 
   @override
-  String get mathSymbolsCategorySets => '集合';
+  String get mathSymbolsCategoryTemplates => '模板';
 
   @override
-  String get mathSymbolsCategoryTemplates => '模板';
+  String get mathSymbolsCategoryFunctions => '函数';
+
+  @override
+  String get mathSymbolsCategoryRecent => '最近';
 }
 
 /// The translations for Chinese, as used in Taiwan, using the Han script (`zh_Hant_TW`).

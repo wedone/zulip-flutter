@@ -4,7 +4,7 @@ import '../../generated/l10n/zulip_localizations.dart';
 import '../../model/math_symbols_history.dart';
 import '../color.dart';
 import '../theme.dart';
-import 'math_symbols_data.dart';
+import 'math_symbols_data.dart' show kMathSymbols, kCommonLeftSymbols, kCommonRightSymbols, MathSymbolCategory, MathSymbolItem, UnicodeSymbol, LatexSnippet, LatexWrapper;
 
 /// The math symbols toolbar that appears above the compose box input.
 ///
@@ -99,6 +99,14 @@ class _MathSymbolsToolbarState extends State<MathSymbolsToolbar>
   void _insertRecentSymbol(String symbol) {
     // Try to find the original MathSymbolItem for proper insertion
     // (with cursor positioning and wrapping behavior).
+    // Search in kCommonLeftSymbols and kCommonRightSymbols first,
+    // then fall back to kMathSymbols.values.
+    for (final item in [...kCommonLeftSymbols, ...kCommonRightSymbols]) {
+      if (item.output == symbol) {
+        _insertSymbol(item);
+        return;
+      }
+    }
     for (final symbols in kMathSymbols.values) {
       for (final item in symbols) {
         if (item is UnicodeSymbol && item.output == symbol) {
@@ -160,18 +168,14 @@ class _MathSymbolsToolbarState extends State<MathSymbolsToolbar>
             labelStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
             unselectedLabelStyle: const TextStyle(fontSize: 14),
             tabs: [
-              Tab(text: _categoryLabel(MathSymbolCategory.common, zulipLocalizations)),
-              Tab(text: _categoryLabel(MathSymbolCategory.greek, zulipLocalizations)),
-              Tab(text: _categoryLabel(MathSymbolCategory.operators, zulipLocalizations)),
-              Tab(text: _categoryLabel(MathSymbolCategory.relations, zulipLocalizations)),
-              Tab(text: _categoryLabel(MathSymbolCategory.sets, zulipLocalizations)),
-              Tab(text: _categoryLabel(MathSymbolCategory.templates, zulipLocalizations)),
+              for (final category in _categoryOrder)
+                Tab(text: _categoryLabel(category, zulipLocalizations)),
             ],
           ),
         ),
         // Symbol grid (with recent section)
         ConstrainedBox(
-          constraints: const BoxConstraints(maxHeight: 220),
+          constraints: const BoxConstraints(maxHeight: 300),
           child: TabBarView(
             controller: _tabController,
             children: [
@@ -192,17 +196,16 @@ class _MathSymbolsToolbarState extends State<MathSymbolsToolbar>
   static String _categoryLabel(MathSymbolCategory category, ZulipLocalizations l) {
     return switch (category) {
       MathSymbolCategory.common    => l.mathSymbolsCategoryCommon,
-      MathSymbolCategory.greek     => l.mathSymbolsCategoryGreek,
-      MathSymbolCategory.operators => l.mathSymbolsCategoryOperators,
       MathSymbolCategory.relations => l.mathSymbolsCategoryRelations,
-      MathSymbolCategory.sets      => l.mathSymbolsCategorySets,
+      MathSymbolCategory.functions => l.mathSymbolsCategoryFunctions,
+      MathSymbolCategory.greek     => l.mathSymbolsCategoryGreek,
       MathSymbolCategory.templates => l.mathSymbolsCategoryTemplates,
+      MathSymbolCategory.recent    => l.mathSymbolsCategoryRecent,
     };
   }
 }
 
-/// A scrollable grid of symbol buttons for a given category,
-/// with an optional "recently used" section at the top.
+/// A scrollable grid of symbol buttons for a given category.
 class _SymbolGrid extends StatelessWidget {
   const _SymbolGrid({
     required this.category,
@@ -220,66 +223,88 @@ class _SymbolGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final symbols = kMathSymbols[category] ?? const [];
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Recently used section (only on the "common" tab)
-          if (category == MathSymbolCategory.common && recentSymbols != null) ...[
-            if (recentSymbols!.isNotEmpty) ...[
-              Padding(
-                padding: const EdgeInsets.fromLTRB(12, 4, 12, 2),
-                child: Text(
-                  zulipLocalizations.mathSymbolsRecentLabel,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: designVariables.foreground.withFadedAlpha(0.5),
-                  ),
-                ),
+    if (category == MathSymbolCategory.common) {
+      return SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Wrap(
+                runAlignment: WrapAlignment.center,
+                children: [
+                  for (final symbol in kCommonLeftSymbols)
+                    _SymbolButton(
+                      display: symbol.display,
+                      onTap: () => onSymbolTap(symbol),
+                    ),
+                ],
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: Wrap(
-                  children: [
-                    for (final symbol in recentSymbols!)
-                      _SymbolButton(
-                        display: symbol,
-                        onTap: () => onRecentSymbolTap(symbol),
-                      ),
-                  ],
-                ),
+            ),
+            Expanded(
+              child: Wrap(
+                runAlignment: WrapAlignment.center,
+                children: [
+                  for (final symbol in kCommonRightSymbols)
+                    _SymbolButton(
+                      display: symbol.display,
+                      onTap: () => onSymbolTap(symbol),
+                    ),
+                ],
               ),
-              const SizedBox(height: 4),
-            ] else ...[
-              Padding(
-                padding: const EdgeInsets.fromLTRB(12, 4, 12, 4),
-                child: Text(
-                  zulipLocalizations.mathSymbolsNoRecentHint,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: designVariables.foreground.withFadedAlpha(0.3),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ],
-          // Symbol grid for this category
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Wrap(
-              children: [
-                for (final symbol in symbols)
-                  _SymbolButton(
-                    display: symbol.display,
-                    onTap: () => onSymbolTap(symbol),
-                  ),
-              ],
+        ),
+      );
+    }
+
+    if (category == MathSymbolCategory.recent) {
+      if (recentSymbols == null || recentSymbols!.isEmpty) {
+        return Center(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              zulipLocalizations.mathSymbolsNoRecentHint,
+              style: TextStyle(
+                fontSize: 14,
+                color: designVariables.foreground.withFadedAlpha(0.3),
+              ),
             ),
           ),
-        ],
+        );
+      }
+      return SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: Wrap(
+            children: [
+              for (final symbol in recentSymbols!)
+                _SymbolButton(
+                  display: symbol,
+                  onTap: () => onRecentSymbolTap(symbol),
+                ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final symbols = kMathSymbols[category] ?? const [];
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: Wrap(
+          children: [
+            for (final symbol in symbols)
+              _SymbolButton(
+                display: symbol.display,
+                onTap: () => onSymbolTap(symbol),
+              ),
+          ],
+        ),
       ),
     );
   }

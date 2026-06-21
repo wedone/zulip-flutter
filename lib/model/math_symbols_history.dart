@@ -12,7 +12,7 @@ class MathSymbolsHistory {
   static const _maxStored = 20;
 
   /// The maximum number of symbols to present for display.
-  static const displayCount = 10;
+  static const displayCount = 20;
 
   /// Record that a symbol was used.
   ///
