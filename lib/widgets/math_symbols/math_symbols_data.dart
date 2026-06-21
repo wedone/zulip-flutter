@@ -1,4 +1,5 @@
 /// Data definitions for the math symbols toolbar.
+library;
 
 /// Categories for organizing math symbols in the toolbar.
 enum MathSymbolCategory {

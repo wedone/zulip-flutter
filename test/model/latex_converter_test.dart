@@ -142,11 +142,11 @@ void main() {
     });
 
     test(r'\[...\] containing $ signs are protected after conversion', () {
-      // After \[...\] is converted to ```math block, the $ signs inside
-      // should not be further converted by Rule 4.
+      // After \[...\] is converted to ```math block, the escaped \$ inside
+      // is restored as-is (LaTeX \$ renders as literal $ in math blocks).
       final input = r'\[\$5 + \$10\]';
       final result = convertLatexDelimitersToZulip(input);
-      check(result).equals('```math\n\$5 + \$10\n```');
+      check(result).equals(r'```math' + '\n' + r'\$5 + \$10' + '\n```');
     });
 
     test(r'$$...$$ with newlines containing $ signs are protected after conversion', () {

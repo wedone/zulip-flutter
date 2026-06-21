@@ -45,7 +45,7 @@ class MathSymbolsHistory {
   static List<String> _decode(String? value) {
     if (value == null) return [];
     try {
-      final list = jsonDecode(value);
+      final list = jsonDecode(value) as List;
       return List<String>.from(list);
     } catch (_) {
       return [];
