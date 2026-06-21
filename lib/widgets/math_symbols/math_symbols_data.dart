@@ -111,6 +111,8 @@ const kCommonLeftSymbols = <UnicodeSymbol>[
   UnicodeSymbol(display: '>', output: '>', category: MathSymbolCategory.common),
   UnicodeSymbol(display: '_', output: '_', category: MathSymbolCategory.common),
   UnicodeSymbol(display: '^', output: '^', category: MathSymbolCategory.common),
+  UnicodeSymbol(display: 'sin', output: 'sin', category: MathSymbolCategory.common),
+  UnicodeSymbol(display: 'cos', output: 'cos', category: MathSymbolCategory.common),
 ];
 
 /// 常用标签右栏：字母+高频希腊字母
