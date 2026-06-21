@@ -239,7 +239,7 @@ const kMathSymbols = <MathSymbolCategory, List<MathSymbolItem>>{
     LatexSnippet(display: 'lim→∞',  output: '\\lim_{x \\to \\infty}', cursorOffset: 0, category: MathSymbolCategory.templates),
     LatexSnippet(display: '矩阵',    output: '\\begin{pmatrix}\n\\end{pmatrix}', cursorOffset: 14, category: MathSymbolCategory.templates),
     LatexSnippet(display: '分段',    output: '\\begin{cases}\n\\end{cases}',     cursorOffset: 11, category: MathSymbolCategory.templates),
-    LatexWrapper(display: '\$…\$',  prefix: '\$\$', suffix: '\$\$', category: MathSymbolCategory.templates),
-    LatexWrapper(display: '```math', prefix: '```math\n', suffix: '\n```', category: MathSymbolCategory.templates),
+    LatexWrapper(display: '\$…\$',  prefix: '\$', suffix: '\$', category: MathSymbolCategory.templates),
+    LatexWrapper(display: '\$\$…\$\$', prefix: '\$\$', suffix: '\$\$', category: MathSymbolCategory.templates),
   ],
 };
