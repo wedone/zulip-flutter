@@ -175,7 +175,7 @@ class _MathSymbolsToolbarState extends State<MathSymbolsToolbar>
         ),
         // Symbol grid (with recent section)
         ConstrainedBox(
-          constraints: const BoxConstraints(maxHeight: 300),
+          constraints: const BoxConstraints(maxHeight: 220),
           child: TabBarView(
             controller: _tabController,
             children: [
