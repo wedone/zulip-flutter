@@ -15,8 +15,10 @@ import '../api/route/messages.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/binding.dart';
 import '../model/compose.dart';
+import '../model/latex_converter.dart';
 import '../model/message.dart';
 import '../model/narrow.dart';
+import '../model/settings.dart';
 import '../model/store.dart';
 import 'actions.dart';
 import 'autocomplete.dart';
@@ -26,6 +28,8 @@ import 'dialog.dart';
 import 'icons.dart';
 import 'inset_shadow.dart';
 import 'message_list.dart';
+import 'math_symbols/math_symbols_button.dart';
+import 'math_symbols/math_symbols_toolbar.dart';
 import 'page.dart';
 import 'store.dart';
 import 'text.dart';
@@ -1335,7 +1339,12 @@ class _SendButtonState extends State<_SendButton> {
     }
 
     final destination = widget.getDestination();
-    final content = controller.content.textNormalized;
+    var content = controller.content.textNormalized;
+    // Auto-convert LaTeX delimiters to Zulip format.
+    final globalSettings = GlobalStoreWidget.settingsOf(context);
+    if (globalSettings.getBool(BoolGlobalSetting.autoConvertLatexDelimiters)) {
+      content = convertLatexDelimitersToZulip(content);
+    }
 
     controller.content.clear();
 
@@ -1459,6 +1468,12 @@ abstract class _ComposeBoxBody extends StatelessWidget {
 
   ComposeBoxController get controller;
 
+  /// Whether the math symbols toolbar is currently visible.
+  bool get mathSymbolsToolbarVisible;
+
+  /// Called to toggle the math symbols toolbar visibility.
+  VoidCallback get toggleMathSymbolsToolbar;
+
   Widget? buildTopicInput();
   Widget buildContentInput();
   bool getComposeButtonsEnabled(BuildContext context);
@@ -1493,6 +1508,11 @@ abstract class _ComposeBoxBody extends StatelessWidget {
       _AttachFileButton(controller: controller, enabled: composeButtonsEnabled),
       _AttachMediaButton(controller: controller, enabled: composeButtonsEnabled),
       _AttachFromCameraButton(controller: controller, enabled: composeButtonsEnabled),
+      MathSymbolsButton(
+        isActive: mathSymbolsToolbarVisible,
+        onPressed: toggleMathSymbolsToolbar,
+        enabled: composeButtonsEnabled,
+      ),
     ];
 
     final topicInput = buildTopicInput();
@@ -1508,6 +1528,10 @@ abstract class _ComposeBoxBody extends StatelessWidget {
               ?topicInput,
               buildContentInput(),
             ]))),
+        if (mathSymbolsToolbarVisible)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: MathSymbolsToolbar(controller: controller.content)),
         SizedBox(
           height: _composeButtonSize,
           child: IconButtonTheme(
@@ -1527,13 +1551,24 @@ abstract class _ComposeBoxBody extends StatelessWidget {
 /// This offers a text input for the topic to send to,
 /// in addition to a text input for the message content.
 class _StreamComposeBoxBody extends _ComposeBoxBody {
-  _StreamComposeBoxBody({required this.narrow, required this.controller});
+  _StreamComposeBoxBody({
+    required this.narrow,
+    required this.controller,
+    required this.mathSymbolsToolbarVisible,
+    required this.toggleMathSymbolsToolbar,
+  });
 
   @override
   final ChannelNarrow narrow;
 
   @override
   final StreamComposeBoxController controller;
+
+  @override
+  final bool mathSymbolsToolbarVisible;
+
+  @override
+  final VoidCallback toggleMathSymbolsToolbar;
 
   @override Widget buildTopicInput() => _TopicInput(
     channelId: narrow.channelId,
@@ -1555,13 +1590,24 @@ class _StreamComposeBoxBody extends _ComposeBoxBody {
 }
 
 class _FixedDestinationComposeBoxBody extends _ComposeBoxBody {
-  _FixedDestinationComposeBoxBody({required this.narrow, required this.controller});
+  _FixedDestinationComposeBoxBody({
+    required this.narrow,
+    required this.controller,
+    required this.mathSymbolsToolbarVisible,
+    required this.toggleMathSymbolsToolbar,
+  });
 
   @override
   final SendableNarrow narrow;
 
   @override
   final FixedDestinationComposeBoxController controller;
+
+  @override
+  final bool mathSymbolsToolbarVisible;
+
+  @override
+  final VoidCallback toggleMathSymbolsToolbar;
 
   @override Widget? buildTopicInput() => null;
 
@@ -1580,13 +1626,24 @@ class _FixedDestinationComposeBoxBody extends _ComposeBoxBody {
 
 /// A compose box for editing an already-sent message.
 class _EditMessageComposeBoxBody extends _ComposeBoxBody {
-  _EditMessageComposeBoxBody({required this.narrow, required this.controller});
+  _EditMessageComposeBoxBody({
+    required this.narrow,
+    required this.controller,
+    required this.mathSymbolsToolbarVisible,
+    required this.toggleMathSymbolsToolbar,
+  });
 
   @override
   final Narrow narrow;
 
   @override
   final EditMessageComposeBoxController controller;
+
+  @override
+  final bool mathSymbolsToolbarVisible;
+
+  @override
+  final VoidCallback toggleMathSymbolsToolbar;
 
   @override Widget? buildTopicInput() => null;
 
@@ -2056,6 +2113,14 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
   @override ComposeBoxController get controller => _controller!;
   ComposeBoxController? _controller;
 
+  bool _mathSymbolsToolbarVisible = false;
+
+  void _toggleMathSymbolsToolbar() {
+    setState(() {
+      _mathSymbolsToolbarVisible = !_mathSymbolsToolbarVisible;
+    });
+  }
+
   @override
   void restoreMessageNotSent(int localMessageId) async {
     final zulipLocalizations = ZulipLocalizations.of(context);
@@ -2224,6 +2289,7 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
 
   void _setNewController(PerAccountStore store) {
     _controller?.dispose(); // `?.` because this might be the first call
+    _mathSymbolsToolbarVisible = false;
     switch (widget.narrow) {
       case ChannelNarrow():
         _controller = StreamComposeBoxController(store: store);
@@ -2347,14 +2413,29 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
     switch (controller) {
       case StreamComposeBoxController(): {
         narrow as ChannelNarrow;
-        body = _StreamComposeBoxBody(controller: controller, narrow: narrow);
+        body = _StreamComposeBoxBody(
+          controller: controller,
+          narrow: narrow,
+          mathSymbolsToolbarVisible: _mathSymbolsToolbarVisible,
+          toggleMathSymbolsToolbar: _toggleMathSymbolsToolbar,
+        );
       }
       case FixedDestinationComposeBoxController(): {
         narrow as SendableNarrow;
-        body = _FixedDestinationComposeBoxBody(controller: controller, narrow: narrow);
+        body = _FixedDestinationComposeBoxBody(
+          controller: controller,
+          narrow: narrow,
+          mathSymbolsToolbarVisible: _mathSymbolsToolbarVisible,
+          toggleMathSymbolsToolbar: _toggleMathSymbolsToolbar,
+        );
       }
       case EditMessageComposeBoxController(): {
-        body = _EditMessageComposeBoxBody(controller: controller, narrow: narrow);
+        body = _EditMessageComposeBoxBody(
+          controller: controller,
+          narrow: narrow,
+          mathSymbolsToolbarVisible: _mathSymbolsToolbarVisible,
+          toggleMathSymbolsToolbar: _toggleMathSymbolsToolbar,
+        );
         banner = _Banner(
           intent: _BannerIntent.info,
           label: zulipLocalizations.composeBoxBannerLabelEditMessage,

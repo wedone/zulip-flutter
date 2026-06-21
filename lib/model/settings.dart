@@ -181,6 +181,9 @@ enum BoolGlobalSetting {
   /// errors are encountered.
   forceRenderKatex(GlobalSettingType.experimentalFeatureFlag, false),
 
+  /// An experimental flag to enable automatic conversion of LaTeX delimiters.
+  autoConvertLatexDelimiters(GlobalSettingType.experimentalFeatureFlag, true),
+
   // Former settings which might exist in the database,
   // whose names should therefore not be reused:
   //   openFirstUnread  // v0.0.30

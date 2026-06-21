@@ -20,6 +20,7 @@ import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/message.dart';
 import 'package:zulip/model/narrow.dart';
+import 'package:zulip/model/settings.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/model/typing_status.dart';
 import 'package:zulip/widgets/app.dart';
@@ -2528,6 +2529,102 @@ void main() {
       // Regression coverage for the "third buggy behavior"
       // in https://github.com/zulip/zulip-flutter/issues/1798 .
       checkEditInProgressInMsglist(tester, messageId: message.id, expected: false);
+    });
+  });
+
+  group('LaTeX delimiter auto-conversion on send', () {
+    final channel = eg.stream();
+    final topic = 'topic';
+    final topicNarrow = eg.topicNarrow(channel.streamId, topic);
+
+    testWidgets('when autoConvertLatexDelimiters is enabled, content is converted', (tester) async {
+      TypingNotifier.debugEnable = false;
+      addTearDown(TypingNotifier.debugReset);
+      MessageStoreImpl.debugOutboxEnable = false;
+      addTearDown(MessageStoreImpl.debugReset);
+
+      await prepareComposeBox(tester,
+        narrow: topicNarrow,
+        subscriptions: [eg.subscription(channel)]);
+
+      // The default for autoConvertLatexDelimiters is true.
+      check(testBinding.globalStore.settings.getBool(BoolGlobalSetting.autoConvertLatexDelimiters)).isTrue();
+
+      await enterContent(tester, r'some $x^2$ math');
+      await tapSendButton(tester);
+      check(connection.takeRequests()).single.isA<http.Request>()
+        ..method.equals('POST')
+        ..url.path.equals('/api/v1/messages')
+        ..bodyFields.deepEquals({
+          'type': 'stream',
+          'to': channel.streamId.toString(),
+          'topic': topic,
+          'content': r'some $$x^2$$ math',
+          'read_by_sender': 'true',
+        });
+    });
+
+    testWidgets('when autoConvertLatexDelimiters is disabled, content is not converted', (tester) async {
+      TypingNotifier.debugEnable = false;
+      addTearDown(TypingNotifier.debugReset);
+      MessageStoreImpl.debugOutboxEnable = false;
+      addTearDown(MessageStoreImpl.debugReset);
+
+      await prepareComposeBox(tester,
+        narrow: topicNarrow,
+        subscriptions: [eg.subscription(channel)]);
+
+      await testBinding.globalStore.settings.setBool(BoolGlobalSetting.autoConvertLatexDelimiters, false);
+      check(testBinding.globalStore.settings.getBool(BoolGlobalSetting.autoConvertLatexDelimiters)).isFalse();
+
+      await enterContent(tester, r'some $x^2$ math');
+      await tapSendButton(tester);
+      check(connection.takeRequests()).single.isA<http.Request>()
+        ..method.equals('POST')
+        ..url.path.equals('/api/v1/messages')
+        ..bodyFields.deepEquals({
+          'type': 'stream',
+          'to': channel.streamId.toString(),
+          'topic': topic,
+          'content': r'some $x^2$ math',
+          'read_by_sender': 'true',
+        });
+    });
+
+    testWidgets('edit message does not convert LaTeX delimiters', (tester) async {
+      MessageStoreImpl.debugOutboxEnable = false;
+      addTearDown(MessageStoreImpl.debugReset);
+
+      final message = eg.streamMessage(sender: eg.selfUser, stream: channel, topic: topic);
+      await prepareComposeBox(tester,
+        narrow: topicNarrow,
+        subscriptions: [eg.subscription(channel)]);
+      await store.addMessages([message]);
+      await tester.pump();
+
+      // Start edit interaction
+      await startEditInteractionFromActionSheet(tester,
+        messageId: message.id, originalRawContent: r'some $x^2$ math');
+      await tester.pump(Duration(seconds: 1)); // fetch-raw-content request
+      checkContentInputValue(tester, r'some $x^2$ math');
+
+      // Edit the content
+      await enterContent(tester, r'some $y^2$ math');
+
+      // Save the edit
+      connection.prepare(json: UpdateMessageResult().toJson());
+      await tester.tap(find.widgetWithText(ZulipWebUiKitButton, 'Save'));
+      await tester.pump(Duration.zero);
+
+      // The edit request should NOT have converted the delimiters
+      final prevContentSha256 = sha256.convert(utf8.encode(r'some $x^2$ math')).toString();
+      check(connection.takeRequests()).single.isA<http.Request>()
+        ..method.equals('PATCH')
+        ..url.path.equals('/api/v1/messages/${message.id}')
+        ..bodyFields.deepEquals({
+          'prev_content_sha256': prevContentSha256,
+          'content': r'some $y^2$ math',
+        });
     });
   });
 }

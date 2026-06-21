@@ -2467,6 +2467,60 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'There are no topics here yet.'**
   String get topicListEmptyPlaceholderHeader;
+
+  /// Tooltip for the math symbols button in the compose box.
+  ///
+  /// In en, this message translates to:
+  /// **'Math symbols'**
+  String get mathSymbolsButtonTooltip;
+
+  /// Label for the recently used math symbols section in the math symbols toolbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent'**
+  String get mathSymbolsRecentLabel;
+
+  /// Hint text shown when there are no recently used math symbols.
+  ///
+  /// In en, this message translates to:
+  /// **'No recent symbols'**
+  String get mathSymbolsNoRecentHint;
+
+  /// Tab label for the common math symbols category.
+  ///
+  /// In en, this message translates to:
+  /// **'Common'**
+  String get mathSymbolsCategoryCommon;
+
+  /// Tab label for the Greek letters math symbols category.
+  ///
+  /// In en, this message translates to:
+  /// **'Greek'**
+  String get mathSymbolsCategoryGreek;
+
+  /// Tab label for the operators math symbols category.
+  ///
+  /// In en, this message translates to:
+  /// **'Operators'**
+  String get mathSymbolsCategoryOperators;
+
+  /// Tab label for the relations math symbols category.
+  ///
+  /// In en, this message translates to:
+  /// **'Relations'**
+  String get mathSymbolsCategoryRelations;
+
+  /// Tab label for the sets math symbols category.
+  ///
+  /// In en, this message translates to:
+  /// **'Sets'**
+  String get mathSymbolsCategorySets;
+
+  /// Tab label for the templates math symbols category.
+  ///
+  /// In en, this message translates to:
+  /// **'Templates'**
+  String get mathSymbolsCategoryTemplates;
 }
 
 class _ZulipLocalizationsDelegate

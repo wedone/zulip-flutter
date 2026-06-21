@@ -1705,5 +1705,41 @@
   "topicListEmptyPlaceholderHeader": "There are no topics here yet.",
   "@topicListEmptyPlaceholderHeader": {
     "description": "Header text shown when a channel has no topics."
+  },
+  "mathSymbolsButtonTooltip": "Math symbols",
+  "@mathSymbolsButtonTooltip": {
+    "description": "Tooltip for the math symbols button in the compose box."
+  },
+  "mathSymbolsRecentLabel": "Recent",
+  "@mathSymbolsRecentLabel": {
+    "description": "Label for the recently used math symbols section in the math symbols toolbar."
+  },
+  "mathSymbolsNoRecentHint": "No recent symbols",
+  "@mathSymbolsNoRecentHint": {
+    "description": "Hint text shown when there are no recently used math symbols."
+  },
+  "mathSymbolsCategoryCommon": "Common",
+  "@mathSymbolsCategoryCommon": {
+    "description": "Tab label for the common math symbols category."
+  },
+  "mathSymbolsCategoryGreek": "Greek",
+  "@mathSymbolsCategoryGreek": {
+    "description": "Tab label for the Greek letters math symbols category."
+  },
+  "mathSymbolsCategoryOperators": "Operators",
+  "@mathSymbolsCategoryOperators": {
+    "description": "Tab label for the operators math symbols category."
+  },
+  "mathSymbolsCategoryRelations": "Relations",
+  "@mathSymbolsCategoryRelations": {
+    "description": "Tab label for the relations math symbols category."
+  },
+  "mathSymbolsCategorySets": "Sets",
+  "@mathSymbolsCategorySets": {
+    "description": "Tab label for the sets math symbols category."
+  },
+  "mathSymbolsCategoryTemplates": "Templates",
+  "@mathSymbolsCategoryTemplates": {
+    "description": "Tab label for the templates math symbols category."
   }
 }

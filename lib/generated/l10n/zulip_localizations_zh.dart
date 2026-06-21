@@ -2537,6 +2537,33 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
 
   @override
   String get zulipAppTitle => 'Zulip';
+
+  @override
+  String get mathSymbolsButtonTooltip => '数学符号';
+
+  @override
+  String get mathSymbolsRecentLabel => '最近使用';
+
+  @override
+  String get mathSymbolsNoRecentHint => '暂无记录';
+
+  @override
+  String get mathSymbolsCategoryCommon => '常用';
+
+  @override
+  String get mathSymbolsCategoryGreek => '希腊';
+
+  @override
+  String get mathSymbolsCategoryOperators => '运算';
+
+  @override
+  String get mathSymbolsCategoryRelations => '关系';
+
+  @override
+  String get mathSymbolsCategorySets => '集合';
+
+  @override
+  String get mathSymbolsCategoryTemplates => '模板';
 }
 
 /// The translations for Chinese, as used in Taiwan, using the Han script (`zh_Hant_TW`).
