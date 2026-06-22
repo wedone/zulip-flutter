@@ -1462,6 +1462,100 @@ class _ComposeBoxContainer extends StatelessWidget {
   }
 }
 
+/// 删除按钮（backspace），仅在数学面板可见时显示。
+class _BackspaceButton extends StatelessWidget {
+  const _BackspaceButton({required this.controller, required this.enabled});
+
+  final TextEditingController controller;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    return SizedBox(
+      width: _composeButtonSize,
+      child: IconButton(
+        icon: Icon(Icons.backspace_outlined,
+          color: designVariables.foreground.withFadedAlpha(0.5)),
+        onPressed: enabled ? _backspace : null,
+      ),
+    );
+  }
+
+  void _backspace() {
+    final selection = controller.selection;
+    if (!selection.isValid) return;
+    final text = controller.text;
+    final offset = selection.baseOffset;
+    if (offset > 0) {
+      controller.value = TextEditingValue(
+        text: text.substring(0, offset - 1) + text.substring(offset),
+        selection: TextSelection.collapsed(offset: offset - 1),
+      );
+    }
+  }
+}
+
+/// 光标左移按钮，仅在数学面板可见时显示。
+class _CursorLeftButton extends StatelessWidget {
+  const _CursorLeftButton({required this.controller, required this.enabled});
+
+  final TextEditingController controller;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    return SizedBox(
+      width: _composeButtonSize,
+      child: IconButton(
+        icon: Icon(Icons.arrow_back,
+          color: designVariables.foreground.withFadedAlpha(0.5)),
+        onPressed: enabled ? _cursorLeft : null,
+      ),
+    );
+  }
+
+  void _cursorLeft() {
+    final selection = controller.selection;
+    if (!selection.isValid) return;
+    final offset = selection.baseOffset;
+    if (offset > 0) {
+      controller.selection = TextSelection.collapsed(offset: offset - 1);
+    }
+  }
+}
+
+/// 光标右移按钮，仅在数学面板可见时显示。
+class _CursorRightButton extends StatelessWidget {
+  const _CursorRightButton({required this.controller, required this.enabled});
+
+  final TextEditingController controller;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    return SizedBox(
+      width: _composeButtonSize,
+      child: IconButton(
+        icon: Icon(Icons.arrow_forward,
+          color: designVariables.foreground.withFadedAlpha(0.5)),
+        onPressed: enabled ? _cursorRight : null,
+      ),
+    );
+  }
+
+  void _cursorRight() {
+    final selection = controller.selection;
+    if (!selection.isValid) return;
+    final offset = selection.baseOffset;
+    if (offset < controller.text.length) {
+      controller.selection = TextSelection.collapsed(offset: offset + 1);
+    }
+  }
+}
+
 /// The text inputs, compose-button row, and send button for the compose box.
 abstract class _ComposeBoxBody extends StatelessWidget {
   /// The narrow on view in the message list.
@@ -1514,6 +1608,11 @@ abstract class _ComposeBoxBody extends StatelessWidget {
         onPressed: toggleMathSymbolsToolbar,
         enabled: composeButtonsEnabled,
       ),
+      if (mathSymbolsToolbarVisible) ...[
+        _BackspaceButton(controller: controller.content, enabled: composeButtonsEnabled),
+        _CursorLeftButton(controller: controller.content, enabled: composeButtonsEnabled),
+        _CursorRightButton(controller: controller.content, enabled: composeButtonsEnabled),
+      ],
     ];
 
     final topicInput = buildTopicInput();
