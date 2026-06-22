@@ -22,6 +22,8 @@ typedef LatexAtCursor = ({String content, bool displayMode});
 /// 3. `\[...\]` (display math)
 /// 4. `\(...\)` (inline math)
 /// 5. `$...$` (inline math, content must not contain `$` or newlines)
+///
+/// Escaped delimiters (preceded by odd number of backslashes) are not matched.
 LatexAtCursor? findLatexAtCursor(String text, int cursorPosition) {
   if (cursorPosition < 0 || cursorPosition > text.length) return null;
   if (text.isEmpty) return null;
@@ -36,11 +38,15 @@ LatexAtCursor? findLatexAtCursor(String text, int cursorPosition) {
 
 /// Finds `$$...$$` with newlines inside (display math).
 LatexAtCursor? _findDollarDollarDisplay(String text, int cursorPosition) {
-  final pattern = RegExp(r'(?<!\$)\$\$([\s\S]*?\n[\s\S]*?)\$\$(?!\$)');
+  // (?<!\\) ensures the opening $$ is not escaped.
+  // (?<!\$) ensures it's not preceded by another $ (not part of $$$).
+  // (?!\$) after closing $$ ensures it's not followed by another $.
+  final pattern = RegExp(r'(?<!\\)(?<!\$)\$\$([\s\S]*?\n[\s\S]*?)\$\$(?!\$)');
   for (final match in pattern.allMatches(text)) {
     final start = match.start;
     final end = match.end;
-    if (cursorPosition >= start && cursorPosition <= end) {
+    // Cursor must be strictly inside the delimiters (not at the boundary).
+    if (cursorPosition > start && cursorPosition < end) {
       return (content: match.group(1)!, displayMode: true);
     }
   }
@@ -53,11 +59,11 @@ LatexAtCursor? _findDollarDollarDisplay(String text, int cursorPosition) {
 /// While this is Zulip's inline math format, for preview purposes we
 /// still want to show the rendered formula.
 LatexAtCursor? _findDollarDollarInline(String text, int cursorPosition) {
-  final pattern = RegExp(r'(?<!\$)\$\$([^\n$]*?)\$\$(?!\$)');
+  final pattern = RegExp(r'(?<!\\)(?<!\$)\$\$([^\n$]*?)\$\$(?!\$)');
   for (final match in pattern.allMatches(text)) {
     final start = match.start;
     final end = match.end;
-    if (cursorPosition >= start && cursorPosition <= end) {
+    if (cursorPosition > start && cursorPosition < end) {
       return (content: match.group(1)!, displayMode: false);
     }
   }
@@ -66,11 +72,14 @@ LatexAtCursor? _findDollarDollarInline(String text, int cursorPosition) {
 
 /// Finds `\[...\]` (display math).
 LatexAtCursor? _findDisplayBrackets(String text, int cursorPosition) {
+  // (?<!\\) before \[ ensures it's not escaped (like \\[).
+  // (?<!\\) before \] ensures it's not escaped.
   final pattern = RegExp(r'(?<!\\)\\\[([\s\S]*?)(?<!\\)\\\]');
   for (final match in pattern.allMatches(text)) {
     final start = match.start;
     final end = match.end;
-    if (cursorPosition >= start && cursorPosition <= end) {
+    // Cursor must be strictly inside the delimiters.
+    if (cursorPosition > start && cursorPosition < end) {
       return (content: match.group(1)!, displayMode: true);
     }
   }
@@ -83,7 +92,7 @@ LatexAtCursor? _findInlineParentheses(String text, int cursorPosition) {
   for (final match in pattern.allMatches(text)) {
     final start = match.start;
     final end = match.end;
-    if (cursorPosition >= start && cursorPosition <= end) {
+    if (cursorPosition > start && cursorPosition < end) {
       return (content: match.group(1)!, displayMode: false);
     }
   }
@@ -92,16 +101,16 @@ LatexAtCursor? _findInlineParentheses(String text, int cursorPosition) {
 
 /// Finds `$...$` (inline math).
 ///
-/// Uses the same regex pattern as latex_converter.dart:
-/// - `(?<!\$)\$(?!\$)` matches a single `$` not part of `$$`
+/// Uses regex pattern similar to latex_converter.dart but with escape check:
+/// - `(?<!\\)(?<!\$)\$(?!\$)` matches a single `$` not escaped and not part of `$$`
 /// - `([^\n$]*?)` content must not contain `$` or newlines
 /// - `\$(?!\$)` closing `$` not part of `$$`
 LatexAtCursor? _findSingleDollar(String text, int cursorPosition) {
-  final pattern = RegExp(r'(?<!\$)\$(?!\$)([^\n$]*?)\$(?!\$)');
+  final pattern = RegExp(r'(?<!\\)(?<!\$)\$(?!\$)([^\n$]*?)\$(?!\$)');
   for (final match in pattern.allMatches(text)) {
     final start = match.start;
     final end = match.end;
-    if (cursorPosition >= start && cursorPosition <= end) {
+    if (cursorPosition > start && cursorPosition < end) {
       return (content: match.group(1)!, displayMode: false);
     }
   }

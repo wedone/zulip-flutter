@@ -12,18 +12,27 @@ void main() {
       check(result.displayMode).equals(false);
     });
 
-    test(r'$x^2$ cursor at start returns formula', () {
-      final result = findLatexAtCursor(r'$x^2$', 0);
+    test(r'$x^2$ cursor at start (inside delimiter) returns formula', () {
+      // Cursor at position 1 (just after opening $, inside the formula)
+      final result = findLatexAtCursor(r'$x^2$', 1);
       check(result).isNotNull();
       check(result!.content).equals(r'x^2');
       check(result.displayMode).equals(false);
     });
 
-    test(r'$x^2$ cursor at end (text.length) returns formula', () {
-      final result = findLatexAtCursor(r'$x^2$', 5);
+    test(r'$x^2$ cursor at end (inside delimiter) returns formula', () {
+      // Cursor at position 4 (just before closing $, inside the formula)
+      final result = findLatexAtCursor(r'$x^2$', 4);
       check(result).isNotNull();
       check(result!.content).equals(r'x^2');
       check(result.displayMode).equals(false);
+    });
+
+    test(r'$x^2$ cursor at boundary (outside) returns null', () {
+      // Cursor at position 0 (at opening $) or 5 (at closing $) is outside
+      check(findLatexAtCursor(r'$x^2$', 0)).isNull();
+      check(findLatexAtCursor(r'$x^2$', 5)).isNull();
+      check(findLatexAtCursor(r'$x^2$', 6)).isNull();
     });
 
     // Unclosed $...$
@@ -101,14 +110,16 @@ void main() {
       check(resultC!.content).equals('c');
     });
 
-    // Cursor between two formulas
+    // Cursor between two formulas (strictly outside)
     test(r'\[a\] \[b\] cursor between formulas returns null', () {
       final text = r'\[a\] \[b\]';
+      // Cursor at position 5 (space between the two formulas)
       check(findLatexAtCursor(text, 5)).isNull();
     });
 
     test(r'$a$ $b$ cursor between formulas returns null', () {
       final text = r'$a$ $b$';
+      // Cursor at position 4 (space between)
       check(findLatexAtCursor(text, 4)).isNull();
     });
 
@@ -143,14 +154,6 @@ void main() {
       check(resultDisplay.displayMode).equals(true);
     });
 
-    // Cursor position at boundary
-    test(r'cursor at $ delimiter boundary', () {
-      final text = r'$x^2$';
-      check(findLatexAtCursor(text, 1)).isNotNull();
-      check(findLatexAtCursor(text, 5)).isNotNull();
-      check(findLatexAtCursor(text, 6)).isNull();
-    });
-
     // Invalid cursor position
     test('negative cursor position returns null', () {
       check(findLatexAtCursor(r'$x$', -1)).isNull();
@@ -168,10 +171,12 @@ void main() {
 
     test(r'text with \$5 and $x^2$ only matches $x^2$', () {
       final text = r'\$5 and $x^2$';
+      // Cursor inside $x^2$ (position 10 is the ^)
       final result = findLatexAtCursor(text, 10);
       check(result).isNotNull();
       check(result!.content).equals(r'x^2');
-      check(findLatexAtCursor(text, 1)).isNull();
+      // Cursor at \$5 (position 2) should not match
+      check(findLatexAtCursor(text, 2)).isNull();
     });
 
     // $$ with newlines takes precedence over $$ without
@@ -180,13 +185,6 @@ void main() {
       final result = findLatexAtCursor(text, 3);
       check(result).isNotNull();
       check(result!.displayMode).equals(true);
-    });
-
-    // Cursor at text.length (end of text)
-    test('cursor at text.length does not crash', () {
-      final text = r'$x$';
-      final result = findLatexAtCursor(text, 3);
-      check(result).isNotNull();
     });
 
     // Multiple $$ blocks
