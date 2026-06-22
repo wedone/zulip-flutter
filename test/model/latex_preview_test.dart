@@ -105,7 +105,7 @@ void main() {
       check(resultB).isNotNull();
       check(resultB!.content).equals('b');
 
-      final resultC = findLatexAtCursor(text, 16);
+      final resultC = findLatexAtCursor(text, 17);
       check(resultC).isNotNull();
       check(resultC!.content).equals('c');
     });
