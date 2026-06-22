@@ -295,7 +295,7 @@ const kMathSymbols = <MathSymbolCategory, List<MathSymbolItem>>{
     LatexSnippet(display: '矩阵',    output: '\\begin{pmatrix}\n\\end{pmatrix}', cursorOffset: 14, category: MathSymbolCategory.templates),
     LatexSnippet(display: '分段',    output: '\\begin{cases}\n\\end{cases}',     cursorOffset: 11, category: MathSymbolCategory.templates),
     LatexWrapper(display: '\$…\$',  prefix: '\$', suffix: '\$', category: MathSymbolCategory.templates),
-    LatexWrapper(display: '\$\$…\$\$', prefix: '\$\$', suffix: '\$\$', category: MathSymbolCategory.templates),
+    LatexWrapper(display: '\$\$\\n…\\n\$\$', prefix: '\$\$\n', suffix: '\n\$\$', category: MathSymbolCategory.templates),
     LatexSnippet(display: 'logₐb', output: '\\log_{}{}', cursorOffset: 3, category: MathSymbolCategory.templates),
     LatexWrapper(display: '{…}', prefix: '\\{', suffix: '\\}', category: MathSymbolCategory.templates),
     LatexSnippet(display: 'align', output: '\\begin{align}\n\\end{align}', cursorOffset: 14, category: MathSymbolCategory.templates),
