@@ -134,6 +134,13 @@ class _MathSymbolsToolbarState extends State<MathSymbolsToolbar>
     _loadRecentSymbols();
   }
 
+  /// 插入长按变体符号（如大写字母长按弹出的小写字母）。
+  void _insertVariantText(String text) {
+    _insertText(text, cursorOffset: 0);
+    MathSymbolsHistory.recordSymbol(text);
+    _loadRecentSymbols();
+  }
+
   void _insertText(String text, {required int cursorOffset}) {
     final controller = widget.controller;
     final selection = controller.selection;
@@ -190,6 +197,7 @@ class _MathSymbolsToolbarState extends State<MathSymbolsToolbar>
                   recentSymbols: _recentLoaded ? _recentSymbols : null,
                   onSymbolTap: _insertSymbol,
                   onRecentSymbolTap: _insertRecentSymbol,
+                  onVariantTap: _insertVariantText,
                 ),
             ],
           ),
@@ -217,12 +225,14 @@ class _SymbolGrid extends StatelessWidget {
     required this.recentSymbols,
     required this.onSymbolTap,
     required this.onRecentSymbolTap,
+    required this.onVariantTap,
   });
 
   final MathSymbolCategory category;
   final List<String>? recentSymbols;
   final void Function(MathSymbolItem) onSymbolTap;
   final void Function(String) onRecentSymbolTap;
+  final void Function(String) onVariantTap;
 
   @override
   Widget build(BuildContext context) {
@@ -255,6 +265,8 @@ class _SymbolGrid extends StatelessWidget {
                     _SymbolButton(
                       display: symbol.display,
                       onTap: () => onSymbolTap(symbol),
+                      onLongPressVariant: _lowercaseVariant(symbol.display),
+                      onVariantTap: onVariantTap,
                     ),
                 ],
               ),
@@ -313,6 +325,15 @@ class _SymbolGrid extends StatelessWidget {
       ),
     );
   }
+
+  /// 返回大写英文字母对应的小写形式，用于长按变体。
+  /// 非大写字母返回 null。
+  static String? _lowercaseVariant(String display) {
+    if (display.length == 1 && display.codeUnitAt(0) >= 0x41 && display.codeUnitAt(0) <= 0x5A) {
+      return display.toLowerCase();
+    }
+    return null;
+  }
 }
 
 /// A single symbol button in the grid.
@@ -320,10 +341,20 @@ class _SymbolButton extends StatelessWidget {
   const _SymbolButton({
     required this.display,
     required this.onTap,
+    this.onLongPressVariant,
+    this.onVariantTap,
   });
 
   final String display;
+
   final VoidCallback onTap;
+
+  /// 长按时直接插入的变体符号（如大写字母长按插入小写）。
+  /// 为 null 时不支持长按。
+  final String? onLongPressVariant;
+
+  /// 插入变体符号时的回调。
+  final void Function(String variant)? onVariantTap;
 
   @override
   Widget build(BuildContext context) {
@@ -334,6 +365,9 @@ class _SymbolButton extends StatelessWidget {
       height: 44,
       child: IconButton(
         onPressed: onTap,
+        onLongPress: onLongPressVariant != null
+          ? () => onVariantTap?.call(onLongPressVariant!)
+          : null,
         style: IconButton.styleFrom(
           splashFactory: NoSplash.splashFactory,
           highlightColor: designVariables.editorButtonPressedBg,
