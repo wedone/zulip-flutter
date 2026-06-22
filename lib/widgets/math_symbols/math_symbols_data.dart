@@ -75,48 +75,57 @@ class LatexWrapper extends MathSymbolItem {
   });
 }
 
-/// 常用标签左栏：数字+运算符
-const kCommonLeftSymbols = <UnicodeSymbol>[
+/// 常用标签左栏：数字+运算符+成对符号+模板
+const kCommonLeftSymbols = <MathSymbolItem>[
+  // 第1行: 数字 0-3
   UnicodeSymbol(display: '0', output: '0', category: MathSymbolCategory.common),
   UnicodeSymbol(display: '1', output: '1', category: MathSymbolCategory.common),
   UnicodeSymbol(display: '2', output: '2', category: MathSymbolCategory.common),
   UnicodeSymbol(display: '3', output: '3', category: MathSymbolCategory.common),
+  // 第2行: 数字 4-7
   UnicodeSymbol(display: '4', output: '4', category: MathSymbolCategory.common),
   UnicodeSymbol(display: '5', output: '5', category: MathSymbolCategory.common),
   UnicodeSymbol(display: '6', output: '6', category: MathSymbolCategory.common),
   UnicodeSymbol(display: '7', output: '7', category: MathSymbolCategory.common),
+  // 第3行: 数字 8-9 + 小数点 + 等号
   UnicodeSymbol(display: '8', output: '8', category: MathSymbolCategory.common),
   UnicodeSymbol(display: '9', output: '9', category: MathSymbolCategory.common),
   UnicodeSymbol(display: '.', output: '.', category: MathSymbolCategory.common),
-  UnicodeSymbol(display: ',', output: ',', category: MathSymbolCategory.common),
+  UnicodeSymbol(display: '=', output: '=', category: MathSymbolCategory.common),
+  // 第4行: 四则运算
   UnicodeSymbol(display: '+', output: '+', category: MathSymbolCategory.common),
   UnicodeSymbol(display: '−', output: '−', category: MathSymbolCategory.common),
   UnicodeSymbol(display: '×', output: '×', category: MathSymbolCategory.common),
-  UnicodeSymbol(display: '÷', output: '÷', category: MathSymbolCategory.common),
-  UnicodeSymbol(display: '=', output: '=', category: MathSymbolCategory.common),
+  UnicodeSymbol(display: '/', output: '/', category: MathSymbolCategory.common),
+  // 第5行: 根号+点乘+逗号+行内公式界定符
   UnicodeSymbol(display: '√', output: '√', category: MathSymbolCategory.common),
   UnicodeSymbol(display: '⋅', output: '⋅', category: MathSymbolCategory.common),
-  UnicodeSymbol(display: '|', output: '|', category: MathSymbolCategory.common),
-  UnicodeSymbol(display: '/', output: '/', category: MathSymbolCategory.common),
-  UnicodeSymbol(display: '≠', output: '≠', category: MathSymbolCategory.common),
-  UnicodeSymbol(display: '(', output: '(', category: MathSymbolCategory.common),
-  UnicodeSymbol(display: ')', output: ')', category: MathSymbolCategory.common),
-  UnicodeSymbol(display: '[', output: '[', category: MathSymbolCategory.common),
-  UnicodeSymbol(display: ']', output: ']', category: MathSymbolCategory.common),
-  UnicodeSymbol(display: '{', output: '{', category: MathSymbolCategory.common),
-  UnicodeSymbol(display: '}', output: '}', category: MathSymbolCategory.common),
-  UnicodeSymbol(display: '≤', output: '≤', category: MathSymbolCategory.common),
-  UnicodeSymbol(display: '≥', output: '≥', category: MathSymbolCategory.common),
+  UnicodeSymbol(display: ',', output: ',', category: MathSymbolCategory.common),
+  LatexSnippet(display: '\$\$', output: '\$\$', cursorOffset: 1, category: MathSymbolCategory.common),
+  // 第6行: 成对括号（光标在中间）
+  LatexSnippet(display: '()', output: '()', cursorOffset: 1, category: MathSymbolCategory.common),
+  LatexSnippet(display: '[]', output: '[]', cursorOffset: 1, category: MathSymbolCategory.common),
+  LatexSnippet(display: '{}', output: '{}', cursorOffset: 1, category: MathSymbolCategory.common),
+  LatexSnippet(display: '||', output: '||', cursorOffset: 1, category: MathSymbolCategory.common),
+  // 第7行: 关系符+上下标
   UnicodeSymbol(display: '<', output: '<', category: MathSymbolCategory.common),
   UnicodeSymbol(display: '>', output: '>', category: MathSymbolCategory.common),
   UnicodeSymbol(display: '_', output: '_', category: MathSymbolCategory.common),
   UnicodeSymbol(display: '^', output: '^', category: MathSymbolCategory.common),
-  UnicodeSymbol(display: 'sin', output: 'sin', category: MathSymbolCategory.common),
-  UnicodeSymbol(display: 'cos', output: 'cos', category: MathSymbolCategory.common),
+  // 第8行: 上标+LaTeX模板
+  UnicodeSymbol(display: '²', output: '²', category: MathSymbolCategory.common),
+  UnicodeSymbol(display: '³', output: '³', category: MathSymbolCategory.common),
+  LatexSnippet(display: 'a/b', output: '\\frac{}{}', cursorOffset: 3, category: MathSymbolCategory.common),
+  LatexSnippet(display: 'xₙᵐ', output: '_{}^{}', cursorOffset: 4, category: MathSymbolCategory.common),
+  // 第9行: 根号模板+向量
+  LatexSnippet(display: '√□', output: '\\sqrt{}', cursorOffset: 1, category: MathSymbolCategory.common),
+  LatexSnippet(display: 'ⁿ√□', output: '\\sqrt[n]{}', cursorOffset: 1, category: MathSymbolCategory.common),
+  LatexSnippet(display: '向量', output: '\\vec{}', cursorOffset: 1, category: MathSymbolCategory.common),
 ];
 
-/// 常用标签右栏：字母+高频希腊字母
+/// 常用标签右栏：26个英文字母+高频希腊字母
 const kCommonRightSymbols = <UnicodeSymbol>[
+  // A-H
   UnicodeSymbol(display: 'A', output: 'A', category: MathSymbolCategory.common),
   UnicodeSymbol(display: 'B', output: 'B', category: MathSymbolCategory.common),
   UnicodeSymbol(display: 'C', output: 'C', category: MathSymbolCategory.common),
@@ -125,6 +134,7 @@ const kCommonRightSymbols = <UnicodeSymbol>[
   UnicodeSymbol(display: 'F', output: 'F', category: MathSymbolCategory.common),
   UnicodeSymbol(display: 'G', output: 'G', category: MathSymbolCategory.common),
   UnicodeSymbol(display: 'H', output: 'H', category: MathSymbolCategory.common),
+  // I-P
   UnicodeSymbol(display: 'I', output: 'I', category: MathSymbolCategory.common),
   UnicodeSymbol(display: 'J', output: 'J', category: MathSymbolCategory.common),
   UnicodeSymbol(display: 'K', output: 'K', category: MathSymbolCategory.common),
@@ -133,14 +143,17 @@ const kCommonRightSymbols = <UnicodeSymbol>[
   UnicodeSymbol(display: 'N', output: 'N', category: MathSymbolCategory.common),
   UnicodeSymbol(display: 'O', output: 'O', category: MathSymbolCategory.common),
   UnicodeSymbol(display: 'P', output: 'P', category: MathSymbolCategory.common),
+  // Q-T
   UnicodeSymbol(display: 'Q', output: 'Q', category: MathSymbolCategory.common),
   UnicodeSymbol(display: 'R', output: 'R', category: MathSymbolCategory.common),
   UnicodeSymbol(display: 'S', output: 'S', category: MathSymbolCategory.common),
   UnicodeSymbol(display: 'T', output: 'T', category: MathSymbolCategory.common),
+  // U-X
   UnicodeSymbol(display: 'U', output: 'U', category: MathSymbolCategory.common),
   UnicodeSymbol(display: 'V', output: 'V', category: MathSymbolCategory.common),
   UnicodeSymbol(display: 'W', output: 'W', category: MathSymbolCategory.common),
   UnicodeSymbol(display: 'X', output: 'X', category: MathSymbolCategory.common),
+  // Y-Z + 高频希腊字母
   UnicodeSymbol(display: 'Y', output: 'Y', category: MathSymbolCategory.common),
   UnicodeSymbol(display: 'Z', output: 'Z', category: MathSymbolCategory.common),
   UnicodeSymbol(display: 'α', output: 'α', category: MathSymbolCategory.common),

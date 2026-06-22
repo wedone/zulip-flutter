@@ -102,7 +102,12 @@ class _MathSymbolsToolbarState extends State<MathSymbolsToolbar>
     // Search in kCommonLeftSymbols and kCommonRightSymbols first,
     // then fall back to kMathSymbols.values.
     for (final item in [...kCommonLeftSymbols, ...kCommonRightSymbols]) {
-      if (item.output == symbol) {
+      final key = switch (item) {
+        UnicodeSymbol(:final output) => output,
+        LatexSnippet(:final output) => output,
+        LatexWrapper(:final display) => display,
+      };
+      if (key == symbol) {
         _insertSymbol(item);
         return;
       }
