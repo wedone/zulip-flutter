@@ -27,6 +27,7 @@ import 'color.dart';
 import 'dialog.dart';
 import 'icons.dart';
 import 'inset_shadow.dart';
+import 'latex_preview.dart';
 import 'message_list.dart';
 import 'math_symbols/math_symbols_button.dart';
 import 'math_symbols/math_symbols_toolbar.dart';
@@ -1528,6 +1529,9 @@ abstract class _ComposeBoxBody extends StatelessWidget {
               ?topicInput,
               buildContentInput(),
             ]))),
+        LatexPreviewArea(
+          controller: controller.content,
+          focusNode: controller.contentFocusNode),
         if (mathSymbolsToolbarVisible)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8),

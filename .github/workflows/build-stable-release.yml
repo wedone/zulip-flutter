@@ -6,7 +6,7 @@ on:
       version:
         description: '发布版本号（例如：30.0.272-for-math.1）'
         required: true
-        default: '30.0.272-for-math.1'
+        default: '30.0.272-for-math.3'
         type: string
       branch:
         description: '构建分支'
