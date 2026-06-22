@@ -146,7 +146,7 @@ void main() {
       // is restored as-is (LaTeX \$ renders as literal $ in math blocks).
       final input = r'\[\$5 + \$10\]';
       final result = convertLatexDelimitersToZulip(input);
-      check(result).equals(r'```math' + '\n' + r'\$5 + \$10' + '\n```');
+      check(result).equals('```math\n' r'\$5 + \$10' '\n```');
     });
 
     test(r'$$...$$ with newlines containing $ signs are protected after conversion', () {
