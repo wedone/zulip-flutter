@@ -4,12 +4,12 @@ run-name: ${{ inputs.workflow_name || 'Build Android APK' }}
 # 手动构建 Android APK，用于测试和分发。
 #
 # 用途：
-#   - 在 math-fork 等分支上构建 APK
+#   - 在 for-math 等分支上构建 APK
 #   - 下载构建产物，本地安装测试
 #
 # 使用方法：
 #   1. GitHub → Actions → "Build Android APK" → Run workflow
-#   2. 输入分支名（如 main、math-fork）
+#   2. 输入分支名（如 main、for-math）
 #   3. （可选）输入 commit SHA，留空使用分支最新提交
 #   4. （可选）选择构建类型（debug/release/profile）
 #   5. （可选）输入本次构建任务名称
@@ -24,7 +24,7 @@ on:
         default: 'Build Android APK'
         type: string
       branch:
-        description: '要构建的分支（例如：main、math-fork）'
+        description: '要构建的分支（例如：main、for-math）'
         required: true
         default: 'main'
         type: string
