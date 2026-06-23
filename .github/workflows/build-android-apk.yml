@@ -1,95 +1,182 @@
 name: Build Android APK
+run-name: ${{ inputs.workflow_name || 'Build Android APK' }}
+
+# 手动构建 Android APK，用于测试和分发。
+#
+# 用途：
+#   - 在 math-fork 等分支上构建 APK
+#   - 下载构建产物，本地安装测试
+#
+# 使用方法：
+#   1. GitHub → Actions → "Build Android APK" → Run workflow
+#   2. 输入分支名（如 main、math-fork）
+#   3. （可选）输入 commit SHA，留空使用分支最新提交
+#   4. （可选）选择构建类型（debug/release/profile）
+#   5. （可选）输入本次构建任务名称
+#   6. 等待构建完成，在 Summary 页面下载 APK
 
 on:
   workflow_dispatch:
     inputs:
-      build_name:
-        description: 'Build name (e.g., debug, release)'
+      workflow_name:
+        description: '本次构建任务名称（用于标识，例如：数学输入功能构建、测试构建）'
+        required: false
+        default: 'Build Android APK'
+        type: string
+      branch:
+        description: '要构建的分支（例如：main、math-fork）'
         required: true
+        default: 'main'
+        type: string
+      commit:
+        description: '指定 commit SHA（留空则使用分支最新提交）'
+        required: false
+        default: ''
+        type: string
+      build_type:
+        description: '构建类型'
+        required: false
         default: 'release'
         type: choice
         options:
           - debug
           - release
           - profile
-      branch:
-        description: 'Branch to build from'
-        required: true
-        default: 'main'
-        type: string
-      job_name:
-        description: 'Custom job name for this workflow run'
-        required: false
-        default: 'Build Android APK'
-        type: string
 
 permissions:
   contents: read
 
 jobs:
   build-apk:
-    name: ${{ github.event.inputs.job_name }}
+    name: Build APK
     runs-on: ubuntu-24.04
+    timeout-minutes: 60
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        ref: ${{ github.event.inputs.branch }}
-        fetch-depth: 1
+      - name: Determine branch
+        id: branch
+        run: |
+          echo "branch=${{ inputs.branch }}" >> $GITHUB_OUTPUT
 
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
+      - name: Record build start time
+        id: build_time
+        run: |
+          echo "start=$(TZ='Asia/Shanghai' date '+%Y-%m-%d %H:%M:%S CST')" >> $GITHUB_OUTPUT
 
-    - name: Clone Flutter SDK
-      run: |
-        echo "Cloning Flutter SDK..."
-        ./tools/ci/clone-flutter-sdk
+      - name: Determine ref
+        id: ref
+        run: |
+          if [ -n "${{ inputs.commit }}" ]; then
+            echo "ref=${{ inputs.commit }}" >> $GITHUB_OUTPUT
+            echo "Using commit: ${{ inputs.commit }}"
+          else
+            echo "ref=${{ inputs.branch }}" >> $GITHUB_OUTPUT
+            echo "Using branch: ${{ inputs.branch }}"
+          fi
 
-    - name: Download Flutter SDK artifacts
-      run: flutter precache --universal
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.commit != '' && inputs.commit || steps.branch.outputs.branch }}
+          fetch-depth: 0
 
-    - name: Install dependencies
-      run: flutter pub get
+      - name: Determine artifact name
+        id: artifact_name
+        run: |
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          if [ -n "${{ inputs.workflow_name }}" ]; then
+            CLEAN_NAME=$(echo "${{ inputs.workflow_name }}" | tr ' ' '-' | tr -cd 'a-zA-Z0-9_-')
+            echo "name=${{ inputs.branch }}-${CLEAN_NAME}-${SHORT_SHA}" >> $GITHUB_OUTPUT
+          else
+            echo "name=${{ inputs.branch }}-${SHORT_SHA}" >> $GITHUB_OUTPUT
+          fi
 
-    - name: Enable Android platform
-      run: flutter config --enable-android
+      - name: Show current commit
+        run: |
+          echo "Branch: ${{ inputs.branch }}"
+          echo "Commit: $(git rev-parse HEAD)"
+          echo "Short:  $(git rev-parse --short HEAD)"
+          echo "Author: $(git log -1 --pretty=format:'%an <%ae>')"
+          echo "Date:   $(git log -1 --pretty=format:'%ad')"
+          echo "Subject: $(git log -1 --pretty=format:'%s')"
 
-    - name: Build APK (${{ github.event.inputs.build_name }})
-      run: |
-        case "${{ github.event.inputs.build_name }}" in
-          debug)
-            flutter build apk --debug
-            ;;
-          release)
-            flutter build apk --release
-            ;;
-          profile)
-            flutter build apk --profile
-            ;;
-        esac
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
 
-    - name: Upload APK artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: zulip-android-apk
-        path: build/app/outputs/flutter-apk/app-*.apk
-        if-no-files-found: error
-        retention-days: 30
+      - name: Clone Flutter SDK
+        run: |
+          echo "Cloning Flutter SDK..."
+          ./tools/ci/clone-flutter-sdk
 
-    - name: Generate build summary
-      run: |
-        echo "## Build Summary" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "- **Branch**: ${{ github.event.inputs.branch }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **Build Type**: ${{ github.event.inputs.build_name }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **Job Name**: ${{ github.event.inputs.job_name }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **Triggered by**: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### APK Files" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        ls -lh build/app/outputs/flutter-apk/*.apk 2>/dev/null || echo "No APK files found" >> $GITHUB_STEP_SUMMARY
+      - name: Download Flutter SDK artifacts
+        run: flutter precache --universal
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Enable Android platform
+        run: flutter config --enable-android
+
+      - name: Get version
+        id: version
+        run: |
+          version=$(grep -oP '(?<=version: )[^+]+' pubspec.yaml | head -1)
+          echo "version=$version" >> $GITHUB_OUTPUT
+          echo "Detected version: $version"
+
+      - name: Build APK (${{ inputs.build_type }})
+        run: |
+          case "${{ inputs.build_type }}" in
+            debug)
+              flutter build apk --debug
+              ;;
+            release)
+              flutter build apk --release
+              ;;
+            profile)
+              flutter build apk --profile
+              ;;
+          esac
+
+      - name: List built artifacts
+        run: |
+          echo "## 📦 构建产物" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          ls -lh build/app/outputs/flutter-apk/*.apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: zulip-android-${{ inputs.build_type }}-${{ steps.artifact_name.outputs.name }}
+          path: build/app/outputs/flutter-apk/app-*.apk
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Output build summary
+        run: |
+          echo "## 📦 Android APK 构建摘要" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**任务名称**: ${{ inputs.workflow_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**构建状态**: ${{ job.status == 'success' && '✅ 成功' || '❌ 失败' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**构建开始**: ${{ steps.build_time.outputs.start }}" >> $GITHUB_STEP_SUMMARY
+          echo "**构建完成**: $(TZ='Asia/Shanghai' date '+%Y-%m-%d %H:%M:%S') CST" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 参数" >> $GITHUB_STEP_SUMMARY
+          echo "  - 分支：\`${{ inputs.branch }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "  - Commit：\`$(git rev-parse --short HEAD)\`" >> $GITHUB_STEP_SUMMARY
+          echo "  - 版本：\`${{ steps.version.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "  - 构建类型：\`${{ inputs.build_type }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "  - Artifact 名称：\`${{ steps.artifact_name.outputs.name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📥 使用方法" >> $GITHUB_STEP_SUMMARY
+          echo '```bash' >> $GITHUB_STEP_SUMMARY
+          echo "# 1. 在 GitHub Actions 页面下载 artifact" >> $GITHUB_STEP_SUMMARY
+          echo "# 2. 安装到 Android 设备" >> $GITHUB_STEP_SUMMARY
+          echo "adb install app-${{ inputs.build_type }}.apk" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔗 链接" >> $GITHUB_STEP_SUMMARY
+          echo "- [查看构建日志](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
