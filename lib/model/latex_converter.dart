@@ -16,6 +16,12 @@
 ///
 /// Content inside code blocks, inline code, and existing ```math blocks
 /// is protected from conversion. Escaped `\$` is also protected.
+///
+/// After conversion, zero-width spaces (U+200B) are inserted between `$$`
+/// delimiters and adjacent `\w` characters (letters, digits, underscores).
+/// This is necessary because the Zulip server's Markdown regex uses `\B`
+/// (non-word-boundary) around `$$`, which rejects `$$` adjacent to `\w`
+/// characters. The ZWSP breaks the word boundary without affecting rendering.
 String convertLatexDelimitersToZulip(String input) {
   // Step 1: Protect regions that should not be converted.
   final protectedRegions = <_ProtectedRegion>[];
@@ -79,10 +85,72 @@ String convertLatexDelimitersToZulip(String input) {
     RegExp(r'(?<!\$)\$(?!\$)([^\n$]*?)\$(?!\$)'),
     (m) => '\$\$${m[1]}\$\$');
 
+  // Step 2.5: Insert zero-width spaces between $$ and adjacent \w characters.
+  // The Zulip server's TEX_RE uses \B (non-word-boundary) around $$,
+  // which fails when $$ is adjacent to a \w character (letter, digit, _).
+  // Inserting ZWSP (U+200B, a \W character) breaks the word boundary
+  // so the server regex matches, without affecting visual rendering.
+  text = _insertZwspAroundDollarDollar(text);
+
   // Step 3: Restore protected regions.
   text = _restoreProtected(text, protectedRegions);
 
   return text;
+}
+
+/// Inserts zero-width spaces (U+200B) between `$$` delimiters and adjacent
+/// `\w` characters, so the server's `\B` assertion passes.
+///
+/// For example, `a$$x^2$$b` becomes `a\u200B$$x^2$$\u200Bb`.
+/// Characters like `#`, `%`, spaces, etc. are `\W` and need no separator.
+String _insertZwspAroundDollarDollar(String text) {
+  final pattern = RegExp(r'\$\$([\s\S]*?)\$\$');
+  final result = StringBuffer();
+  int lastEnd = 0;
+
+  for (final match in pattern.allMatches(text)) {
+    // Append text before this match.
+    result.write(text.substring(lastEnd, match.start));
+
+    // If the character before the opening $$ is a \w character,
+    // insert ZWSP to break the word boundary for the server's \B check.
+    if (match.start > 0) {
+      final charBefore = text[match.start - 1];
+      if (_isWordChar(charBefore)) {
+        result.write('\u200B');
+      }
+    }
+
+    // Append the full match ($$content$$).
+    result.write(match[0]);
+
+    // If the character after the closing $$ is a \w character,
+    // insert ZWSP to break the word boundary for the server's \B check.
+    if (match.end < text.length) {
+      final charAfter = text[match.end];
+      if (_isWordChar(charAfter)) {
+        result.write('\u200B');
+      }
+    }
+
+    lastEnd = match.end;
+  }
+  result.write(text.substring(lastEnd));
+  return result.toString();
+}
+
+/// Whether [char] is a `\w` character (letter, digit, or underscore),
+/// matching Python's `\w` behavior which the server regex relies on.
+bool _isWordChar(String char) {
+  // \w in Python matches [a-zA-Z0-9_] plus Unicode letters/digits
+  // when the regex is not ASCII-only. We check the same categories.
+  final rune = char.codeUnitAt(0);
+  if (rune >= 0x30 && rune <= 0x39) return true; // 0-9
+  if (rune >= 0x41 && rune <= 0x5A) return true; // A-Z
+  if (rune >= 0x61 && rune <= 0x7A) return true; // a-z
+  if (rune == 0x5F) return true;                  // _
+  // Unicode letters (CJK, Greek, Cyrillic, etc.)
+  return RegExp(r'\p{L}', unicode: true).hasMatch(char);
 }
 
 class _ProtectedRegion {
