@@ -15,7 +15,7 @@ on:
         type: string
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build-release:
@@ -60,6 +60,42 @@ jobs:
         NEW_NAME="zulip-android-${VERSION}.apk"
         cp "$LATEST_APK" "$APK_DIR/$NEW_NAME"
         echo "已创建: $NEW_NAME"
+
+    - name: 提取 Release Notes
+      id: release_notes
+      run: |
+        VERSION="${{ steps.version.outputs.version }}"
+        # 从版本号中提取 math-vX.Y 部分，如 30.0.272-math-v1.4+5 → math-v1.4
+        MATH_VERSION=$(echo "$VERSION" | grep -oP 'math-v\d+\.\d+')
+        if [ -z "$MATH_VERSION" ]; then
+          echo "❌ 无法从版本号 $VERSION 中提取 math 版本号"
+          echo "notes=未找到对应版本的更新日志" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+        echo "提取到 math 版本号: $MATH_VERSION"
+
+        # 从 CHANGELOG-MATH.md 中提取对应版本的内容
+        # 匹配 ## math-vX.Y（日期）到下一个 ## 之间的内容
+        NOTES=$(awk "/^## ${MATH_VERSION}（/,/^## /" CHANGELOG-MATH.md | head -n -1 | tail -n +2)
+        if [ -z "$NOTES" ]; then
+          echo "⚠️ 未在 CHANGELOG-MATH.md 中找到 ${MATH_VERSION} 的更新日志"
+          echo "notes=未找到对应版本的更新日志" >> $GITHUB_OUTPUT
+        else
+          echo "✅ 成功提取 ${MATH_VERSION} 的更新日志"
+          # 将多行内容写入文件，避免环境变量换行问题
+          echo "$NOTES" > release_notes.txt
+          echo "notes_file=release_notes.txt" >> $GITHUB_OUTPUT
+        fi
+
+    - name: 创建 GitHub Release 并上传 APK
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: v${{ steps.version.outputs.version }}
+        name: v${{ steps.version.outputs.version }}
+        body_path: ${{ steps.release_notes.outputs.notes_file }}
+        files: build/app/outputs/flutter-apk/zulip-android-*.apk
+        draft: false
+        prerelease: false
 
     - name: 上传 APK 文件
       uses: actions/upload-artifact@v4

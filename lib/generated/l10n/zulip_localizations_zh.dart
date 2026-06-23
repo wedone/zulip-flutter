@@ -1415,6 +1415,56 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
 
   @override
   String get topicListEmptyPlaceholderHeader => 'There are no topics here yet.';
+
+  @override
+  String get mathSymbolsButtonTooltip => 'Math symbols';
+
+  @override
+  String get mathSymbolsRecentLabel => 'Recent';
+
+  @override
+  String get mathSymbolsNoRecentHint => 'No recent symbols';
+
+  @override
+  String get mathSymbolsCategoryCommon => 'Common';
+
+  @override
+  String get mathSymbolsCategoryGreek => 'Greek';
+
+  @override
+  String get mathSymbolsCategoryRelations => 'Relations';
+
+  @override
+  String get mathSymbolsCategoryTemplates => 'Templates';
+
+  @override
+  String get mathSymbolsCategoryFunctions => 'Functions';
+
+  @override
+  String get mathSymbolsCategoryRecent => 'Recent';
+
+  @override
+  String get checkForUpdate => 'Check for updates';
+
+  @override
+  String get updateAvailableTitle => 'Update Available';
+
+  @override
+  String updateAvailableNewVersion(String version) {
+    return 'New version: $version';
+  }
+
+  @override
+  String get updateAvailableReleaseNotes => 'Release notes';
+
+  @override
+  String get updateNow => 'Update now';
+
+  @override
+  String get remindLater => 'Remind me later';
+
+  @override
+  String get upToDate => 'You\'re up to date';
 }
 
 /// The translations for Chinese, as used in China, using the Han script (`zh_Hans_CN`).
@@ -2537,6 +2587,56 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
 
   @override
   String get zulipAppTitle => 'Zulip';
+
+  @override
+  String get mathSymbolsButtonTooltip => '数学符号';
+
+  @override
+  String get mathSymbolsRecentLabel => '最近使用';
+
+  @override
+  String get mathSymbolsNoRecentHint => '暂无记录';
+
+  @override
+  String get mathSymbolsCategoryCommon => '常用';
+
+  @override
+  String get mathSymbolsCategoryGreek => '希腊';
+
+  @override
+  String get mathSymbolsCategoryRelations => '关系';
+
+  @override
+  String get mathSymbolsCategoryTemplates => '模板';
+
+  @override
+  String get mathSymbolsCategoryFunctions => '函数';
+
+  @override
+  String get mathSymbolsCategoryRecent => '最近';
+
+  @override
+  String get checkForUpdate => '检查更新';
+
+  @override
+  String get updateAvailableTitle => '发现新版本';
+
+  @override
+  String updateAvailableNewVersion(String version) {
+    return '新版本：$version';
+  }
+
+  @override
+  String get updateAvailableReleaseNotes => '更新说明';
+
+  @override
+  String get updateNow => '立即更新';
+
+  @override
+  String get remindLater => '稍后提醒';
+
+  @override
+  String get upToDate => '已是最新版本';
 }
 
 /// The translations for Chinese, as used in Taiwan, using the Han script (`zh_Hant_TW`).

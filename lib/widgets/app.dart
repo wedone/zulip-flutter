@@ -7,6 +7,7 @@ import 'package:flutter/scheduler.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../log.dart';
 import '../model/actions.dart';
+import '../model/app_update.dart';
 import '../model/localizations.dart';
 import '../model/store.dart';
 import '../notifications/open.dart';
@@ -17,6 +18,7 @@ import 'login.dart';
 import 'page.dart';
 import 'store.dart';
 import 'theme.dart';
+import 'update_dialog.dart';
 
 class ZulipApp extends StatefulWidget {
   const ZulipApp({super.key, this.navigatorObservers});
@@ -183,6 +185,32 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
     super.dispose();
   }
 
+  /// 应用启动完成后自动检查更新
+  Future<void> _autoCheckForUpdate() async {
+    // 检查是否需要自动检查（24小时内只检查一次）
+    final shouldCheck = await shouldAutoCheckForUpdate();
+    if (!shouldCheck) return;
+
+    try {
+      final updateInfo = await checkForUpdate();
+      // 记录检查时间
+      await recordUpdateCheckTime();
+
+      if (updateInfo != null && mounted) {
+        // 延迟一小段时间，避免启动时立即弹出
+        await Future.delayed(const Duration(seconds: 2));
+        if (mounted) {
+          final context = ZulipApp.navigatorKey.currentContext;
+          if (context != null) {
+            UpdateAvailableDialog.show(context, updateInfo: updateInfo);
+          }
+        }
+      }
+    } catch (_) {
+      // 静默失败，不影响应用正常使用
+    }
+  }
+
   AccountRoute<void>? _initialRouteIos(BuildContext context) {
     return NotificationOpenService.instance
         .routeForNotificationFromLaunch(context: context);
@@ -264,7 +292,10 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
           builder: (BuildContext context, Widget? child) {
             if (!ZulipApp.ready.value) {
               SchedulerBinding.instance.addPostFrameCallback(
-                (_) => widget._declareReady());
+                (_) {
+                  widget._declareReady();
+                  _autoCheckForUpdate();
+                });
             }
             GlobalLocalizations.zulipLocalizations = ZulipLocalizations.of(context);
             return child!;

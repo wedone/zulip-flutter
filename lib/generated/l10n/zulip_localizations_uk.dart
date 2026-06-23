@@ -1438,4 +1438,54 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
 
   @override
   String get topicListEmptyPlaceholderHeader => 'Тут ще немає тем.';
+
+  @override
+  String get mathSymbolsButtonTooltip => 'Math symbols';
+
+  @override
+  String get mathSymbolsRecentLabel => 'Recent';
+
+  @override
+  String get mathSymbolsNoRecentHint => 'No recent symbols';
+
+  @override
+  String get mathSymbolsCategoryCommon => 'Common';
+
+  @override
+  String get mathSymbolsCategoryGreek => 'Greek';
+
+  @override
+  String get mathSymbolsCategoryRelations => 'Relations';
+
+  @override
+  String get mathSymbolsCategoryTemplates => 'Templates';
+
+  @override
+  String get mathSymbolsCategoryFunctions => 'Functions';
+
+  @override
+  String get mathSymbolsCategoryRecent => 'Recent';
+
+  @override
+  String get checkForUpdate => 'Check for updates';
+
+  @override
+  String get updateAvailableTitle => 'Update Available';
+
+  @override
+  String updateAvailableNewVersion(String version) {
+    return 'New version: $version';
+  }
+
+  @override
+  String get updateAvailableReleaseNotes => 'Release notes';
+
+  @override
+  String get updateNow => 'Update now';
+
+  @override
+  String get remindLater => 'Remind me later';
+
+  @override
+  String get upToDate => 'You\'re up to date';
 }

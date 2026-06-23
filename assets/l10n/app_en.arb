@@ -1705,5 +1705,75 @@
   "topicListEmptyPlaceholderHeader": "There are no topics here yet.",
   "@topicListEmptyPlaceholderHeader": {
     "description": "Header text shown when a channel has no topics."
+  },
+  "mathSymbolsButtonTooltip": "Math symbols",
+  "@mathSymbolsButtonTooltip": {
+    "description": "Tooltip for the math symbols button in the compose box."
+  },
+  "mathSymbolsRecentLabel": "Recent",
+  "@mathSymbolsRecentLabel": {
+    "description": "Label for the recently used math symbols section in the math symbols toolbar."
+  },
+  "mathSymbolsNoRecentHint": "No recent symbols",
+  "@mathSymbolsNoRecentHint": {
+    "description": "Hint text shown when there are no recently used math symbols."
+  },
+  "mathSymbolsCategoryCommon": "Common",
+  "@mathSymbolsCategoryCommon": {
+    "description": "Tab label for the common math symbols category."
+  },
+  "mathSymbolsCategoryGreek": "Greek",
+  "@mathSymbolsCategoryGreek": {
+    "description": "Tab label for the Greek letters math symbols category."
+  },
+  "mathSymbolsCategoryRelations": "Relations",
+  "@mathSymbolsCategoryRelations": {
+    "description": "Tab label for the relations math symbols category."
+  },
+  "mathSymbolsCategoryTemplates": "Templates",
+  "@mathSymbolsCategoryTemplates": {
+    "description": "Tab label for the templates math symbols category."
+  },
+  "mathSymbolsCategoryFunctions": "Functions",
+  "@mathSymbolsCategoryFunctions": {
+    "description": "Label for the math symbols toolbar functions category tab."
+  },
+  "mathSymbolsCategoryRecent": "Recent",
+  "@mathSymbolsCategoryRecent": {
+    "description": "Label for the math symbols toolbar recent category tab."
+  },
+  "checkForUpdate": "Check for updates",
+  "@checkForUpdate": {
+    "description": "Label for the check for updates button in About page"
+  },
+  "updateAvailableTitle": "Update Available",
+  "@updateAvailableTitle": {
+    "description": "Title for the update available dialog"
+  },
+  "updateAvailableNewVersion": "New version: {version}",
+  "@updateAvailableNewVersion": {
+    "description": "Text showing the new version number in update dialog",
+    "placeholders": {
+      "version": {
+        "type": "String",
+        "example": "30.0.272-math-v2.0"
+      }
+    }
+  },
+  "updateAvailableReleaseNotes": "Release notes",
+  "@updateAvailableReleaseNotes": {
+    "description": "Label for release notes section in update dialog"
+  },
+  "updateNow": "Update now",
+  "@updateNow": {
+    "description": "Button label to start downloading the update"
+  },
+  "remindLater": "Remind me later",
+  "@remindLater": {
+    "description": "Button label to dismiss the update dialog"
+  },
+  "upToDate": "You're up to date",
+  "@upToDate": {
+    "description": "Message shown when the app is already up to date"
   }
 }

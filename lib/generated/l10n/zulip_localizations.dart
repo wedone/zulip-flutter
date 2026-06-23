@@ -2467,6 +2467,102 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'There are no topics here yet.'**
   String get topicListEmptyPlaceholderHeader;
+
+  /// Tooltip for the math symbols button in the compose box.
+  ///
+  /// In en, this message translates to:
+  /// **'Math symbols'**
+  String get mathSymbolsButtonTooltip;
+
+  /// Label for the recently used math symbols section in the math symbols toolbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent'**
+  String get mathSymbolsRecentLabel;
+
+  /// Hint text shown when there are no recently used math symbols.
+  ///
+  /// In en, this message translates to:
+  /// **'No recent symbols'**
+  String get mathSymbolsNoRecentHint;
+
+  /// Tab label for the common math symbols category.
+  ///
+  /// In en, this message translates to:
+  /// **'Common'**
+  String get mathSymbolsCategoryCommon;
+
+  /// Tab label for the Greek letters math symbols category.
+  ///
+  /// In en, this message translates to:
+  /// **'Greek'**
+  String get mathSymbolsCategoryGreek;
+
+  /// Tab label for the relations math symbols category.
+  ///
+  /// In en, this message translates to:
+  /// **'Relations'**
+  String get mathSymbolsCategoryRelations;
+
+  /// Tab label for the templates math symbols category.
+  ///
+  /// In en, this message translates to:
+  /// **'Templates'**
+  String get mathSymbolsCategoryTemplates;
+
+  /// Label for the math symbols toolbar functions category tab.
+  ///
+  /// In en, this message translates to:
+  /// **'Functions'**
+  String get mathSymbolsCategoryFunctions;
+
+  /// Label for the math symbols toolbar recent category tab.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent'**
+  String get mathSymbolsCategoryRecent;
+
+  /// Label for the check for updates button in About page
+  ///
+  /// In en, this message translates to:
+  /// **'Check for updates'**
+  String get checkForUpdate;
+
+  /// Title for the update available dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Update Available'**
+  String get updateAvailableTitle;
+
+  /// Text showing the new version number in update dialog
+  ///
+  /// In en, this message translates to:
+  /// **'New version: {version}'**
+  String updateAvailableNewVersion(String version);
+
+  /// Label for release notes section in update dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Release notes'**
+  String get updateAvailableReleaseNotes;
+
+  /// Button label to start downloading the update
+  ///
+  /// In en, this message translates to:
+  /// **'Update now'**
+  String get updateNow;
+
+  /// Button label to dismiss the update dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Remind me later'**
+  String get remindLater;
+
+  /// Message shown when the app is already up to date
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re up to date'**
+  String get upToDate;
 }
 
 class _ZulipLocalizationsDelegate
