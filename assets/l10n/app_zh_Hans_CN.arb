@@ -1576,5 +1576,12 @@
   "mathSymbolsCategoryGreek": "希腊",
   "mathSymbolsCategoryTemplates": "模板",
   "mathSymbolsCategoryFunctions": "函数",
-  "mathSymbolsCategoryRecent": "最近"
+  "mathSymbolsCategoryRecent": "最近",
+  "checkForUpdate": "检查更新",
+  "updateAvailableTitle": "发现新版本",
+  "updateAvailableNewVersion": "新版本：{version}",
+  "updateAvailableReleaseNotes": "更新说明",
+  "updateNow": "立即更新",
+  "remindLater": "稍后提醒",
+  "upToDate": "已是最新版本"
 }

@@ -2521,6 +2521,48 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Recent'**
   String get mathSymbolsCategoryRecent;
+
+  /// Label for the check for updates button in About page
+  ///
+  /// In en, this message translates to:
+  /// **'Check for updates'**
+  String get checkForUpdate;
+
+  /// Title for the update available dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Update Available'**
+  String get updateAvailableTitle;
+
+  /// Text showing the new version number in update dialog
+  ///
+  /// In en, this message translates to:
+  /// **'New version: {version}'**
+  String updateAvailableNewVersion(String version);
+
+  /// Label for release notes section in update dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Release notes'**
+  String get updateAvailableReleaseNotes;
+
+  /// Button label to start downloading the update
+  ///
+  /// In en, this message translates to:
+  /// **'Update now'**
+  String get updateNow;
+
+  /// Button label to dismiss the update dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Remind me later'**
+  String get remindLater;
+
+  /// Message shown when the app is already up to date
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re up to date'**
+  String get upToDate;
 }
 
 class _ZulipLocalizationsDelegate

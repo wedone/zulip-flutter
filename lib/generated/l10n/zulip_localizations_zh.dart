@@ -1442,6 +1442,29 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
 
   @override
   String get mathSymbolsCategoryRecent => 'Recent';
+
+  @override
+  String get checkForUpdate => 'Check for updates';
+
+  @override
+  String get updateAvailableTitle => 'Update Available';
+
+  @override
+  String updateAvailableNewVersion(String version) {
+    return 'New version: $version';
+  }
+
+  @override
+  String get updateAvailableReleaseNotes => 'Release notes';
+
+  @override
+  String get updateNow => 'Update now';
+
+  @override
+  String get remindLater => 'Remind me later';
+
+  @override
+  String get upToDate => 'You\'re up to date';
 }
 
 /// The translations for Chinese, as used in China, using the Han script (`zh_Hans_CN`).
@@ -2591,6 +2614,29 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
 
   @override
   String get mathSymbolsCategoryRecent => '最近';
+
+  @override
+  String get checkForUpdate => '检查更新';
+
+  @override
+  String get updateAvailableTitle => '发现新版本';
+
+  @override
+  String updateAvailableNewVersion(String version) {
+    return '新版本：$version';
+  }
+
+  @override
+  String get updateAvailableReleaseNotes => '更新说明';
+
+  @override
+  String get updateNow => '立即更新';
+
+  @override
+  String get remindLater => '稍后提醒';
+
+  @override
+  String get upToDate => '已是最新版本';
 }
 
 /// The translations for Chinese, as used in Taiwan, using the Han script (`zh_Hant_TW`).

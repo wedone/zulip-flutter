@@ -1483,4 +1483,27 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
 
   @override
   String get mathSymbolsCategoryRecent => 'Recent';
+
+  @override
+  String get checkForUpdate => 'Check for updates';
+
+  @override
+  String get updateAvailableTitle => 'Update Available';
+
+  @override
+  String updateAvailableNewVersion(String version) {
+    return 'New version: $version';
+  }
+
+  @override
+  String get updateAvailableReleaseNotes => 'Release notes';
+
+  @override
+  String get updateNow => 'Update now';
+
+  @override
+  String get remindLater => 'Remind me later';
+
+  @override
+  String get upToDate => 'You\'re up to date';
 }
