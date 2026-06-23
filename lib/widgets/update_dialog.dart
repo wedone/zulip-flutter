@@ -29,7 +29,7 @@ class UpdateAvailableDialog extends StatelessWidget {
     if (url.isEmpty) return;
     final uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: UrlLaunchMode.platformDefault);
+      await launchUrl(uri, mode: LaunchMode.platformDefault);
     }
   }
 
