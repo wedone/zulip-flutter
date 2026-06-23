@@ -122,6 +122,19 @@ jobs:
           echo "version=$version" >> $GITHUB_OUTPUT
           echo "Detected version: $version"
 
+      - name: Setup signing for release builds
+        if: github.event.inputs.build_type == 'release'
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 -d > android/zulip-release.jks
+          echo "storeFile=zulip-release.jks" > android/release-keystore.properties
+          echo "storePassword=$KEYSTORE_PASSWORD" >> android/release-keystore.properties
+          echo "keyAlias=zulip-release" >> android/release-keystore.properties
+          echo "keyPassword=$KEYSTORE_KEY_PASSWORD" >> android/release-keystore.properties
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEYSTORE_KEY_PASSWORD: ${{ secrets.KEYSTORE_KEY_PASSWORD }}
+
       - name: Build APK (${{ inputs.build_type }})
         run: |
           case "${{ inputs.build_type }}" in
@@ -129,7 +142,7 @@ jobs:
               flutter build apk --debug
               ;;
             release)
-              flutter build apk --release
+              flutter build apk --release -Psigned
               ;;
             profile)
               flutter build apk --profile

@@ -61,8 +61,20 @@ jobs:
     - name: 启用 Android 平台
       run: flutter config --enable-android
 
+    - name: 配置签名
+      run: |
+        echo "$KEYSTORE_BASE64" | base64 -d > android/zulip-release.jks
+        echo "storeFile=zulip-release.jks" > android/release-keystore.properties
+        echo "storePassword=$KEYSTORE_PASSWORD" >> android/release-keystore.properties
+        echo "keyAlias=zulip-release" >> android/release-keystore.properties
+        echo "keyPassword=$KEYSTORE_KEY_PASSWORD" >> android/release-keystore.properties
+      env:
+        KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        KEYSTORE_KEY_PASSWORD: ${{ secrets.KEYSTORE_KEY_PASSWORD }}
+
     - name: 构建 Release APK
-      run: flutter build apk --release
+      run: flutter build apk --release -Psigned
 
     - name: 重命名 APK 文件
       run: |
