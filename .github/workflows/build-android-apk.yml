@@ -118,7 +118,7 @@ jobs:
       - name: Get version
         id: version
         run: |
-          version=$(grep -oP '(?<=version: )[^+]+' pubspec.yaml | head -1)
+          version=$(grep -oP '(?<=version: )[^\s]+' pubspec.yaml | head -1)
           echo "version=$version" >> $GITHUB_OUTPUT
           echo "Detected version: $version"
 
