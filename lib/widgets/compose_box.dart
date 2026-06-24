@@ -612,6 +612,7 @@ class _ContentInput extends StatelessWidget {
               fieldViewBuilder: (context) => TextField(
                 enabled: enabled,
                 readOnly: mathSymbolsToolbarVisible,
+                showCursor: true,
                 controller: controller.content,
                 focusNode: controller.contentFocusNode,
                 contentInsertionConfiguration: ContentInsertionConfiguration(
