@@ -1,4 +1,5 @@
 name: 构建稳定版客户端
+run-name: 构建稳定版客户端${{ inputs.version != '' && format(' v{0}', inputs.version) || '' }}
 
 on:
   workflow_dispatch:
@@ -36,7 +37,7 @@ jobs:
           echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
           echo "使用手动指定的版本号: ${{ github.event.inputs.version }}"
         else
-          VERSION=$(grep -oP '(?<=version: )[^+]+' pubspec.yaml | head -1)
+          VERSION=$(grep -oP '(?<=version: )[^\s]+' pubspec.yaml | head -1)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "从 pubspec.yaml 自动读取版本号: $VERSION"
         fi
@@ -93,21 +94,19 @@ jobs:
         MATH_VERSION=$(echo "$VERSION" | grep -oP 'math-v\d+\.\d+')
         if [ -z "$MATH_VERSION" ]; then
           echo "❌ 无法从版本号 $VERSION 中提取 math 版本号"
-          echo "notes=未找到对应版本的更新日志" >> $GITHUB_OUTPUT
+          echo "notes_file=" >> $GITHUB_OUTPUT
           exit 0
         fi
-        echo "提取到 math 版本号: $MATH_VERSION"
 
-        # 从 CHANGELOG-MATH.md 中提取对应版本的内容
-        # 匹配 ## math-vX.Y（日期）到下一个 ## 之间的内容
-        NOTES=$(awk "/^## ${MATH_VERSION}（/,/^## /" CHANGELOG-MATH.md | head -n -1 | tail -n +2)
-        if [ -z "$NOTES" ]; then
-          echo "⚠️ 未在 CHANGELOG-MATH.md 中找到 ${MATH_VERSION} 的更新日志"
-          echo "notes=未找到对应版本的更新日志" >> $GITHUB_OUTPUT
+        # 将 math-vX.Y 转换为 vX.Y（去掉 math- 前缀）
+        VER_FILE="docs/ver/${MATH_VERSION#math-}.md"
+
+        if [ -f "$VER_FILE" ]; then
+          echo "✅ 找到更新日志文件: $VER_FILE"
+          echo "notes_file=$VER_FILE" >> $GITHUB_OUTPUT
         else
-          echo "✅ 成功提取 ${MATH_VERSION} 的更新日志"
-          # 将多行内容写入文件，避免环境变量换行问题
-          echo "$NOTES" > release_notes.txt
+          echo "⚠️ 未找到更新日志文件: $VER_FILE"
+          echo "未找到对应版本的更新日志" > release_notes.txt
           echo "notes_file=release_notes.txt" >> $GITHUB_OUTPUT
         fi
 
