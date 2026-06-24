@@ -1417,31 +1417,31 @@ class ZulipLocalizationsNb extends ZulipLocalizations {
   String get topicListEmptyPlaceholderHeader => 'There are no topics here yet.';
 
   @override
-  String get mathSymbolsButtonTooltip => 'Math symbols';
+  String get mathKeyboardButtonTooltip => 'Math keyboard';
 
   @override
-  String get mathSymbolsRecentLabel => 'Recent';
+  String get mathKeyboardRecentLabel => 'Recent';
 
   @override
-  String get mathSymbolsNoRecentHint => 'No recent symbols';
+  String get mathKeyboardNoRecentHint => 'No recent symbols';
 
   @override
-  String get mathSymbolsCategoryCommon => 'Common';
+  String get mathKeyboardCategoryCommon => 'Common';
 
   @override
-  String get mathSymbolsCategoryGreek => 'Greek';
+  String get mathKeyboardCategoryGreek => 'Greek';
 
   @override
-  String get mathSymbolsCategoryRelations => 'Relations';
+  String get mathKeyboardCategoryRelations => 'Relations';
 
   @override
-  String get mathSymbolsCategoryTemplates => 'Templates';
+  String get mathKeyboardCategoryTemplates => 'Templates';
 
   @override
-  String get mathSymbolsCategoryFunctions => 'Functions';
+  String get mathKeyboardCategoryFunctions => 'Functions';
 
   @override
-  String get mathSymbolsCategoryRecent => 'Recent';
+  String get mathKeyboardCategoryRecent => 'Recent';
 
   @override
   String get checkForUpdate => 'Check for updates';

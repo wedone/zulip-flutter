@@ -1417,31 +1417,31 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
   String get topicListEmptyPlaceholderHeader => 'There are no topics here yet.';
 
   @override
-  String get mathSymbolsButtonTooltip => 'Math symbols';
+  String get mathKeyboardButtonTooltip => 'Math keyboard';
 
   @override
-  String get mathSymbolsRecentLabel => 'Recent';
+  String get mathKeyboardRecentLabel => 'Recent';
 
   @override
-  String get mathSymbolsNoRecentHint => 'No recent symbols';
+  String get mathKeyboardNoRecentHint => 'No recent symbols';
 
   @override
-  String get mathSymbolsCategoryCommon => 'Common';
+  String get mathKeyboardCategoryCommon => 'Common';
 
   @override
-  String get mathSymbolsCategoryGreek => 'Greek';
+  String get mathKeyboardCategoryGreek => 'Greek';
 
   @override
-  String get mathSymbolsCategoryRelations => 'Relations';
+  String get mathKeyboardCategoryRelations => 'Relations';
 
   @override
-  String get mathSymbolsCategoryTemplates => 'Templates';
+  String get mathKeyboardCategoryTemplates => 'Templates';
 
   @override
-  String get mathSymbolsCategoryFunctions => 'Functions';
+  String get mathKeyboardCategoryFunctions => 'Functions';
 
   @override
-  String get mathSymbolsCategoryRecent => 'Recent';
+  String get mathKeyboardCategoryRecent => 'Recent';
 
   @override
   String get checkForUpdate => 'Check for updates';
@@ -2589,31 +2589,31 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
   String get zulipAppTitle => 'Zulip';
 
   @override
-  String get mathSymbolsButtonTooltip => '数学符号';
+  String get mathKeyboardButtonTooltip => '数学键盘';
 
   @override
-  String get mathSymbolsRecentLabel => '最近使用';
+  String get mathKeyboardRecentLabel => '最近使用';
 
   @override
-  String get mathSymbolsNoRecentHint => '暂无记录';
+  String get mathKeyboardNoRecentHint => '暂无记录';
 
   @override
-  String get mathSymbolsCategoryCommon => '常用';
+  String get mathKeyboardCategoryCommon => '常用';
 
   @override
-  String get mathSymbolsCategoryGreek => '希腊';
+  String get mathKeyboardCategoryGreek => '希腊';
 
   @override
-  String get mathSymbolsCategoryRelations => '关系';
+  String get mathKeyboardCategoryRelations => '关系';
 
   @override
-  String get mathSymbolsCategoryTemplates => '模板';
+  String get mathKeyboardCategoryTemplates => '模板';
 
   @override
-  String get mathSymbolsCategoryFunctions => '函数';
+  String get mathKeyboardCategoryFunctions => '函数';
 
   @override
-  String get mathSymbolsCategoryRecent => '最近';
+  String get mathKeyboardCategoryRecent => '最近';
 
   @override
   String get checkForUpdate => '检查更新';

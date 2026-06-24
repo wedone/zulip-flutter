@@ -2468,59 +2468,59 @@ abstract class ZulipLocalizations {
   /// **'There are no topics here yet.'**
   String get topicListEmptyPlaceholderHeader;
 
-  /// Tooltip for the math symbols button in the compose box.
+  /// Tooltip for the math keyboard button in the compose box.
   ///
   /// In en, this message translates to:
-  /// **'Math symbols'**
-  String get mathSymbolsButtonTooltip;
+  /// **'Math keyboard'**
+  String get mathKeyboardButtonTooltip;
 
-  /// Label for the recently used math symbols section in the math symbols toolbar.
+  /// Label for the recently used math symbols section in the math keyboard toolbar.
   ///
   /// In en, this message translates to:
   /// **'Recent'**
-  String get mathSymbolsRecentLabel;
+  String get mathKeyboardRecentLabel;
 
   /// Hint text shown when there are no recently used math symbols.
   ///
   /// In en, this message translates to:
   /// **'No recent symbols'**
-  String get mathSymbolsNoRecentHint;
+  String get mathKeyboardNoRecentHint;
 
   /// Tab label for the common math symbols category.
   ///
   /// In en, this message translates to:
   /// **'Common'**
-  String get mathSymbolsCategoryCommon;
+  String get mathKeyboardCategoryCommon;
 
   /// Tab label for the Greek letters math symbols category.
   ///
   /// In en, this message translates to:
   /// **'Greek'**
-  String get mathSymbolsCategoryGreek;
+  String get mathKeyboardCategoryGreek;
 
   /// Tab label for the relations math symbols category.
   ///
   /// In en, this message translates to:
   /// **'Relations'**
-  String get mathSymbolsCategoryRelations;
+  String get mathKeyboardCategoryRelations;
 
   /// Tab label for the templates math symbols category.
   ///
   /// In en, this message translates to:
   /// **'Templates'**
-  String get mathSymbolsCategoryTemplates;
+  String get mathKeyboardCategoryTemplates;
 
-  /// Label for the math symbols toolbar functions category tab.
+  /// Label for the math keyboard toolbar functions category tab.
   ///
   /// In en, this message translates to:
   /// **'Functions'**
-  String get mathSymbolsCategoryFunctions;
+  String get mathKeyboardCategoryFunctions;
 
-  /// Label for the math symbols toolbar recent category tab.
+  /// Label for the math keyboard toolbar recent category tab.
   ///
   /// In en, this message translates to:
   /// **'Recent'**
-  String get mathSymbolsCategoryRecent;
+  String get mathKeyboardCategoryRecent;
 
   /// Label for the check for updates button in About page
   ///

@@ -1706,41 +1706,41 @@
   "@topicListEmptyPlaceholderHeader": {
     "description": "Header text shown when a channel has no topics."
   },
-  "mathSymbolsButtonTooltip": "Math symbols",
-  "@mathSymbolsButtonTooltip": {
-    "description": "Tooltip for the math symbols button in the compose box."
+  "mathKeyboardButtonTooltip": "Math keyboard",
+  "@mathKeyboardButtonTooltip": {
+    "description": "Tooltip for the math keyboard button in the compose box."
   },
-  "mathSymbolsRecentLabel": "Recent",
-  "@mathSymbolsRecentLabel": {
-    "description": "Label for the recently used math symbols section in the math symbols toolbar."
+  "mathKeyboardRecentLabel": "Recent",
+  "@mathKeyboardRecentLabel": {
+    "description": "Label for the recently used math symbols section in the math keyboard toolbar."
   },
-  "mathSymbolsNoRecentHint": "No recent symbols",
-  "@mathSymbolsNoRecentHint": {
+  "mathKeyboardNoRecentHint": "No recent symbols",
+  "@mathKeyboardNoRecentHint": {
     "description": "Hint text shown when there are no recently used math symbols."
   },
-  "mathSymbolsCategoryCommon": "Common",
-  "@mathSymbolsCategoryCommon": {
+  "mathKeyboardCategoryCommon": "Common",
+  "@mathKeyboardCategoryCommon": {
     "description": "Tab label for the common math symbols category."
   },
-  "mathSymbolsCategoryGreek": "Greek",
-  "@mathSymbolsCategoryGreek": {
+  "mathKeyboardCategoryGreek": "Greek",
+  "@mathKeyboardCategoryGreek": {
     "description": "Tab label for the Greek letters math symbols category."
   },
-  "mathSymbolsCategoryRelations": "Relations",
-  "@mathSymbolsCategoryRelations": {
+  "mathKeyboardCategoryRelations": "Relations",
+  "@mathKeyboardCategoryRelations": {
     "description": "Tab label for the relations math symbols category."
   },
-  "mathSymbolsCategoryTemplates": "Templates",
-  "@mathSymbolsCategoryTemplates": {
+  "mathKeyboardCategoryTemplates": "Templates",
+  "@mathKeyboardCategoryTemplates": {
     "description": "Tab label for the templates math symbols category."
   },
-  "mathSymbolsCategoryFunctions": "Functions",
-  "@mathSymbolsCategoryFunctions": {
-    "description": "Label for the math symbols toolbar functions category tab."
+  "mathKeyboardCategoryFunctions": "Functions",
+  "@mathKeyboardCategoryFunctions": {
+    "description": "Label for the math keyboard toolbar functions category tab."
   },
-  "mathSymbolsCategoryRecent": "Recent",
-  "@mathSymbolsCategoryRecent": {
-    "description": "Label for the math symbols toolbar recent category tab."
+  "mathKeyboardCategoryRecent": "Recent",
+  "@mathKeyboardCategoryRecent": {
+    "description": "Label for the math keyboard toolbar recent category tab."
   },
   "checkForUpdate": "Check for updates",
   "@checkForUpdate": {
