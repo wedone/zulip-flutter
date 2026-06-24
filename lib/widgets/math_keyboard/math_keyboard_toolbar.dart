@@ -369,9 +369,9 @@ class _SymbolButton extends StatelessWidget {
         ? () => onVariantTap?.call(onLongPressVariant!)
         : null,
       child: Container(
-        width: 44,
-        height: 48,
-        margin: const EdgeInsets.all(4),
+        width: 36,
+        height: 40,
+        margin: const EdgeInsets.all(2),
         decoration: BoxDecoration(
           // 白色按键面
           color: Colors.white,

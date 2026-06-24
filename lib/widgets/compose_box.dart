@@ -1694,9 +1694,7 @@ abstract class _ComposeBoxBody extends StatelessWidget {
           controller: controller.content,
           focusNode: controller.contentFocusNode),
         if (mathKeyboardToolbarVisible)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: MathKeyboardToolbar(controller: controller.content)),
+          MathKeyboardToolbar(controller: controller.content),
         SizedBox(
           height: _composeButtonSize,
           child: IconButtonTheme(
