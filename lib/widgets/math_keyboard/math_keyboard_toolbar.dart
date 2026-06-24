@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_math_fork/flutter_math.dart';
 
 import '../../generated/l10n/zulip_localizations.dart';
 import '../../model/math_keyboard_history.dart';
@@ -254,7 +255,7 @@ class _SymbolGrid extends StatelessWidget {
                 children: [
                   for (final symbol in kCommonLeftSymbols)
                     _SymbolButton(
-                      display: symbol.display,
+                      item: symbol,
                       onTap: () => onSymbolTap(symbol),
                     ),
                 ],
@@ -266,7 +267,7 @@ class _SymbolGrid extends StatelessWidget {
                 children: [
                   for (final symbol in kCommonRightSymbols)
                     _SymbolButton(
-                      display: symbol.display,
+                      item: symbol,
                       onTap: () => onSymbolTap(symbol),
                       onLongPressVariant: _lowercaseVariant(symbol.display),
                       onVariantTap: onVariantTap,
@@ -303,7 +304,7 @@ class _SymbolGrid extends StatelessWidget {
             children: [
               for (final symbol in recentSymbols!)
                 _SymbolButton(
-                  display: symbol,
+                  item: UnicodeSymbol(display: symbol, output: symbol, category: MathKeyboardCategory.recent),
                   onTap: () => onRecentSymbolTap(symbol),
                 ),
             ],
@@ -321,7 +322,7 @@ class _SymbolGrid extends StatelessWidget {
           children: [
             for (final symbol in symbols)
               _SymbolButton(
-                display: symbol.display,
+                item: symbol,
                 onTap: () => onSymbolTap(symbol),
               ),
           ],
@@ -342,15 +343,17 @@ class _SymbolGrid extends StatelessWidget {
 
 /// A single symbol button in the grid.
 /// 参考 MathLive 虚拟键盘的按键样式：白色背景、浅灰边框、底部深色边框（3D 效果）、圆角。
+/// 模板类符号（LatexSnippet/LatexWrapper）实时渲染 LaTeX，Unicode 符号直接显示文本。
 class _SymbolButton extends StatelessWidget {
   const _SymbolButton({
-    required this.display,
+    required this.item,
     required this.onTap,
     this.onLongPressVariant,
     this.onVariantTap,
   });
 
-  final String display;
+  /// 符号项，决定渲染方式（LaTeX 或文本）。
+  final MathKeyboardItem item;
 
   final VoidCallback onTap;
 
@@ -392,16 +395,54 @@ class _SymbolButton extends StatelessWidget {
           ],
         ),
         alignment: Alignment.center,
-        child: Text(
-          display,
+        child: _buildContent(),
+      ),
+    );
+  }
+
+  Widget _buildContent() {
+    switch (item) {
+      case UnicodeSymbol():
+        // Unicode 符号：直接显示文本
+        return Text(
+          item.display,
           style: TextStyle(
-            fontSize: _fontSizeForDisplay(display),
+            fontSize: _fontSizeForDisplay(item.display),
             color: const Color(0xFF000000),
           ),
           textAlign: TextAlign.center,
           overflow: TextOverflow.ellipsis,
-        ),
+        );
+      case LatexSnippet() || LatexWrapper():
+        // 模板类符号：实时渲染 LaTeX
+        return _renderLatex(item.display);
+    }
+  }
+
+  /// 实时渲染 LaTeX 表达式，将 \square 替换为蓝色 \blacksquare。
+  Widget _renderLatex(String latex) {
+    final coloredLatex = latex.replaceAll(
+      r'\square',
+      r'\color{#0066CC}{\blacksquare}',
+    );
+
+    return Math.tex(
+      coloredLatex,
+      textStyle: const TextStyle(
+        fontSize: 14,
+        color: Color(0xFF000000),
       ),
+      onErrorFallback: (error) {
+        // 渲染失败时回退到文本显示
+        return Text(
+          latex,
+          style: const TextStyle(
+            fontSize: 12,
+            color: Color(0xFF000000),
+          ),
+          textAlign: TextAlign.center,
+        );
+      },
     );
   }
 
