@@ -513,12 +513,14 @@ class _ContentInput extends StatelessWidget {
     required this.controller,
     this.hintText,
     this.enabled = true,
+    this.mathSymbolsToolbarVisible = false,
   });
 
   final Narrow narrow;
   final ComposeBoxController controller;
   final String? hintText;
   final bool enabled;
+  final bool mathSymbolsToolbarVisible;
 
   void _handleContentInserted(BuildContext context, KeyboardInsertedContent content) async {
     if (content.data == null || content.data!.isEmpty) {
@@ -609,6 +611,7 @@ class _ContentInput extends StatelessWidget {
               focusNode: controller.contentFocusNode,
               fieldViewBuilder: (context) => TextField(
                 enabled: enabled,
+                readOnly: mathSymbolsToolbarVisible,
                 controller: controller.content,
                 focusNode: controller.contentFocusNode,
                 contentInsertionConfiguration: ContentInsertionConfiguration(
@@ -636,10 +639,11 @@ class _ContentInput extends StatelessWidget {
 
 /// The content input for _StreamComposeBox.
 class _StreamContentInput extends StatefulWidget {
-  const _StreamContentInput({required this.narrow, required this.controller});
+  const _StreamContentInput({required this.narrow, required this.controller, this.mathSymbolsToolbarVisible = false});
 
   final ChannelNarrow narrow;
   final StreamComposeBoxController controller;
+  final bool mathSymbolsToolbarVisible;
 
   @override
   State<_StreamContentInput> createState() => _StreamContentInputState();
@@ -739,6 +743,7 @@ class _StreamContentInputState extends State<_StreamContentInput> {
       child: _ContentInput(
         narrow: widget.narrow,
         controller: widget.controller,
+        mathSymbolsToolbarVisible: widget.mathSymbolsToolbarVisible,
         hintText: zulipLocalizations.composeBoxChannelContentHint(hintDestination)));
   }
 }
@@ -886,10 +891,12 @@ class _FixedDestinationContentInput extends StatelessWidget {
   const _FixedDestinationContentInput({
     required this.narrow,
     required this.controller,
+    this.mathSymbolsToolbarVisible = false,
   });
 
   final SendableNarrow narrow;
   final FixedDestinationComposeBoxController controller;
+  final bool mathSymbolsToolbarVisible;
 
   String _hintText(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
@@ -929,6 +936,7 @@ class _FixedDestinationContentInput extends StatelessWidget {
       child: _ContentInput(
         narrow: narrow,
         controller: controller,
+        mathSymbolsToolbarVisible: mathSymbolsToolbarVisible,
         hintText: _hintText(context)));
   }
 }
@@ -937,10 +945,12 @@ class _EditMessageContentInput extends StatelessWidget {
   const _EditMessageContentInput({
     required this.narrow,
     required this.controller,
+    this.mathSymbolsToolbarVisible = false,
   });
 
   final Narrow narrow;
   final EditMessageComposeBoxController controller;
+  final bool mathSymbolsToolbarVisible;
 
   @override
   Widget build(BuildContext context) {
@@ -951,6 +961,7 @@ class _EditMessageContentInput extends StatelessWidget {
       narrow: narrow,
       controller: controller,
       enabled: !awaitingRawContent,
+      mathSymbolsToolbarVisible: mathSymbolsToolbarVisible,
       hintText: awaitingRawContent
         ? zulipLocalizations.preparingEditMessageContentInput
         : null,
@@ -1731,6 +1742,7 @@ class _StreamComposeBoxBody extends _ComposeBoxBody {
   @override Widget buildContentInput() => _StreamContentInput(
     narrow: narrow,
     controller: controller,
+    mathSymbolsToolbarVisible: mathSymbolsToolbarVisible,
   );
 
   @override bool getComposeButtonsEnabled(BuildContext context) => true;
@@ -1767,6 +1779,7 @@ class _FixedDestinationComposeBoxBody extends _ComposeBoxBody {
   @override Widget buildContentInput() => _FixedDestinationContentInput(
     narrow: narrow,
     controller: controller,
+    mathSymbolsToolbarVisible: mathSymbolsToolbarVisible,
   );
 
   @override bool getComposeButtonsEnabled(BuildContext context) => true;
@@ -1802,7 +1815,9 @@ class _EditMessageComposeBoxBody extends _ComposeBoxBody {
 
   @override Widget buildContentInput() => _EditMessageContentInput(
     narrow: narrow,
-    controller: controller);
+    controller: controller,
+    mathSymbolsToolbarVisible: mathSymbolsToolbarVisible,
+  );
 
   @override bool getComposeButtonsEnabled(BuildContext context) =>
     !ComposeBoxInheritedWidget.of(context).awaitingRawMessageContentForEdit;
@@ -2272,6 +2287,10 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
     setState(() {
       _mathSymbolsToolbarVisible = !_mathSymbolsToolbarVisible;
     });
+    // 关闭数学键盘时，请求焦点以弹出系统键盘
+    if (!_mathSymbolsToolbarVisible) {
+      _controller?.contentFocusNode.requestFocus();
+    }
   }
 
   @override
