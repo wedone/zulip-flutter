@@ -29,8 +29,8 @@ import 'icons.dart';
 import 'inset_shadow.dart';
 import 'latex_preview.dart';
 import 'message_list.dart';
-import 'math_symbols/math_symbols_button.dart';
-import 'math_symbols/math_symbols_toolbar.dart';
+import 'math_keyboard/math_keyboard_button.dart';
+import 'math_keyboard/math_keyboard_toolbar.dart';
 import 'page.dart';
 import 'store.dart';
 import 'text.dart';
@@ -513,14 +513,14 @@ class _ContentInput extends StatelessWidget {
     required this.controller,
     this.hintText,
     this.enabled = true,
-    this.mathSymbolsToolbarVisible = false,
+    this.mathKeyboardToolbarVisible = false,
   });
 
   final Narrow narrow;
   final ComposeBoxController controller;
   final String? hintText;
   final bool enabled;
-  final bool mathSymbolsToolbarVisible;
+  final bool mathKeyboardToolbarVisible;
 
   void _handleContentInserted(BuildContext context, KeyboardInsertedContent content) async {
     if (content.data == null || content.data!.isEmpty) {
@@ -611,7 +611,7 @@ class _ContentInput extends StatelessWidget {
               focusNode: controller.contentFocusNode,
               fieldViewBuilder: (context) => TextField(
                 enabled: enabled,
-                readOnly: mathSymbolsToolbarVisible,
+                readOnly: mathKeyboardToolbarVisible,
                 showCursor: true,
                 controller: controller.content,
                 focusNode: controller.contentFocusNode,
@@ -640,11 +640,11 @@ class _ContentInput extends StatelessWidget {
 
 /// The content input for _StreamComposeBox.
 class _StreamContentInput extends StatefulWidget {
-  const _StreamContentInput({required this.narrow, required this.controller, this.mathSymbolsToolbarVisible = false});
+  const _StreamContentInput({required this.narrow, required this.controller, this.mathKeyboardToolbarVisible = false});
 
   final ChannelNarrow narrow;
   final StreamComposeBoxController controller;
-  final bool mathSymbolsToolbarVisible;
+  final bool mathKeyboardToolbarVisible;
 
   @override
   State<_StreamContentInput> createState() => _StreamContentInputState();
@@ -744,7 +744,7 @@ class _StreamContentInputState extends State<_StreamContentInput> {
       child: _ContentInput(
         narrow: widget.narrow,
         controller: widget.controller,
-        mathSymbolsToolbarVisible: widget.mathSymbolsToolbarVisible,
+        mathKeyboardToolbarVisible: widget.mathKeyboardToolbarVisible,
         hintText: zulipLocalizations.composeBoxChannelContentHint(hintDestination)));
   }
 }
@@ -892,12 +892,12 @@ class _FixedDestinationContentInput extends StatelessWidget {
   const _FixedDestinationContentInput({
     required this.narrow,
     required this.controller,
-    this.mathSymbolsToolbarVisible = false,
+    this.mathKeyboardToolbarVisible = false,
   });
 
   final SendableNarrow narrow;
   final FixedDestinationComposeBoxController controller;
-  final bool mathSymbolsToolbarVisible;
+  final bool mathKeyboardToolbarVisible;
 
   String _hintText(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
@@ -937,7 +937,7 @@ class _FixedDestinationContentInput extends StatelessWidget {
       child: _ContentInput(
         narrow: narrow,
         controller: controller,
-        mathSymbolsToolbarVisible: mathSymbolsToolbarVisible,
+        mathKeyboardToolbarVisible: mathKeyboardToolbarVisible,
         hintText: _hintText(context)));
   }
 }
@@ -946,12 +946,12 @@ class _EditMessageContentInput extends StatelessWidget {
   const _EditMessageContentInput({
     required this.narrow,
     required this.controller,
-    this.mathSymbolsToolbarVisible = false,
+    this.mathKeyboardToolbarVisible = false,
   });
 
   final Narrow narrow;
   final EditMessageComposeBoxController controller;
-  final bool mathSymbolsToolbarVisible;
+  final bool mathKeyboardToolbarVisible;
 
   @override
   Widget build(BuildContext context) {
@@ -962,7 +962,7 @@ class _EditMessageContentInput extends StatelessWidget {
       narrow: narrow,
       controller: controller,
       enabled: !awaitingRawContent,
-      mathSymbolsToolbarVisible: mathSymbolsToolbarVisible,
+      mathKeyboardToolbarVisible: mathKeyboardToolbarVisible,
       hintText: awaitingRawContent
         ? zulipLocalizations.preparingEditMessageContentInput
         : null,
@@ -1625,10 +1625,10 @@ abstract class _ComposeBoxBody extends StatelessWidget {
   ComposeBoxController get controller;
 
   /// Whether the math symbols toolbar is currently visible.
-  bool get mathSymbolsToolbarVisible;
+  bool get mathKeyboardToolbarVisible;
 
   /// Called to toggle the math symbols toolbar visibility.
-  VoidCallback get toggleMathSymbolsToolbar;
+  VoidCallback get toggleMathKeyboardToolbar;
 
   Widget? buildTopicInput();
   Widget buildContentInput();
@@ -1664,12 +1664,12 @@ abstract class _ComposeBoxBody extends StatelessWidget {
       _AttachFileButton(controller: controller, enabled: composeButtonsEnabled),
       _AttachMediaButton(controller: controller, enabled: composeButtonsEnabled),
       _AttachFromCameraButton(controller: controller, enabled: composeButtonsEnabled),
-      MathSymbolsButton(
-        isActive: mathSymbolsToolbarVisible,
-        onPressed: toggleMathSymbolsToolbar,
+      MathKeyboardButton(
+        isActive: mathKeyboardToolbarVisible,
+        onPressed: toggleMathKeyboardToolbar,
         enabled: composeButtonsEnabled,
       ),
-      if (mathSymbolsToolbarVisible) ...[
+      if (mathKeyboardToolbarVisible) ...[
         _BackspaceButton(controller: controller.content, enabled: composeButtonsEnabled),
         _CursorLeftButton(controller: controller.content, enabled: composeButtonsEnabled),
         _CursorRightButton(controller: controller.content, enabled: composeButtonsEnabled),
@@ -1693,10 +1693,10 @@ abstract class _ComposeBoxBody extends StatelessWidget {
         LatexPreviewArea(
           controller: controller.content,
           focusNode: controller.contentFocusNode),
-        if (mathSymbolsToolbarVisible)
+        if (mathKeyboardToolbarVisible)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: MathSymbolsToolbar(controller: controller.content)),
+            child: MathKeyboardToolbar(controller: controller.content)),
         SizedBox(
           height: _composeButtonSize,
           child: IconButtonTheme(
@@ -1719,8 +1719,8 @@ class _StreamComposeBoxBody extends _ComposeBoxBody {
   _StreamComposeBoxBody({
     required this.narrow,
     required this.controller,
-    required this.mathSymbolsToolbarVisible,
-    required this.toggleMathSymbolsToolbar,
+    required this.mathKeyboardToolbarVisible,
+    required this.toggleMathKeyboardToolbar,
   });
 
   @override
@@ -1730,10 +1730,10 @@ class _StreamComposeBoxBody extends _ComposeBoxBody {
   final StreamComposeBoxController controller;
 
   @override
-  final bool mathSymbolsToolbarVisible;
+  final bool mathKeyboardToolbarVisible;
 
   @override
-  final VoidCallback toggleMathSymbolsToolbar;
+  final VoidCallback toggleMathKeyboardToolbar;
 
   @override Widget buildTopicInput() => _TopicInput(
     channelId: narrow.channelId,
@@ -1743,7 +1743,7 @@ class _StreamComposeBoxBody extends _ComposeBoxBody {
   @override Widget buildContentInput() => _StreamContentInput(
     narrow: narrow,
     controller: controller,
-    mathSymbolsToolbarVisible: mathSymbolsToolbarVisible,
+    mathKeyboardToolbarVisible: mathKeyboardToolbarVisible,
   );
 
   @override bool getComposeButtonsEnabled(BuildContext context) => true;
@@ -1759,8 +1759,8 @@ class _FixedDestinationComposeBoxBody extends _ComposeBoxBody {
   _FixedDestinationComposeBoxBody({
     required this.narrow,
     required this.controller,
-    required this.mathSymbolsToolbarVisible,
-    required this.toggleMathSymbolsToolbar,
+    required this.mathKeyboardToolbarVisible,
+    required this.toggleMathKeyboardToolbar,
   });
 
   @override
@@ -1770,17 +1770,17 @@ class _FixedDestinationComposeBoxBody extends _ComposeBoxBody {
   final FixedDestinationComposeBoxController controller;
 
   @override
-  final bool mathSymbolsToolbarVisible;
+  final bool mathKeyboardToolbarVisible;
 
   @override
-  final VoidCallback toggleMathSymbolsToolbar;
+  final VoidCallback toggleMathKeyboardToolbar;
 
   @override Widget? buildTopicInput() => null;
 
   @override Widget buildContentInput() => _FixedDestinationContentInput(
     narrow: narrow,
     controller: controller,
-    mathSymbolsToolbarVisible: mathSymbolsToolbarVisible,
+    mathKeyboardToolbarVisible: mathKeyboardToolbarVisible,
   );
 
   @override bool getComposeButtonsEnabled(BuildContext context) => true;
@@ -1796,8 +1796,8 @@ class _EditMessageComposeBoxBody extends _ComposeBoxBody {
   _EditMessageComposeBoxBody({
     required this.narrow,
     required this.controller,
-    required this.mathSymbolsToolbarVisible,
-    required this.toggleMathSymbolsToolbar,
+    required this.mathKeyboardToolbarVisible,
+    required this.toggleMathKeyboardToolbar,
   });
 
   @override
@@ -1807,17 +1807,17 @@ class _EditMessageComposeBoxBody extends _ComposeBoxBody {
   final EditMessageComposeBoxController controller;
 
   @override
-  final bool mathSymbolsToolbarVisible;
+  final bool mathKeyboardToolbarVisible;
 
   @override
-  final VoidCallback toggleMathSymbolsToolbar;
+  final VoidCallback toggleMathKeyboardToolbar;
 
   @override Widget? buildTopicInput() => null;
 
   @override Widget buildContentInput() => _EditMessageContentInput(
     narrow: narrow,
     controller: controller,
-    mathSymbolsToolbarVisible: mathSymbolsToolbarVisible,
+    mathKeyboardToolbarVisible: mathKeyboardToolbarVisible,
   );
 
   @override bool getComposeButtonsEnabled(BuildContext context) =>
@@ -2282,14 +2282,14 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
   @override ComposeBoxController get controller => _controller!;
   ComposeBoxController? _controller;
 
-  bool _mathSymbolsToolbarVisible = false;
+  bool _mathKeyboardToolbarVisible = false;
 
-  void _toggleMathSymbolsToolbar() {
+  void _toggleMathKeyboardToolbar() {
     setState(() {
-      _mathSymbolsToolbarVisible = !_mathSymbolsToolbarVisible;
+      _mathKeyboardToolbarVisible = !_mathKeyboardToolbarVisible;
     });
     // 关闭数学键盘时，请求焦点以弹出系统键盘
-    if (!_mathSymbolsToolbarVisible) {
+    if (!_mathKeyboardToolbarVisible) {
       _controller?.contentFocusNode.requestFocus();
     }
   }
@@ -2462,7 +2462,7 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
 
   void _setNewController(PerAccountStore store) {
     _controller?.dispose(); // `?.` because this might be the first call
-    _mathSymbolsToolbarVisible = false;
+    _mathKeyboardToolbarVisible = false;
     switch (widget.narrow) {
       case ChannelNarrow():
         _controller = StreamComposeBoxController(store: store);
@@ -2589,8 +2589,8 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
         body = _StreamComposeBoxBody(
           controller: controller,
           narrow: narrow,
-          mathSymbolsToolbarVisible: _mathSymbolsToolbarVisible,
-          toggleMathSymbolsToolbar: _toggleMathSymbolsToolbar,
+          mathKeyboardToolbarVisible: _mathKeyboardToolbarVisible,
+          toggleMathKeyboardToolbar: _toggleMathKeyboardToolbar,
         );
       }
       case FixedDestinationComposeBoxController(): {
@@ -2598,16 +2598,16 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
         body = _FixedDestinationComposeBoxBody(
           controller: controller,
           narrow: narrow,
-          mathSymbolsToolbarVisible: _mathSymbolsToolbarVisible,
-          toggleMathSymbolsToolbar: _toggleMathSymbolsToolbar,
+          mathKeyboardToolbarVisible: _mathKeyboardToolbarVisible,
+          toggleMathKeyboardToolbar: _toggleMathKeyboardToolbar,
         );
       }
       case EditMessageComposeBoxController(): {
         body = _EditMessageComposeBoxBody(
           controller: controller,
           narrow: narrow,
-          mathSymbolsToolbarVisible: _mathSymbolsToolbarVisible,
-          toggleMathSymbolsToolbar: _toggleMathSymbolsToolbar,
+          mathKeyboardToolbarVisible: _mathKeyboardToolbarVisible,
+          toggleMathKeyboardToolbar: _toggleMathKeyboardToolbar,
         );
         banner = _Banner(
           intent: _BannerIntent.info,

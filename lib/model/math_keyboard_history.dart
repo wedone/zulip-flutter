@@ -7,8 +7,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// Symbols are stored in a list ordered by most-recently-used first.
 /// Up to [_maxStored] symbols are persisted, and up to [displayCount]
 /// are presented for display.
-class MathSymbolsHistory {
-  static const _key = 'recent_math_symbols';
+class MathKeyboardHistory {
+  static const _key = 'recent_math_keyboard';
   static const _maxStored = 20;
 
   /// The maximum number of symbols to present for display.

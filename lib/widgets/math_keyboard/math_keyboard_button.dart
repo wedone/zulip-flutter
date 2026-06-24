@@ -4,11 +4,11 @@ import '../../generated/l10n/zulip_localizations.dart';
 import '../color.dart';
 import '../theme.dart';
 
-/// A button to toggle the math symbols toolbar open/closed.
+/// A button to toggle the math keyboard toolbar open/closed.
 ///
 /// Follows the same style as the existing compose box icon buttons.
-class MathSymbolsButton extends StatelessWidget {
-  const MathSymbolsButton({
+class MathKeyboardButton extends StatelessWidget {
+  const MathKeyboardButton({
     super.key,
     required this.isActive,
     required this.onPressed,
@@ -38,7 +38,7 @@ class MathSymbolsButton extends StatelessWidget {
             ? designVariables.icon
             : designVariables.foreground.withFadedAlpha(0.5),
         ),
-        tooltip: zulipLocalizations.mathSymbolsButtonTooltip,
+        tooltip: zulipLocalizations.mathKeyboardButtonTooltip,
         onPressed: enabled ? onPressed : null,
       ),
     );

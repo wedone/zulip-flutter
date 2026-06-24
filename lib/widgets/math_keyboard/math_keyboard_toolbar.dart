@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 
 import '../../generated/l10n/zulip_localizations.dart';
-import '../../model/math_symbols_history.dart';
-import '../color.dart';
-import '../theme.dart';
-import 'math_symbols_data.dart' show kMathSymbols, kCommonLeftSymbols, kCommonRightSymbols, MathSymbolCategory, MathSymbolItem, UnicodeSymbol, LatexSnippet, LatexWrapper;
+import '../../model/math_keyboard_history.dart';
+import '../../widgets/color.dart';
+import '../../widgets/theme.dart';
+import 'math_keyboard_data.dart' show kMathKeyboard, kCommonLeftSymbols, kCommonRightSymbols, MathKeyboardCategory, MathKeyboardItem, UnicodeSymbol, LatexSnippet, LatexWrapper;
 
-/// The math symbols toolbar that appears above the compose box input.
+/// The math keyboard toolbar that appears above the compose box input.
 ///
 /// Shows category tabs, a symbol grid, and a "recently used" section.
-class MathSymbolsToolbar extends StatefulWidget {
-  const MathSymbolsToolbar({
+class MathKeyboardToolbar extends StatefulWidget {
+  const MathKeyboardToolbar({
     super.key,
     required this.controller,
   });
@@ -19,16 +19,16 @@ class MathSymbolsToolbar extends StatefulWidget {
   final TextEditingController controller;
 
   @override
-  State<MathSymbolsToolbar> createState() => _MathSymbolsToolbarState();
+  State<MathKeyboardToolbar> createState() => _MathKeyboardToolbarState();
 }
 
-class _MathSymbolsToolbarState extends State<MathSymbolsToolbar>
+class _MathKeyboardToolbarState extends State<MathKeyboardToolbar>
     with TickerProviderStateMixin {
   late TabController _tabController;
   List<String> _recentSymbols = [];
   bool _recentLoaded = false;
 
-  static const _categoryOrder = MathSymbolCategory.values;
+  static const _categoryOrder = MathKeyboardCategory.values;
 
   @override
   void initState() {
@@ -36,7 +36,7 @@ class _MathSymbolsToolbarState extends State<MathSymbolsToolbar>
     _tabController = TabController(
       length: _categoryOrder.length,
       vsync: this,
-      initialIndex: MathSymbolCategory.common.index,
+      initialIndex: MathKeyboardCategory.common.index,
     );
     _loadRecentSymbols();
   }
@@ -48,7 +48,7 @@ class _MathSymbolsToolbarState extends State<MathSymbolsToolbar>
   }
 
   Future<void> _loadRecentSymbols() async {
-    final recent = await MathSymbolsHistory.getRecentSymbols();
+    final recent = await MathKeyboardHistory.getRecentSymbols();
     if (!mounted) return;
     setState(() {
       _recentSymbols = recent;
@@ -56,7 +56,7 @@ class _MathSymbolsToolbarState extends State<MathSymbolsToolbar>
     });
   }
 
-  void _insertSymbol(MathSymbolItem item) {
+  void _insertSymbol(MathKeyboardItem item) {
     final controller = widget.controller;
     final selection = controller.selection;
     final text = controller.text;
@@ -64,10 +64,10 @@ class _MathSymbolsToolbarState extends State<MathSymbolsToolbar>
     switch (item) {
       case UnicodeSymbol(:final output):
         _insertText(output, cursorOffset: 0);
-        MathSymbolsHistory.recordSymbol(output);
+        MathKeyboardHistory.recordSymbol(output);
       case LatexSnippet(:final output, :final cursorOffset):
         _insertText(output, cursorOffset: cursorOffset);
-        MathSymbolsHistory.recordSymbol(output);
+        MathKeyboardHistory.recordSymbol(output);
       case LatexWrapper(:final prefix, :final suffix):
         if (selection.isValid && !selection.isCollapsed) {
           // Wrap selected text.
@@ -89,7 +89,7 @@ class _MathSymbolsToolbarState extends State<MathSymbolsToolbar>
             offset: insertPos + prefix.length,
           );
         }
-        MathSymbolsHistory.recordSymbol(item.display);
+        MathKeyboardHistory.recordSymbol(item.display);
     }
 
     // Refresh recent symbols after recording.
@@ -97,10 +97,10 @@ class _MathSymbolsToolbarState extends State<MathSymbolsToolbar>
   }
 
   void _insertRecentSymbol(String symbol) {
-    // Try to find the original MathSymbolItem for proper insertion
+    // Try to find the original MathKeyboardItem for proper insertion
     // (with cursor positioning and wrapping behavior).
     // Search in kCommonLeftSymbols and kCommonRightSymbols first,
-    // then fall back to kMathSymbols.values.
+    // then fall back to kMathKeyboard.values.
     for (final item in [...kCommonLeftSymbols, ...kCommonRightSymbols]) {
       final key = switch (item) {
         UnicodeSymbol(:final output) => output,
@@ -112,7 +112,7 @@ class _MathSymbolsToolbarState extends State<MathSymbolsToolbar>
         return;
       }
     }
-    for (final symbols in kMathSymbols.values) {
+    for (final symbols in kMathKeyboard.values) {
       for (final item in symbols) {
         if (item is UnicodeSymbol && item.output == symbol) {
           _insertSymbol(item);
@@ -130,14 +130,14 @@ class _MathSymbolsToolbarState extends State<MathSymbolsToolbar>
     }
     // Fallback: plain text insert
     _insertText(symbol, cursorOffset: 0);
-    MathSymbolsHistory.recordSymbol(symbol);
+    MathKeyboardHistory.recordSymbol(symbol);
     _loadRecentSymbols();
   }
 
   /// 插入长按变体符号（如大写字母长按弹出的小写字母）。
   void _insertVariantText(String text) {
     _insertText(text, cursorOffset: 0);
-    MathSymbolsHistory.recordSymbol(text);
+    MathKeyboardHistory.recordSymbol(text);
     _loadRecentSymbols();
   }
 
@@ -173,50 +173,51 @@ class _MathSymbolsToolbarState extends State<MathSymbolsToolbar>
               )),
             ),
             child: TabBar(
-            controller: _tabController,
-            isScrollable: true,
-            tabAlignment: TabAlignment.start,
-            labelColor: designVariables.icon,
-            unselectedLabelColor: designVariables.foreground.withFadedAlpha(0.5),
-            indicatorColor: designVariables.icon,
-            indicatorSize: TabBarIndicatorSize.label,
-            labelStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-            unselectedLabelStyle: const TextStyle(fontSize: 14),
-            tabs: [
-              for (final category in _categoryOrder)
-                Tab(text: _categoryLabel(category, zulipLocalizations)),
-            ],
+              controller: _tabController,
+              isScrollable: true,
+              tabAlignment: TabAlignment.start,
+              labelColor: designVariables.icon,
+              unselectedLabelColor: designVariables.foreground.withFadedAlpha(0.5),
+              indicatorColor: designVariables.icon,
+              indicatorSize: TabBarIndicatorSize.label,
+              labelStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+              unselectedLabelStyle: const TextStyle(fontSize: 14),
+              tabs: [
+                for (final category in _categoryOrder)
+                  Tab(text: _categoryLabel(category, zulipLocalizations)),
+              ],
+            ),
           ),
-        ),
-        // Symbol grid (with recent section)
-        ConstrainedBox(
-          constraints: const BoxConstraints(maxHeight: 220),
-          child: TabBarView(
-            controller: _tabController,
-            children: [
-              for (final category in _categoryOrder)
-                _SymbolGrid(
-                  category: category,
-                  recentSymbols: _recentLoaded ? _recentSymbols : null,
-                  onSymbolTap: _insertSymbol,
-                  onRecentSymbolTap: _insertRecentSymbol,
-                  onVariantTap: _insertVariantText,
-                ),
-            ],
+          // Symbol grid (with recent section)
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 220),
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                for (final category in _categoryOrder)
+                  _SymbolGrid(
+                    category: category,
+                    recentSymbols: _recentLoaded ? _recentSymbols : null,
+                    onSymbolTap: _insertSymbol,
+                    onRecentSymbolTap: _insertRecentSymbol,
+                    onVariantTap: _insertVariantText,
+                  ),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
-  static String _categoryLabel(MathSymbolCategory category, ZulipLocalizations l) {
+  static String _categoryLabel(MathKeyboardCategory category, ZulipLocalizations l) {
     return switch (category) {
-      MathSymbolCategory.common    => l.mathSymbolsCategoryCommon,
-      MathSymbolCategory.relations => l.mathSymbolsCategoryRelations,
-      MathSymbolCategory.functions => l.mathSymbolsCategoryFunctions,
-      MathSymbolCategory.greek     => l.mathSymbolsCategoryGreek,
-      MathSymbolCategory.templates => l.mathSymbolsCategoryTemplates,
-      MathSymbolCategory.recent    => l.mathSymbolsCategoryRecent,
+      MathKeyboardCategory.common    => l.mathKeyboardCategoryCommon,
+      MathKeyboardCategory.relations => l.mathKeyboardCategoryRelations,
+      MathKeyboardCategory.functions => l.mathKeyboardCategoryFunctions,
+      MathKeyboardCategory.greek     => l.mathKeyboardCategoryGreek,
+      MathKeyboardCategory.templates => l.mathKeyboardCategoryTemplates,
+      MathKeyboardCategory.recent    => l.mathKeyboardCategoryRecent,
     };
   }
 }
@@ -231,18 +232,17 @@ class _SymbolGrid extends StatelessWidget {
     required this.onVariantTap,
   });
 
-  final MathSymbolCategory category;
+  final MathKeyboardCategory category;
   final List<String>? recentSymbols;
-  final void Function(MathSymbolItem) onSymbolTap;
+  final void Function(MathKeyboardItem) onSymbolTap;
   final void Function(String) onRecentSymbolTap;
   final void Function(String) onVariantTap;
 
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
-    final zulipLocalizations = ZulipLocalizations.of(context);
 
-    if (category == MathSymbolCategory.common) {
+    if (category == MathKeyboardCategory.common) {
       return SingleChildScrollView(
         padding: const EdgeInsets.symmetric(vertical: 4),
         child: Row(
@@ -279,13 +279,14 @@ class _SymbolGrid extends StatelessWidget {
       );
     }
 
-    if (category == MathSymbolCategory.recent) {
+    if (category == MathKeyboardCategory.recent) {
+      final zulipLocalizations = ZulipLocalizations.of(context);
       if (recentSymbols == null || recentSymbols!.isEmpty) {
         return Center(
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Text(
-              zulipLocalizations.mathSymbolsNoRecentHint,
+              zulipLocalizations.mathKeyboardNoRecentHint,
               style: TextStyle(
                 fontSize: 14,
                 color: designVariables.foreground.withFadedAlpha(0.3),
@@ -311,7 +312,7 @@ class _SymbolGrid extends StatelessWidget {
       );
     }
 
-    final symbols = kMathSymbols[category] ?? const [];
+    final symbols = kMathKeyboard[category] ?? const [];
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Padding(
@@ -340,6 +341,7 @@ class _SymbolGrid extends StatelessWidget {
 }
 
 /// A single symbol button in the grid.
+/// 参考 MathLive 虚拟键盘的按键样式：白色背景、浅灰边框、底部深色边框（3D 效果）、圆角。
 class _SymbolButton extends StatelessWidget {
   const _SymbolButton({
     required this.display,
