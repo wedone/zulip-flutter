@@ -159,17 +159,20 @@ class _MathSymbolsToolbarState extends State<MathSymbolsToolbar>
     final designVariables = DesignVariables.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Category tabs
-        Container(
-          decoration: BoxDecoration(
-            border: Border(bottom: BorderSide(
-              color: designVariables.foreground.withFadedAlpha(0.1),
-            )),
-          ),
-          child: TabBar(
+    return Container(
+      // 键盘整体背景：浅灰色，参考 MathLive 虚拟键盘
+      color: const Color(0xFFcacfd7),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Category tabs
+          Container(
+            decoration: BoxDecoration(
+              border: Border(bottom: BorderSide(
+                color: Colors.white.withValues(alpha: 0.6),
+              )),
+            ),
+            child: TabBar(
             controller: _tabController,
             isScrollable: true,
             tabAlignment: TabAlignment.start,
@@ -358,27 +361,40 @@ class _SymbolButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final designVariables = DesignVariables.of(context);
-
-    return SizedBox(
-      width: 44,
-      height: 44,
-      child: IconButton(
-        onPressed: onTap,
-        onLongPress: onLongPressVariant != null
-          ? () => onVariantTap?.call(onLongPressVariant!)
-          : null,
-        style: IconButton.styleFrom(
-          splashFactory: NoSplash.splashFactory,
-          highlightColor: designVariables.editorButtonPressedBg,
-          padding: EdgeInsets.zero,
-          minimumSize: Size.zero,
+    return GestureDetector(
+      onTap: onTap,
+      onLongPress: onLongPressVariant != null
+        ? () => onVariantTap?.call(onLongPressVariant!)
+        : null,
+      child: Container(
+        width: 44,
+        height: 48,
+        margin: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          // 白色按键面
+          color: Colors.white,
+          // 柔和圆角
+          borderRadius: BorderRadius.circular(6),
+          // 浅灰边框
+          border: Border.all(
+            color: const Color(0xFFe5e6e9),
+            width: 1,
+          ),
+          // 底部深色边框营造 3D 凸起效果
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0xFF8d8f92),
+              offset: Offset(0, 2),
+              blurRadius: 0,
+            ),
+          ],
         ),
-        icon: Text(
+        alignment: Alignment.center,
+        child: Text(
           display,
           style: TextStyle(
             fontSize: _fontSizeForDisplay(display),
-            color: designVariables.foreground,
+            color: const Color(0xFF000000),
           ),
           textAlign: TextAlign.center,
           overflow: TextOverflow.ellipsis,
