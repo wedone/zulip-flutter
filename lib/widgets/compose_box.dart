@@ -1574,6 +1574,37 @@ class _CursorRightButton extends StatelessWidget {
   }
 }
 
+/// 换行按钮，仅在数学面板可见时显示。
+class _NewlineButton extends StatelessWidget {
+  const _NewlineButton({required this.controller, required this.enabled});
+
+  final TextEditingController controller;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    return SizedBox(
+      width: _composeButtonSize,
+      child: IconButton(
+        icon: Icon(Icons.keyboard_return,
+          color: designVariables.foreground.withFadedAlpha(0.5)),
+        onPressed: enabled ? _newline : null,
+      ),
+    );
+  }
+
+  void _newline() {
+    final selection = controller.selection;
+    final text = controller.text;
+    final offset = selection.isValid ? selection.start : text.length;
+    controller.value = TextEditingValue(
+      text: text.substring(0, offset) + '\n' + text.substring(offset),
+      selection: TextSelection.collapsed(offset: offset + 1),
+    );
+  }
+}
+
 /// The text inputs, compose-button row, and send button for the compose box.
 abstract class _ComposeBoxBody extends StatelessWidget {
   /// The narrow on view in the message list.
@@ -1630,6 +1661,7 @@ abstract class _ComposeBoxBody extends StatelessWidget {
         _BackspaceButton(controller: controller.content, enabled: composeButtonsEnabled),
         _CursorLeftButton(controller: controller.content, enabled: composeButtonsEnabled),
         _CursorRightButton(controller: controller.content, enabled: composeButtonsEnabled),
+        _NewlineButton(controller: controller.content, enabled: composeButtonsEnabled),
       ],
     ];
 
