@@ -175,7 +175,9 @@ class _MathKeyboardToolbarState extends State<MathKeyboardToolbar>
                 color: Colors.white.withValues(alpha: 0.6),
               )),
             ),
-            child: TabBar(
+            child: SizedBox(
+              height: 40,
+              child: TabBar(
               controller: _tabController,
               isScrollable: true,
               tabAlignment: TabAlignment.start,
@@ -189,6 +191,7 @@ class _MathKeyboardToolbarState extends State<MathKeyboardToolbar>
                 for (final category in _categoryOrder)
                   Tab(text: _categoryLabel(category, zulipLocalizations)),
               ],
+            ),
             ),
           ),
           // Symbol grid (with recent section)
