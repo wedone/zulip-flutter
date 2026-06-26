@@ -76,6 +76,10 @@ class LatexWrapper extends MathKeyboardItem {
 }
 
 /// 常用标签左栏：数字+运算符+成对符号+模板
+///
+/// 占位符约定（与 MathLive 一致）：
+///  - #@ = 蓝色实心方块 ▣（已有输入 / 光标位置）
+///  - #? = 灰色空心方框 □（待填空白 / 新输入）
 const kCommonLeftSymbols = <MathKeyboardItem>[
   // 第1行: 数字 0-3
   UnicodeSymbol(display: '0', output: '0', category: MathKeyboardCategory.common),
@@ -100,25 +104,27 @@ const kCommonLeftSymbols = <MathKeyboardItem>[
   // 第5行: 根号+逗号+行内公式界定符
   UnicodeSymbol(display: '√', output: '√', category: MathKeyboardCategory.common),
   UnicodeSymbol(display: ',', output: ',', category: MathKeyboardCategory.common),
-  LatexSnippet(display: r'\$\square\$', output: '\$\$', cursorOffset: 1, category: MathKeyboardCategory.common),
+  LatexSnippet(display: r'\$#@\$', output: '\$\$', cursorOffset: 1, category: MathKeyboardCategory.common),
   // 第6行: 成对括号（光标在中间）
-  LatexSnippet(display: r'(\square)', output: '()', cursorOffset: 1, category: MathKeyboardCategory.common),
-  LatexSnippet(display: r'[\square]', output: '[]', cursorOffset: 1, category: MathKeyboardCategory.common),
-  LatexSnippet(display: r'\{\square\}', output: '{}', cursorOffset: 1, category: MathKeyboardCategory.common),
-  LatexSnippet(display: r'|\square|', output: '||', cursorOffset: 1, category: MathKeyboardCategory.common),
+  LatexSnippet(display: r'(#@)', output: '()', cursorOffset: 1, category: MathKeyboardCategory.common),
+  LatexSnippet(display: r'[#@]', output: '[]', cursorOffset: 1, category: MathKeyboardCategory.common),
+  LatexSnippet(display: r'\{#@\}', output: '{}', cursorOffset: 1, category: MathKeyboardCategory.common),
+  LatexSnippet(display: r'|#@|', output: '||', cursorOffset: 1, category: MathKeyboardCategory.common),
   // 第7行: 关系符+上下标
   UnicodeSymbol(display: '<', output: '<', category: MathKeyboardCategory.common),
   UnicodeSymbol(display: '>', output: '>', category: MathKeyboardCategory.common),
   UnicodeSymbol(display: '_', output: '_', category: MathKeyboardCategory.common),
   UnicodeSymbol(display: '^', output: '^', category: MathKeyboardCategory.common),
   // 第8行: 上标+LaTeX模板
-  UnicodeSymbol(display: '²', output: '²', category: MathKeyboardCategory.common),
-  LatexSnippet(display: r'\frac{\square}{\square}', output: '\\frac{}{}', cursorOffset: 3, category: MathKeyboardCategory.common),
-  LatexSnippet(display: r'x_{\square}^{\square}', output: '_{}^{}', cursorOffset: 4, category: MathKeyboardCategory.common),
+  // UnicodeSymbol(display: '²', output: '²', category: MathKeyboardCategory.common),
+  LatexSnippet(display: '#@^{2}', output: '²', cursorOffset: 0, category: MathKeyboardCategory.common),
+
+  LatexSnippet(display: r'\frac{#@}{#@}', output: '\\frac{}{}', cursorOffset: 3, category: MathKeyboardCategory.common),
+  LatexSnippet(display: r'#?_{#@}^{#@}', output: '_{}^{}', cursorOffset: 4, category: MathKeyboardCategory.common),
   // 第9行: 根号模板+向量
-  LatexSnippet(display: r'\sqrt{\square}', output: '\\sqrt{}', cursorOffset: 1, category: MathKeyboardCategory.common),
-  LatexSnippet(display: r'\sqrt[n]{\square}', output: '\\sqrt[n]{}', cursorOffset: 1, category: MathKeyboardCategory.common),
-  LatexSnippet(display: r'\vec{\square}', output: '\\vec{}', cursorOffset: 1, category: MathKeyboardCategory.common),
+  LatexSnippet(display: r'\sqrt{#@}', output: '\\sqrt{}', cursorOffset: 1, category: MathKeyboardCategory.common),
+  LatexSnippet(display: r'\sqrt[n]{#@}', output: '\\sqrt[n]{}', cursorOffset: 1, category: MathKeyboardCategory.common),
+  LatexSnippet(display: r'\vec{#@}', output: '\\vec{}', cursorOffset: 1, category: MathKeyboardCategory.common),
 ];
 
 /// 常用标签右栏：26个英文字母+高频希腊字母
@@ -296,21 +302,20 @@ const kMathKeyboard = <MathKeyboardCategory, List<MathKeyboardItem>>{
   ],
 
   MathKeyboardCategory.templates: [
-    LatexSnippet(display: r'\frac{\square}{\square}',    output: '\\frac{}{}',              cursorOffset: 3, category: MathKeyboardCategory.templates),
-    LatexSnippet(display: r'\sqrt{\square}',     output: '\\sqrt{}',                cursorOffset: 1, category: MathKeyboardCategory.templates),
-    LatexSnippet(display: r'\sqrt[n]{\square}',    output: '\\sqrt[n]{}',             cursorOffset: 1, category: MathKeyboardCategory.templates),
-    LatexSnippet(display: r'x_{\square}^{\square}',    output: '_{}^{}',                  cursorOffset: 4, category: MathKeyboardCategory.templates),
+    LatexSnippet(display: r'\frac{#@}{#?}',    output: '\\frac{}{}',              cursorOffset: 3, category: MathKeyboardCategory.templates),
+    LatexSnippet(display: r'\sqrt{#@}',     output: '\\sqrt{}',                cursorOffset: 1, category: MathKeyboardCategory.templates),
+    LatexSnippet(display: r'\sqrt[n]{#@}',    output: '\\sqrt[n]{}',             cursorOffset: 1, category: MathKeyboardCategory.templates),
+    LatexSnippet(display: r'x_{#?}^{#@}',    output: '_{}^{}',                  cursorOffset: 4, category: MathKeyboardCategory.templates),
     LatexSnippet(display: r'\sum_{i=1}^{n}',  output: '\\sum_{i=1}^{n}',        cursorOffset: 0, category: MathKeyboardCategory.templates),
     LatexSnippet(display: r'\int_{a}^{b}',    output: '\\int_{a}^{b}',           cursorOffset: 0, category: MathKeyboardCategory.templates),
     LatexSnippet(display: r'\lim_{x \to \infty}',  output: '\\lim_{x \\to \\infty}', cursorOffset: 0, category: MathKeyboardCategory.templates),
-    LatexSnippet(display: r'\begin{pmatrix} \square \\ \square \end{pmatrix}', output: '\\begin{pmatrix}\n\\end{pmatrix}', cursorOffset: 14, category: MathKeyboardCategory.templates),
-    LatexSnippet(display: r'\begin{cases} \square \\ \square \end{cases}', output: '\\begin{cases}\n\\end{cases}',     cursorOffset: 11, category: MathKeyboardCategory.templates),
-    LatexWrapper(display: r'\$\square\$',  prefix: '\$', suffix: '\$', category: MathKeyboardCategory.templates),
-    LatexWrapper(display: r'\$\$\square\$\$', prefix: '\$\$\n', suffix: '\n\$\$', category: MathKeyboardCategory.templates),
-    LatexSnippet(display: r'\log_{\square}{\square}', output: '\\log_{}{}', cursorOffset: 3, category: MathKeyboardCategory.templates),
-    LatexWrapper(display: r'\{\square\}', prefix: '\\{', suffix: '\\}', category: MathKeyboardCategory.templates),
-    LatexSnippet(display: r'\begin{align} \square \\ \square \end{align}', output: '\\begin{align}\n\\end{align}', cursorOffset: 14, category: MathKeyboardCategory.templates),
-    LatexSnippet(display: r'\binom{\square}{\square}', output: '\\binom{}{}', cursorOffset: 3, category: MathKeyboardCategory.templates),
+    LatexSnippet(display: r'\begin{pmatrix} #@ \\ #@ \end{pmatrix}', output: '\\begin{pmatrix}\n\\end{pmatrix}', cursorOffset: 14, category: MathKeyboardCategory.templates),
+    LatexSnippet(display: r'\begin{cases} #@ \\ #@ \end{cases}', output: '\\begin{cases}\n\\end{cases}',     cursorOffset: 11, category: MathKeyboardCategory.templates),
+    LatexWrapper(display: r'\$#@\$',  prefix: '\$', suffix: '\$', category: MathKeyboardCategory.templates),
+    LatexWrapper(display: r'\$\$#@\$\$', prefix: '\$\$\n', suffix: '\n\$\$', category: MathKeyboardCategory.templates),
+    LatexSnippet(display: r'\log_{#?}{#@}', output: '\\log_{}{}', cursorOffset: 3, category: MathKeyboardCategory.templates),
+    LatexSnippet(display: r'\begin{align} #@ \\ #@ \end{align}', output: '\\begin{align}\n\\end{align}', cursorOffset: 14, category: MathKeyboardCategory.templates),
+    LatexSnippet(display: r'\binom{#@}{#?}', output: '\\binom{}{}', cursorOffset: 3, category: MathKeyboardCategory.templates),
   ],
 
   MathKeyboardCategory.recent: [],
