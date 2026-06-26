@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
 
@@ -274,7 +277,7 @@ class _SymbolGrid extends StatelessWidget {
                       _SymbolButton(
                         item: symbol,
                         onTap: () => onSymbolTap(symbol),
-                        onLongPressVariant: _leftColumnVariant(symbol.display),
+                        onLongPressVariants: _leftColumnVariant(symbol.display),
                         onVariantTap: onVariantTap,
                         lastPressedKey: lastPressedKey,
                         onLastPressedKeyChanged: onLastPressedKeyChanged,
@@ -292,7 +295,7 @@ class _SymbolGrid extends StatelessWidget {
                       _SymbolButton(
                         item: symbol,
                         onTap: () => onSymbolTap(symbol),
-                        onLongPressVariant: _lowercaseVariant(symbol.display),
+                        onLongPressVariants: _lowercaseVariant(symbol.display),
                         onVariantTap: onVariantTap,
                         lastPressedKey: lastPressedKey,
                         onLastPressedKeyChanged: onLastPressedKeyChanged,
@@ -360,23 +363,23 @@ class _SymbolGrid extends StatelessWidget {
   }
 
   /// 返回大写英文字母对应的小写形式，用于长按变体。
-  /// 非大写字母返回 null。
-  static String? _lowercaseVariant(String display) {
+  /// 非大写字母返回 null（即无长按功能）。
+  static List<String>? _lowercaseVariant(String display) {
     if (display.length == 1 && display.codeUnitAt(0) >= 0x41 && display.codeUnitAt(0) <= 0x5A) {
-      return display.toLowerCase();
+      return [display.toLowerCase()];
     }
     return null;
   }
 
-  /// 返回左栏符号的长按变体，用于将常用符号合并到相近按键中。
+  /// 返回左栏符号的长按变体列表，用于将常用符号合并到相近按键中。
   /// 不支持的符号返回 null（即无长按功能）。
-  static String? _leftColumnVariant(String display) {
+  static List<String>? _leftColumnVariant(String display) {
     return switch (display) {
-      '.' => '⋅',
-      ',' => ':',
-      '=' => '≠',
-      '/' => r'\',
-      '²' => '³',
+      '.' => ['⋅','…'],
+      ',' => [':',';'],
+      '=' => ['≠','≈','≅'],
+      '/' => [r'\'],
+      '²' => ['³'],
       _ => null,
     };
   }
@@ -389,11 +392,15 @@ class _SymbolGrid extends StatelessWidget {
 ///   0. 平常：白色
 ///   1. 按下时：蓝色
 ///   2. 刚才按过：浅灰色（保持到按下其他按键）
+///
+/// 长按变体面板：
+///   - 单个变体：长按直接插入（高效模式）
+///   - 多个变体：长按弹出面板，释放时若未选中则默认插入第一个
 class _SymbolButton extends StatefulWidget {
   const _SymbolButton({
     required this.item,
     required this.onTap,
-    this.onLongPressVariant,
+    this.onLongPressVariants,
     this.onVariantTap,
     required this.lastPressedKey,
     required this.onLastPressedKeyChanged,
@@ -404,9 +411,9 @@ class _SymbolButton extends StatefulWidget {
 
   final VoidCallback onTap;
 
-  /// 长按时直接插入的变体符号（如大写字母长按插入小写）。
-  /// 为 null 时不支持长按。
-  final String? onLongPressVariant;
+  /// 长按变体列表（如大写字母长按插入小写）。
+  /// 为 null 或空列表时不支持长按。
+  final List<String>? onLongPressVariants;
 
   /// 插入变体符号时的回调。
   final void Function(String variant)? onVariantTap;
@@ -423,6 +430,8 @@ class _SymbolButton extends StatefulWidget {
 
 class _SymbolButtonState extends State<_SymbolButton> {
   bool _pressed = false;
+  bool _variantPanelShown = false;
+  OverlayEntry? _variantOverlayEntry;
 
   /// 获取按键的唯一标识 key。
   String get _key {
@@ -436,9 +445,39 @@ class _SymbolButtonState extends State<_SymbolButton> {
     }
   }
 
+  /// 弹出变体选择面板（参考 MathLive showVariantsPanel）。
+  void _showVariantPanel(List<String> variants) {
+    final renderBox = context.findRenderObject() as RenderBox;
+    final position = renderBox.localToGlobal(Offset.zero);
+    final buttonSize = renderBox.size;
+
+    _variantOverlayEntry = OverlayEntry(
+      builder: (ctx) => _VariantPanelWidget(
+        variants: variants,
+        buttonGlobalPosition: position,
+        buttonSize: buttonSize,
+        onSelected: (variant) {
+          widget.onVariantTap?.call(variant);
+          _dismissVariantPanel();
+        },
+        onDismiss: _dismissVariantPanel,
+      ),
+    );
+
+    Overlay.of(context).insert(_variantOverlayEntry!);
+  }
+
+  void _dismissVariantPanel() {
+    _variantOverlayEntry?.remove();
+    _variantOverlayEntry = null;
+    _variantPanelShown = false;
+  }
+
   @override
   Widget build(BuildContext context) {
     final isLastPressed = widget.lastPressedKey == _key;
+    final hasVariants = widget.onLongPressVariants != null
+        && widget.onLongPressVariants!.isNotEmpty;
 
     return GestureDetector(
       onTapDown: (_) {
@@ -450,8 +489,32 @@ class _SymbolButtonState extends State<_SymbolButton> {
         widget.onTap();
       },
       onTapCancel: () => setState(() => _pressed = false),
-      onLongPress: widget.onLongPressVariant != null
-        ? () => widget.onVariantTap?.call(widget.onLongPressVariant!)
+      onLongPress: hasVariants
+        ? () {
+            final variants = widget.onLongPressVariants!;
+            if (variants.length == 1) {
+              // 单个变体：直接插入，高效
+              widget.onVariantTap?.call(variants.first);
+            } else {
+              // 多个变体：弹出面板供选择
+              _variantPanelShown = true;
+              _showVariantPanel(variants);
+            }
+          }
+        : null,
+      onLongPressUp: hasVariants
+        ? () {
+            setState(() => _pressed = false);
+            if (!_variantPanelShown) return;
+            // 延迟一帧检查：若用户未在面板中选中变体，默认插入第一个
+            // 使用 Future.microtask 确保 Listener.onPointerUp 先于此处执行
+            Future.microtask(() {
+              if (_variantPanelShown) {
+                widget.onVariantTap?.call(widget.onLongPressVariants!.first);
+                _dismissVariantPanel();
+              }
+            });
+          }
         : null,
       child: Container(
         width: 36,
@@ -542,5 +605,140 @@ class _SymbolButtonState extends State<_SymbolButton> {
     if (display.length <= 2) return 18;
     if (display.length <= 4) return 14;
     return 12;
+  }
+}
+
+/// 变体选择弹出面板（参考 MathLive VariantsPanel）。
+///
+/// 在按键上方弹出，显示所有变体选项。使用 [Listener] 而非 [GestureDetector]
+/// 接收原始指针事件，绕过手势竞技场，确保长按滑选能正常工作。
+class _VariantPanelWidget extends StatelessWidget {
+  const _VariantPanelWidget({
+    required this.variants,
+    required this.buttonGlobalPosition,
+    required this.buttonSize,
+    required this.onSelected,
+    required this.onDismiss,
+  });
+
+  final List<String> variants;
+  final Offset buttonGlobalPosition;
+  final Size buttonSize;
+  final ValueChanged<String> onSelected;
+  final VoidCallback onDismiss;
+
+  static const _buttonWidth = 36.0;
+  static const _buttonHeight = 40.0;
+  static const _buttonMargin = 1.0;
+  static const _panelPadding = 6.0;
+  static const _maxPerRow = 5;
+  static const _gap = 4.0; // 面板与按键的间距
+
+  @override
+  Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+
+    // 计算面板尺寸
+    final rows = (variants.length / _maxPerRow).ceil();
+    final perRow = math.min(variants.length, _maxPerRow);
+    final panelWidth = perRow * (_buttonWidth + _buttonMargin * 2) + _panelPadding * 2;
+    final panelHeight = rows * (_buttonHeight + _buttonMargin * 2) + _panelPadding * 2;
+
+    // 水平居中于按键
+    var left = buttonGlobalPosition.dx + buttonSize.width / 2 - panelWidth / 2;
+    left = left.clamp(0.0, screenSize.width - panelWidth);
+
+    // 默认显示在按键上方
+    var top = buttonGlobalPosition.dy - panelHeight - _gap;
+    if (top < 0) {
+      // 上方空间不足，显示在下方
+      top = buttonGlobalPosition.dy + buttonSize.height + _gap;
+    }
+
+    return GestureDetector(
+      // 点击遮罩层关闭面板（不插入任何变体）
+      onTap: onDismiss,
+      behavior: HitTestBehavior.translucent,
+      child: Stack(
+        children: [
+          Positioned(
+            left: left,
+            top: top,
+            child: Container(
+              width: panelWidth,
+              padding: const EdgeInsets.all(_panelPadding),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.25),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Wrap(
+                children: [
+                  for (final variant in variants)
+                    _VariantButton(
+                      variant: variant,
+                      onPointerUp: () => onSelected(variant),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 变体面板中的单个按键。
+///
+/// 使用 [Listener] 接收原始指针事件，绕过手势竞技场，
+/// 确保在长按手势持有期间，滑到此处释放时能正确触发 [onPointerUp]。
+class _VariantButton extends StatelessWidget {
+  const _VariantButton({
+    required this.variant,
+    required this.onPointerUp,
+  });
+
+  final String variant;
+  final VoidCallback onPointerUp;
+
+  @override
+  Widget build(BuildContext context) {
+    return Listener(
+      onPointerUp: (_) => onPointerUp(),
+      child: Container(
+        width: _VariantPanelWidget._buttonWidth,
+        height: _VariantPanelWidget._buttonHeight,
+        margin: const EdgeInsets.all(_VariantPanelWidget._buttonMargin),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: const Color(0xFFe5e6e9)),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0xFF8d8f92),
+              offset: Offset(0, 1),
+              blurRadius: 0,
+            ),
+          ],
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          variant,
+          style: TextStyle(
+            fontSize: _SymbolButtonState._fontSizeForDisplay(variant),
+            color: const Color(0xFF000000),
+          ),
+          textAlign: TextAlign.center,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
+    );
   }
 }
