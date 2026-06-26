@@ -181,7 +181,8 @@
 **文件位置**: `math_keyboard_toolbar.dart` 第446-466行
 
 - 显示方式：实时渲染LaTeX公式
-- 占位符 `\square` 会显示为 **蓝色实心方块** `#0066CC`
+- 占位符 `#@` 显示为 **蓝色实心方块 ▣** `#0066CC`（已有输入 / 光标位置）
+- 占位符 `#?` 显示为 **灰色空心方框 □** `#A0A0A0`（待填空白 / 新输入）
 - 渲染失败时回退到文本显示（12px黑色）
 - LaTeX渲染时的文字大小：`14px`
 - LaTeX渲染时的文字颜色：黑色 `#000000`
@@ -190,7 +191,8 @@
 
 | 修改项       | 当前值            | 你想改成什么？ |
 | --------- | -------------- | ------- |
-| 占位符颜色     | `#0066CC` (蓝色) |  |
+| 占位符 `#@` 颜色（蓝色实心） | `#0066CC` |  |
+| 占位符 `#?` 颜色（灰色空心） | `#A0A0A0` |  |
 | LaTeX文字大小 | `14px`         |  |
 | LaTeX文字颜色 | `#000000` (黑色) |  |
 | 渲染失败时文字大小 | `12px`         |  |
@@ -379,17 +381,134 @@
 
 ### 6.1 功能说明
 
-**文件位置**: `math_keyboard_toolbar.dart` 第357-363行, 第404-409行
+**文件位置**: `math_keyboard_toolbar.dart` 第365-385行
 
-- **大写字母按键**长按会直接插入对应**小写字母**
-- 例如：长按 `A` 会插入 `a`
+长按某个按键时，会弹出变体选择面板，松开时若未选择则自动插入第一个变体。面板在按键上方弹出，最多 5 列。
 
-**待填写**：
+### 6.2 两种映射机制
 
-| 修改项    | 当前值   | 你想改成什么？ |
-| ------ | ----- | ------- |
-| 长按变体规则 | 大写→小写 |  |
-| 是否启用长按 | 是     |  |
+#### 机制A：大写字母 → 小写字母（自动）
+
+**代码位置**: `math_keyboard_toolbar.dart` 第365-372行 `_lowercaseVariant()`
+
+```dart
+static List<String>? _lowercaseVariant(String display) {
+  if (display.length == 1 && display.codeUnitAt(0) >= 0x41 && display.codeUnitAt(0) <= 0x5A) {
+    return [display.toLowerCase()];
+  }
+  return null;
+}
+```
+
+- **自动生效**：26个大写字母（A-Z）自动支持长按弹出对应小写字母
+- **规则**：单字符且 ASCII 码在 `0x41`~`0x5A` 范围 → 返回小写
+- **调用位置**：右栏（字母按键）统一应用此机制
+
+#### 机制B：左栏符号手动映射
+
+**代码位置**: `math_keyboard_toolbar.dart` 第407-419行 `_leftColumnVariant()`
+
+```dart
+static List<VariantItem>? _leftColumnVariant(String display) {
+  return switch (display) {
+    '.' => [TextVariant('⋅'), TextVariant('…')],        // . 长按弹出 ⋅、…
+    ',' => [TextVariant(':'), TextVariant(';')],        // , 长按弹出 :、；
+    '=' => [TextVariant('≠'), TextVariant('≈'), TextVariant('≅')],  // = 长按弹出 ≠、≈、≅
+    '/' => [TextVariant(r'\')],                          // / 长按弹出 \
+    '#@^{2}' => [TextVariant('³')],                      // 平方模板长按弹出 ³
+    _ => null,                                           // 其他符号无长按
+  };
+}
+```
+
+- **key** = 该按键的 `item.display` 值（与 `math_keyboard_data.dart` 中定义一致）
+- **value** = 长按弹出的变体列表（`List<VariantItem>`），多个变体会显示在面板中
+- **返回 `null`** = 该按键不支持长按
+- **调用位置**：左栏（数字/运算符/模板）统一应用此机制
+
+#### 变体类型
+
+变体支持两种类型（定义在 `math_keyboard_toolbar.dart` 第18-44行）：
+
+| 类型 | 构造 | 显示效果 | 插入内容 |
+|------|------|---------|---------|
+| `TextVariant` | `TextVariant('⋅')` | 纯文本显示 | 与显示相同 |
+| `LatexVariant` | `LatexVariant(latex: r'\frac{#@}{#?}', insert: r'\frac{}{}')` | LaTeX 渲染（含方块占位符） | `insert` 字段，默认等于 `latex` |
+
+**示例**——给 `/` 按键增加 LaTeX 变体：
+
+```dart
+'/' => [
+  TextVariant(r'\'),               // 纯文本：反斜杠
+  LatexVariant(                     // LaTeX 渲染：分数模板预览
+    latex: r'\frac{#@}{#?}',
+    insert: r'\frac{}{}',
+  ),
+],
+```
+
+面板中 `\` 显示为文字，`\frac{#@}{#?}` 显示为渲染后的分数公式（蓝色方块分子 + 灰色方块分母）。
+
+### 6.3 如何增加/修改映射
+
+#### 新增一个按键的长按变体
+
+1. 确认该按键在数据文件中的 `display` 值
+2. 在 `_leftColumnVariant` 的 `switch` 中新增一行：
+
+```dart
+'display值' => [TextVariant('变体1'), TextVariant('变体2')],
+```
+
+例如给 `√` 按键增加长按变体：
+```dart
+// math_keyboard_data.dart 中 √ 的 display 是 '√'
+'√' => [TextVariant('∛'), TextVariant('∜')],
+```
+
+#### 给已有的按键增加更多变体
+
+直接追加到列表中：
+
+```dart
+// 原来：'.' => [TextVariant('⋅')]
+// 改为：
+'.' => [TextVariant('⋅'), TextVariant('…'), TextVariant('•')],
+```
+
+#### 增加 LaTeX 变体（带方块占位符预览）
+
+使用 `LatexVariant` 替代 `TextVariant`：
+
+```dart
+'/' => [
+  TextVariant(r'\'),
+  LatexVariant(
+    latex: r'\frac{#@}{#?}',    // 面板中渲染为分数公式预览
+    insert: r'\frac{}{}',       // 实际插入的文本
+  ),
+],
+```
+
+- `latex` 字段：面板中渲染的 LaTeX 表达式，支持 `#@`（蓝色）和 `#?`（灰色）占位符
+- `insert` 字段：实际插入文本编辑器的内容，省略时默认等于 `latex`
+
+#### 注意
+
+- 变体插入的是**文本字符串**（`String`），不是 `MathKeyboardItem`
+- `_lowercaseVariant`（大写→小写）和 `_leftColumnVariant`（左栏映射）是**互斥的**，一个按键只会命中其中一种
+
+### 6.4 调用关系
+
+```
+_SymbolGrid 构建左栏按键时
+  └── onLongPressVariants: _leftColumnVariant(symbol.display)
+       └── 根据 display 匹配 → 返回变体列表或 null
+
+_SymbolGrid 构建右栏按键时
+  └── onLongPressVariants: _lowercaseVariant(symbol.display)
+       └── 判断是否大写字母 → 返回小写或 null
+```
 
 ***
 
@@ -413,7 +532,35 @@
 | `LatexSnippet`  | 插入LaTeX代码，光标定位在指定位置 | `\frac{}{}` 光标在第一个`{}`内 |
 | `LatexWrapper`  | 包裹选中文本的前后缀          | `$$...$$` 包裹公式          |
 
-### 7.3 待填写区域
+### 7.3 占位符约定（与 MathLive 一致）
+
+符号数据定义中（`display` 字段），LaTeX模板使用两种占位符标识按键各部分的用途：
+
+| 占位符 | 含义 | 渲染效果 | 示例 |
+|--------|------|---------|------|
+| `#@` | 已有输入 / 光标位置 | 蓝色实心方块 ▣ `#0066CC` | `\frac{#@}{#?}` 表示光标在分子 |
+| `#?` | 待填空白 / 新输入 | 灰色空心方框 □ `#A0A0A0` | `x_{#?}^{#@}` 表示上标已填，下标待填 |
+
+**规则**：
+- `#@` = 用户当前选中的内容 / 光标所在位置（蓝色实心）
+- `#?` = 需要用户填入的新内容（灰色空心）
+- 两者仅用于 `LatexSnippet` 和 `LatexWrapper` 的 `display` 字段
+- `UnicodeSymbol` 的 `display` 是纯文本，不使用占位符
+
+### 7.4 Dart 原始字符串（`r` 前缀）说明
+
+**文件位置**: `math_keyboard_data.dart`
+
+符号定义中，`display` 和 `output` 字段的字符串有时带 `r` 前缀（如 `r'\frac{#@}{#?}'`）：
+
+| 写法 | 含义 | 适用场景 | 示例 |
+|------|------|---------|------|
+| 带 `r` | **原始字符串**，`\` 不当作转义符 | 包含 `\` 的 LaTeX 表达式 | `r'\frac{#@}{#?}'`、`r'\sqrt{#@}'` |
+| 不带 `r` | **普通字符串**，`\` 会被转义 | 纯文本，不含 `\` | `'²'`、`'<'`、`'α'` |
+
+**简单规则**：只要 `display` 或 `output` 里有 `\`（所有 LaTeX 表达式都带），就必须加 `r` 前缀。纯 Unicode 字符（如 `+`、`α`、`²`）不需要。
+
+### 7.5 待填写区域
 
 | 修改项    | 你想添加/删除/修改什么符号？ |
 | ------ | --------------- |
