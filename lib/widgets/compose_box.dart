@@ -1696,7 +1696,12 @@ abstract class _ComposeBoxBody extends StatelessWidget {
             focusNode: controller.contentFocusNode),
         ])),
       if (mathKeyboardToolbarVisible)
-        MathKeyboardToolbar(controller: controller.content),
+        MediaQuery.removePadding(
+          context: context,
+          removeLeft: true,
+          removeRight: true,
+          child: MathKeyboardToolbar(controller: controller.content),
+        ),
       ConstrainedBox(
         constraints: BoxConstraints(maxWidth: MessageListPage.maxContentWidth),
         child: SizedBox(
