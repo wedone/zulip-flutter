@@ -1420,6 +1420,7 @@ class _ComposeBoxContainer extends StatelessWidget {
   const _ComposeBoxContainer({
     required this.body,
     this.banner,
+    this.keyboard,
   }) : assert(body != null || banner != null);
 
   /// The text inputs, compose-button row, and send button.
@@ -1439,6 +1440,9 @@ class _ComposeBoxContainer extends StatelessWidget {
   /// (A bottom inset may occur if [body] is null.)
   final Widget? banner;
 
+  /// The math keyboard, rendered outside [SafeArea] to avoid horizontal padding.
+  final Widget? keyboard;
+
   Widget _paddedBody() {
     assert(body != null);
     return SafeArea(minimum: const EdgeInsets.symmetric(horizontal: 8),
@@ -1456,9 +1460,13 @@ class _ComposeBoxContainer extends StatelessWidget {
         MediaQuery.removePadding(context: context, removeBottom: true,
           child: banner!),
         _paddedBody(),
+        ?keyboard,
       ],
       (Widget(),     null) => [banner!],
-      (null,     Widget()) => [_paddedBody()],
+      (null,     Widget()) => [
+        _paddedBody(),
+        ?keyboard,
+      ],
       (null,         null) => throw UnimplementedError(), // not allowed, see dartdoc
     };
 
@@ -1695,13 +1703,6 @@ abstract class _ComposeBoxBody extends StatelessWidget {
             controller: controller.content,
             focusNode: controller.contentFocusNode),
         ])),
-      if (mathKeyboardToolbarVisible)
-        MediaQuery.removePadding(
-          context: context,
-          removeLeft: true,
-          removeRight: true,
-          child: MathKeyboardToolbar(controller: controller.content),
-        ),
       ConstrainedBox(
         constraints: BoxConstraints(maxWidth: MessageListPage.maxContentWidth),
         child: SizedBox(
@@ -2625,7 +2626,13 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
     }
 
     return ComposeBoxInheritedWidget.fromComposeBoxState(this,
-      child: _ComposeBoxContainer(body: body, banner: banner));
+      child: _ComposeBoxContainer(
+        body: body,
+        banner: banner,
+        keyboard: _mathKeyboardToolbarVisible
+          ? MathKeyboardToolbar(controller: controller.content)
+          : null,
+      ));
   }
 }
 
