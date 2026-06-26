@@ -1679,23 +1679,27 @@ abstract class _ComposeBoxBody extends StatelessWidget {
 
     final topicInput = buildTopicInput();
     final sendButton = buildSendButton();
-    return ConstrainedBox(
-      constraints: BoxConstraints(maxWidth: MessageListPage.maxContentWidth),
-      child: Column(children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Theme(
-            data: inputThemeData,
-            child: Column(children: [
-              ?topicInput,
-              buildContentInput(),
-            ]))),
-        LatexPreviewArea(
-          controller: controller.content,
-          focusNode: controller.contentFocusNode),
-        if (mathKeyboardToolbarVisible)
-          MathKeyboardToolbar(controller: controller.content),
-        SizedBox(
+    return Column(children: [
+      ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: MessageListPage.maxContentWidth),
+        child: Column(children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Theme(
+              data: inputThemeData,
+              child: Column(children: [
+                ?topicInput,
+                buildContentInput(),
+              ]))),
+          LatexPreviewArea(
+            controller: controller.content,
+            focusNode: controller.contentFocusNode),
+        ])),
+      if (mathKeyboardToolbarVisible)
+        MathKeyboardToolbar(controller: controller.content),
+      ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: MessageListPage.maxContentWidth),
+        child: SizedBox(
           height: _composeButtonSize,
           child: IconButtonTheme(
             data: iconButtonThemeData,
@@ -1705,7 +1709,8 @@ abstract class _ComposeBoxBody extends StatelessWidget {
                 Row(children: composeButtons),
                 ?sendButton,
               ]))),
-      ]));
+      ),
+    ]);
   }
 }
 

@@ -245,7 +245,7 @@ class _SymbolGrid extends StatelessWidget {
 
     if (category == MathKeyboardCategory.common) {
       return SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(vertical: 4),
+        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
         child: Center(
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -319,7 +319,7 @@ class _SymbolGrid extends StatelessWidget {
 
     final symbols = kMathKeyboard[category] ?? const [];
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
       child: Center(
         child: Wrap(
           children: [
