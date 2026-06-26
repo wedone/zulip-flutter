@@ -231,6 +231,7 @@ class _MathKeyboardToolbarState extends State<MathKeyboardToolbar>
 /// A scrollable grid of symbol buttons for a given category.
 class _SymbolGrid extends StatelessWidget {
   const _SymbolGrid({
+    super.key,
     required this.category,
     required this.recentSymbols,
     required this.onSymbolTap,
