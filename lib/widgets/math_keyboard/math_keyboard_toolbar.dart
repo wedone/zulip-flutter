@@ -28,6 +28,8 @@ class _MathKeyboardToolbarState extends State<MathKeyboardToolbar>
   late TabController _tabController;
   List<String> _recentSymbols = [];
   bool _recentLoaded = false;
+  /// 记录上一个被按下的按键（用于显示浅灰色背景）。
+  String? _lastPressedKey;
 
   static const _categoryOrder = MathKeyboardCategory.values;
 
@@ -197,11 +199,14 @@ class _MathKeyboardToolbarState extends State<MathKeyboardToolbar>
               children: [
                 for (final category in _categoryOrder)
                   _SymbolGrid(
+                    key: ValueKey(category),
                     category: category,
                     recentSymbols: _recentLoaded ? _recentSymbols : null,
                     onSymbolTap: _insertSymbol,
                     onRecentSymbolTap: _insertRecentSymbol,
                     onVariantTap: _insertVariantText,
+                    lastPressedKey: _lastPressedKey,
+                    onLastPressedKeyChanged: (key) => setState(() => _lastPressedKey = key),
                   ),
               ],
             ),
@@ -231,6 +236,8 @@ class _SymbolGrid extends StatelessWidget {
     required this.onSymbolTap,
     required this.onRecentSymbolTap,
     required this.onVariantTap,
+    required this.lastPressedKey,
+    required this.onLastPressedKeyChanged,
   });
 
   final MathKeyboardCategory category;
@@ -238,6 +245,10 @@ class _SymbolGrid extends StatelessWidget {
   final void Function(MathKeyboardItem) onSymbolTap;
   final void Function(String) onRecentSymbolTap;
   final void Function(String) onVariantTap;
+  /// 上一个被按下的按键 key，用于显示浅灰色背景。
+  final String? lastPressedKey;
+  /// 按键按下时回调，更新上一个按键记录。
+  final void Function(String?) onLastPressedKeyChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -259,6 +270,8 @@ class _SymbolGrid extends StatelessWidget {
                       _SymbolButton(
                         item: symbol,
                         onTap: () => onSymbolTap(symbol),
+                        lastPressedKey: lastPressedKey,
+                        onLastPressedKeyChanged: onLastPressedKeyChanged,
                       ),
                   ],
                 ),
@@ -275,6 +288,8 @@ class _SymbolGrid extends StatelessWidget {
                         onTap: () => onSymbolTap(symbol),
                         onLongPressVariant: _lowercaseVariant(symbol.display),
                         onVariantTap: onVariantTap,
+                        lastPressedKey: lastPressedKey,
+                        onLastPressedKeyChanged: onLastPressedKeyChanged,
                       ),
                   ],
                 ),
@@ -310,6 +325,8 @@ class _SymbolGrid extends StatelessWidget {
                 _SymbolButton(
                   item: UnicodeSymbol(display: symbol, output: symbol, category: MathKeyboardCategory.recent),
                   onTap: () => onRecentSymbolTap(symbol),
+                  lastPressedKey: lastPressedKey,
+                  onLastPressedKeyChanged: onLastPressedKeyChanged,
                 ),
             ],
           ),
@@ -327,6 +344,8 @@ class _SymbolGrid extends StatelessWidget {
               _SymbolButton(
                 item: symbol,
                 onTap: () => onSymbolTap(symbol),
+                lastPressedKey: lastPressedKey,
+                onLastPressedKeyChanged: onLastPressedKeyChanged,
               ),
           ],
         ),
@@ -347,12 +366,18 @@ class _SymbolGrid extends StatelessWidget {
 /// A single symbol button in the grid.
 /// 参考 MathLive 虚拟键盘的按键样式：白色背景、浅灰边框、底部深色边框（3D 效果）、圆角。
 /// 模板类符号（LatexSnippet/LatexWrapper）实时渲染 LaTeX，Unicode 符号直接显示文本。
-class _SymbolButton extends StatelessWidget {
+/// 3 种状态颜色：
+///   0. 平常：白色
+///   1. 按下时：蓝色
+///   2. 刚才按过：浅灰色（保持到按下其他按键）
+class _SymbolButton extends StatefulWidget {
   const _SymbolButton({
     required this.item,
     required this.onTap,
     this.onLongPressVariant,
     this.onVariantTap,
+    required this.lastPressedKey,
+    required this.onLastPressedKeyChanged,
   });
 
   /// 符号项，决定渲染方式（LaTeX 或文本）。
@@ -367,25 +392,68 @@ class _SymbolButton extends StatelessWidget {
   /// 插入变体符号时的回调。
   final void Function(String variant)? onVariantTap;
 
+  /// 上一个被按下的按键 key，用于显示浅灰色背景。
+  final String? lastPressedKey;
+
+  /// 按键按下时回调，更新上一个按键记录。
+  final void Function(String?) onLastPressedKeyChanged;
+
+  @override
+  State<_SymbolButton> createState() => _SymbolButtonState();
+}
+
+class _SymbolButtonState extends State<_SymbolButton> {
+  bool _pressed = false;
+
+  /// 获取按键的唯一标识 key。
+  String get _key {
+    switch (widget.item) {
+      case UnicodeSymbol(:final output):
+        return output;
+      case LatexSnippet(:final output):
+        return output;
+      case LatexWrapper(:final display):
+        return display;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isLastPressed = widget.lastPressedKey == _key;
+
     return GestureDetector(
-      onTap: onTap,
-      onLongPress: onLongPressVariant != null
-        ? () => onVariantTap?.call(onLongPressVariant!)
+      onTapDown: (_) {
+        setState(() => _pressed = true);
+        widget.onLastPressedKeyChanged(_key);
+      },
+      onTapUp: (_) {
+        setState(() => _pressed = false);
+        widget.onTap();
+      },
+      onTapCancel: () => setState(() => _pressed = false),
+      onLongPress: widget.onLongPressVariant != null
+        ? () => widget.onVariantTap?.call(widget.onLongPressVariant!)
         : null,
       child: Container(
         width: 36,
         height: 40,
         margin: const EdgeInsets.all(1),
         decoration: BoxDecoration(
-          // 白色按键面
-          color: Colors.white,
+          // 3 种状态：按下时蓝色，刚才按过浅灰色，否则白色
+          color: _pressed
+              ? const Color(0xFF4A6CF7)
+              : isLastPressed
+                  ? const Color(0xFFf0f0f0)
+                  : Colors.white,
           // 柔和圆角
           borderRadius: BorderRadius.circular(6),
           // 浅灰边框
           border: Border.all(
-            color: const Color(0xFFe5e6e9),
+            color: _pressed
+                ? const Color(0xFF4A6CF7)
+                : isLastPressed
+                    ? const Color(0xFFd5d6d9)
+                    : const Color(0xFFe5e6e9),
             width: 1,
           ),
           // 底部深色边框营造 3D 凸起效果
@@ -398,32 +466,32 @@ class _SymbolButton extends StatelessWidget {
           ],
         ),
         alignment: Alignment.center,
-        child: _buildContent(),
+        child: _buildContent(isLastPressed),
       ),
     );
   }
 
-  Widget _buildContent() {
-    switch (item) {
+  Widget _buildContent(bool isLastPressed) {
+    switch (widget.item) {
       case UnicodeSymbol():
         // Unicode 符号：直接显示文本
         return Text(
-          item.display,
+          widget.item.display,
           style: TextStyle(
-            fontSize: _fontSizeForDisplay(item.display),
-            color: const Color(0xFF000000),
+            fontSize: _fontSizeForDisplay(widget.item.display),
+            color: _pressed ? Colors.white : const Color(0xFF000000),
           ),
           textAlign: TextAlign.center,
           overflow: TextOverflow.ellipsis,
         );
       case LatexSnippet() || LatexWrapper():
         // 模板类符号：实时渲染 LaTeX
-        return _renderLatex(item.display);
+        return _renderLatex(widget.item.display, _pressed);
     }
   }
 
   /// 实时渲染 LaTeX 表达式，将 \square 替换为蓝色 \blacksquare。
-  Widget _renderLatex(String latex) {
+  Widget _renderLatex(String latex, bool pressed) {
     final coloredLatex = latex.replaceAll(
       r'\square',
       r'\color{#0066CC}{\blacksquare}',
@@ -431,17 +499,17 @@ class _SymbolButton extends StatelessWidget {
 
     return Math.tex(
       coloredLatex,
-      textStyle: const TextStyle(
+      textStyle: TextStyle(
         fontSize: 14,
-        color: Color(0xFF000000),
+        color: pressed ? Colors.white : const Color(0xFF000000),
       ),
       onErrorFallback: (error) {
         // 渲染失败时回退到文本显示
         return Text(
           latex,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
-            color: Color(0xFF000000),
+            color: pressed ? Colors.white : const Color(0xFF000000),
           ),
           textAlign: TextAlign.center,
         );
