@@ -1712,7 +1712,7 @@ abstract class _ComposeBoxBody extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(children: composeButtons),
+                Flexible(child: Row(children: composeButtons)),
                 ?sendButton,
               ]))),
       ),
