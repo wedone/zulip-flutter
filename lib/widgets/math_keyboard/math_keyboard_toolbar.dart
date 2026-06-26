@@ -246,11 +246,12 @@ class _SymbolGrid extends StatelessWidget {
     if (category == MathKeyboardCategory.common) {
       return SingleChildScrollView(
         padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Wrap(
+        child: Center(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Wrap(
                 runAlignment: WrapAlignment.center,
                 children: [
                   for (final symbol in kCommonLeftSymbols)
@@ -260,9 +261,7 @@ class _SymbolGrid extends StatelessWidget {
                     ),
                 ],
               ),
-            ),
-            Expanded(
-              child: Wrap(
+              Wrap(
                 runAlignment: WrapAlignment.center,
                 children: [
                   for (final symbol in kCommonRightSymbols)
@@ -274,8 +273,8 @@ class _SymbolGrid extends StatelessWidget {
                     ),
                 ],
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       );
     }
@@ -298,9 +297,10 @@ class _SymbolGrid extends StatelessWidget {
       }
       return SingleChildScrollView(
         padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: Center(
           child: Wrap(
+            alignment: WrapAlignment.center,
+            runAlignment: WrapAlignment.center,
             children: [
               for (final symbol in recentSymbols!)
                 _SymbolButton(
@@ -316,9 +316,10 @@ class _SymbolGrid extends StatelessWidget {
     final symbols = kMathKeyboard[category] ?? const [];
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Center(
         child: Wrap(
+          alignment: WrapAlignment.center,
+          runAlignment: WrapAlignment.center,
           children: [
             for (final symbol in symbols)
               _SymbolButton(
@@ -374,7 +375,7 @@ class _SymbolButton extends StatelessWidget {
       child: Container(
         width: 36,
         height: 40,
-        margin: const EdgeInsets.all(2),
+        margin: const EdgeInsets.all(1),
         decoration: BoxDecoration(
           // 白色按键面
           color: Colors.white,
@@ -389,7 +390,7 @@ class _SymbolButton extends StatelessWidget {
           boxShadow: const [
             BoxShadow(
               color: Color(0xFF8d8f92),
-              offset: Offset(0, 2),
+              offset: Offset(0, 1),
               blurRadius: 0,
             ),
           ],
