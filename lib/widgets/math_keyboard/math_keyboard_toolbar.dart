@@ -176,7 +176,7 @@ class _MathKeyboardToolbarState extends State<MathKeyboardToolbar>
               )),
             ),
             child: SizedBox(
-              height: 40,
+              height: 30,
               child: TabBar(
               controller: _tabController,
               isScrollable: true,
@@ -274,6 +274,8 @@ class _SymbolGrid extends StatelessWidget {
                       _SymbolButton(
                         item: symbol,
                         onTap: () => onSymbolTap(symbol),
+                        onLongPressVariant: _leftColumnVariant(symbol.display),
+                        onVariantTap: onVariantTap,
                         lastPressedKey: lastPressedKey,
                         onLastPressedKeyChanged: onLastPressedKeyChanged,
                       ),
@@ -364,6 +366,19 @@ class _SymbolGrid extends StatelessWidget {
       return display.toLowerCase();
     }
     return null;
+  }
+
+  /// 返回左栏符号的长按变体，用于将常用符号合并到相近按键中。
+  /// 不支持的符号返回 null（即无长按功能）。
+  static String? _leftColumnVariant(String display) {
+    return switch (display) {
+      '.' => '⋅',
+      ',' => ':',
+      '=' => '≠',
+      '/' => r'\',
+      '²' => '³',
+      _ => null,
+    };
   }
 }
 

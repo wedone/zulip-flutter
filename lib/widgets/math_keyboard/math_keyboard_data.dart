@@ -97,9 +97,8 @@ const kCommonLeftSymbols = <MathKeyboardItem>[
   UnicodeSymbol(display: '−', output: '−', category: MathKeyboardCategory.common),
   UnicodeSymbol(display: '×', output: '×', category: MathKeyboardCategory.common),
   UnicodeSymbol(display: '/', output: '/', category: MathKeyboardCategory.common),
-  // 第5行: 根号+点乘+逗号+行内公式界定符
+  // 第5行: 根号+逗号+行内公式界定符
   UnicodeSymbol(display: '√', output: '√', category: MathKeyboardCategory.common),
-  UnicodeSymbol(display: '⋅', output: '⋅', category: MathKeyboardCategory.common),
   UnicodeSymbol(display: ',', output: ',', category: MathKeyboardCategory.common),
   LatexSnippet(display: r'\$\square\$', output: '\$\$', cursorOffset: 1, category: MathKeyboardCategory.common),
   // 第6行: 成对括号（光标在中间）
@@ -114,7 +113,6 @@ const kCommonLeftSymbols = <MathKeyboardItem>[
   UnicodeSymbol(display: '^', output: '^', category: MathKeyboardCategory.common),
   // 第8行: 上标+LaTeX模板
   UnicodeSymbol(display: '²', output: '²', category: MathKeyboardCategory.common),
-  UnicodeSymbol(display: '³', output: '³', category: MathKeyboardCategory.common),
   LatexSnippet(display: r'\frac{\square}{\square}', output: '\\frac{}{}', cursorOffset: 3, category: MathKeyboardCategory.common),
   LatexSnippet(display: r'x_{\square}^{\square}', output: '_{}^{}', cursorOffset: 4, category: MathKeyboardCategory.common),
   // 第9行: 根号模板+向量
