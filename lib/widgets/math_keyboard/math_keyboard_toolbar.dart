@@ -10,6 +10,39 @@ import '../../widgets/color.dart';
 import '../../widgets/theme.dart';
 import 'math_keyboard_data.dart' show kMathKeyboard, kCommonLeftSymbols, kCommonRightSymbols, MathKeyboardCategory, MathKeyboardItem, UnicodeSymbol, LatexSnippet, LatexWrapper;
 
+/// 长按变体面板中的变体项。
+///
+/// 参考 MathLive：变体可以是纯文本或 LaTeX 表达式（带方块占位符预览）。
+/// - [TextVariant]：纯文本，显示和插入内容相同
+/// - [LatexVariant]：LaTeX 渲染预览，插入 [insert]（或 [latex] 本身）
+sealed class VariantItem {
+  const VariantItem();
+
+  /// 变体插入文本编辑器时的实际内容。
+  String get output;
+}
+
+class TextVariant extends VariantItem {
+  final String text;
+  const TextVariant(this.text);
+
+  @override
+  String get output => text;
+}
+
+class LatexVariant extends VariantItem {
+  /// 用于渲染预览的 LaTeX 表达式（可含 `#@`/`#?` 占位符）。
+  final String latex;
+
+  /// 实际插入的文本，默认为 [latex] 本身。
+  final String? insert;
+
+  const LatexVariant({required this.latex, this.insert});
+
+  @override
+  String get output => insert ?? latex;
+}
+
 /// The math keyboard toolbar that appears above the compose box input.
 ///
 /// Shows category tabs, a symbol grid, and a "recently used" section.
@@ -364,22 +397,23 @@ class _SymbolGrid extends StatelessWidget {
 
   /// 返回大写英文字母对应的小写形式，用于长按变体。
   /// 非大写字母返回 null（即无长按功能）。
-  static List<String>? _lowercaseVariant(String display) {
+  static List<VariantItem>? _lowercaseVariant(String display) {
     if (display.length == 1 && display.codeUnitAt(0) >= 0x41 && display.codeUnitAt(0) <= 0x5A) {
-      return [display.toLowerCase()];
+      return [TextVariant(display.toLowerCase())];
     }
     return null;
   }
 
   /// 返回左栏符号的长按变体列表，用于将常用符号合并到相近按键中。
+  /// 变体可以是纯文本 ([TextVariant]) 或 LaTeX 表达式 ([LatexVariant])。
   /// 不支持的符号返回 null（即无长按功能）。
-  static List<String>? _leftColumnVariant(String display) {
+  static List<VariantItem>? _leftColumnVariant(String display) {
     return switch (display) {
-      '.' => ['⋅','…'],
-      ',' => [':',';'],
-      '=' => ['≠','≈','≅'],
-      '/' => [r'\'],
-      '²' => ['³'],
+      '.' => [TextVariant('⋅'), TextVariant('…')],
+      ',' => [TextVariant(':'), TextVariant(';')],
+      '=' => [TextVariant('≠'), TextVariant('≈'), TextVariant('≅')],
+      '/' => [TextVariant(r'\')],
+      '#@^{2}' => [TextVariant('³')],
       _ => null,
     };
   }
@@ -413,7 +447,7 @@ class _SymbolButton extends StatefulWidget {
 
   /// 长按变体列表（如大写字母长按插入小写）。
   /// 为 null 或空列表时不支持长按。
-  final List<String>? onLongPressVariants;
+  final List<VariantItem>? onLongPressVariants;
 
   /// 插入变体符号时的回调。
   final void Function(String variant)? onVariantTap;
@@ -446,7 +480,7 @@ class _SymbolButtonState extends State<_SymbolButton> {
   }
 
   /// 弹出变体选择面板（参考 MathLive showVariantsPanel）。
-  void _showVariantPanel(List<String> variants) {
+  void _showVariantPanel(List<VariantItem> variants) {
     final renderBox = context.findRenderObject() as RenderBox;
     final position = renderBox.localToGlobal(Offset.zero);
     final buttonSize = renderBox.size;
@@ -457,7 +491,7 @@ class _SymbolButtonState extends State<_SymbolButton> {
         buttonGlobalPosition: position,
         buttonSize: buttonSize,
         onSelected: (variant) {
-          widget.onVariantTap?.call(variant);
+          widget.onVariantTap?.call(variant.output);
           _dismissVariantPanel();
         },
         onDismiss: _dismissVariantPanel,
@@ -494,7 +528,7 @@ class _SymbolButtonState extends State<_SymbolButton> {
             final variants = widget.onLongPressVariants!;
             if (variants.length == 1) {
               // 单个变体：直接插入，高效
-              widget.onVariantTap?.call(variants.first);
+              widget.onVariantTap?.call(variants.first.output);
             } else {
               // 多个变体：弹出面板供选择
               _variantPanelShown = true;
@@ -510,7 +544,7 @@ class _SymbolButtonState extends State<_SymbolButton> {
             // 使用 Future.microtask 确保 Listener.onPointerUp 先于此处执行
             Future.microtask(() {
               if (_variantPanelShown) {
-                widget.onVariantTap?.call(widget.onLongPressVariants!.first);
+                widget.onVariantTap?.call(widget.onLongPressVariants!.first.output);
                 _dismissVariantPanel();
               }
             });
@@ -572,12 +606,19 @@ class _SymbolButtonState extends State<_SymbolButton> {
     }
   }
 
-  /// 实时渲染 LaTeX 表达式，将 \square 替换为蓝色 \blacksquare。
+  /// 实时渲染 LaTeX 表达式，将占位符替换为彩色方块：
+  ///  - #@ (蓝色实心 ▣) = 已有输入 / 光标位置
+  ///  - #? (灰色空心 □) = 待填空白 / 新输入
   Widget _renderLatex(String latex, bool pressed) {
-    final coloredLatex = latex.replaceAll(
-      r'\square',
-      r'{\color{#0066CC}{\blacksquare}}',
-    );
+    final coloredLatex = latex
+        .replaceAll(
+          '#?',
+          r'{\color{#A0A0A0}{\square}}',
+        )
+        .replaceAll(
+          '#@',
+          r'{\color{#0066CC}{\blacksquare}}',
+        );
 
     return Math.tex(
       coloredLatex,
@@ -621,10 +662,10 @@ class _VariantPanelWidget extends StatelessWidget {
     required this.onDismiss,
   });
 
-  final List<String> variants;
+  final List<VariantItem> variants;
   final Offset buttonGlobalPosition;
   final Size buttonSize;
-  final ValueChanged<String> onSelected;
+  final ValueChanged<VariantItem> onSelected;
   final VoidCallback onDismiss;
 
   static const _buttonWidth = 36.0;
@@ -705,7 +746,7 @@ class _VariantButton extends StatelessWidget {
     required this.onPointerUp,
   });
 
-  final String variant;
+  final VariantItem variant;
   final VoidCallback onPointerUp;
 
   @override
@@ -729,16 +770,44 @@ class _VariantButton extends StatelessWidget {
           ],
         ),
         alignment: Alignment.center,
-        child: Text(
-          variant,
-          style: TextStyle(
-            fontSize: _SymbolButtonState._fontSizeForDisplay(variant),
-            color: const Color(0xFF000000),
-          ),
-          textAlign: TextAlign.center,
-          overflow: TextOverflow.ellipsis,
-        ),
+        child: switch (variant) {
+          TextVariant(:final text) => Text(
+              text,
+              style: TextStyle(
+                fontSize: _SymbolButtonState._fontSizeForDisplay(text),
+                color: const Color(0xFF000000),
+              ),
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
+            ),
+          LatexVariant(:final latex) => _renderVariantLatex(latex),
+        },
       ),
     );
   }
+}
+
+/// 渲染变体面板中的 LaTeX 变体项，将占位符替换为彩色方块。
+Widget _renderVariantLatex(String latex) {
+  final coloredLatex = latex
+      .replaceAll(
+        '#?',
+        r'{\color{#A0A0A0}{\square}}',
+      )
+      .replaceAll(
+        '#@',
+        r'{\color{#0066CC}{\blacksquare}}',
+      );
+
+  return Math.tex(
+    coloredLatex,
+    textStyle: const TextStyle(fontSize: 14),
+    onErrorFallback: (error) {
+      return Text(
+        latex,
+        style: const TextStyle(fontSize: 12, color: Color(0xFF000000)),
+        textAlign: TextAlign.center,
+      );
+    },
+  );
 }
