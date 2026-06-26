@@ -495,7 +495,7 @@ class _SymbolButtonState extends State<_SymbolButton> {
   Widget _renderLatex(String latex, bool pressed) {
     final coloredLatex = latex.replaceAll(
       r'\square',
-      r'\color{#0066CC}{\blacksquare}',
+      r'{\color{#0066CC}{\blacksquare}}',
     );
 
     return Math.tex(
