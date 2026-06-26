@@ -1,0 +1,216 @@
+name: Build Android APK (Dev)
+run-name: ${{ inputs.workflow_name || 'Build Android APK (Dev)' }}
+
+# 开发专用构建 Android APK，使用 commit hash 作为版本号。
+#
+# 用途：
+#   - 快速构建开发版本用于测试
+#   - 版本号直接使用 commit hash 的前7位
+#   - 忽略 pubspec.yaml 中的原始版本号
+#
+# 使用方法：
+#   1. GitHub → Actions → "Build Android APK (Dev)" → Run workflow
+#   2. 输入分支名（如 main、for-math）
+#   3. （可选）输入 commit SHA，留空使用分支最新提交
+#   4. （可选）选择构建类型（debug/release/profile）
+#   5. （可选）输入本次构建任务名称
+#   6. 等待构建完成，在 Summary 页面下载 APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      workflow_name:
+        description: '本次构建任务名称（用于标识，例如：数学输入功能构建、测试构建）'
+        required: false
+        default: 'Build Android APK (Dev)'
+        type: string
+      branch:
+        description: '要构建的分支（例如：main、for-math）'
+        required: true
+        default: 'for-math'
+        type: string
+      commit:
+        description: '指定 commit SHA（留空则使用分支最新提交）'
+        required: false
+        default: ''
+        type: string
+      build_type:
+        description: '构建类型'
+        required: false
+        default: 'release'
+        type: choice
+        options:
+          - debug
+          - release
+          - profile
+
+permissions:
+  contents: read
+
+jobs:
+  build-apk-dev:
+    name: Build APK (Dev)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+
+    steps:
+      - name: Determine branch
+        id: branch
+        run: |
+          echo "branch=${{ inputs.branch }}" >> $GITHUB_OUTPUT
+
+      - name: Record build start time
+        id: build_time
+        run: |
+          echo "start=$(TZ='Asia/Shanghai' date '+%Y-%m-%d %H:%M:%S CST')" >> $GITHUB_OUTPUT
+
+      - name: Determine ref
+        id: ref
+        run: |
+          if [ -n "${{ inputs.commit }}" ]; then
+            echo "ref=${{ inputs.commit }}" >> $GITHUB_OUTPUT
+            echo "Using commit: ${{ inputs.commit }}"
+          else
+            echo "ref=${{ inputs.branch }}" >> $GITHUB_OUTPUT
+            echo "Using branch: ${{ inputs.branch }}"
+          fi
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.commit != '' && inputs.commit || steps.branch.outputs.branch }}
+          fetch-depth: 0
+
+      - name: Determine artifact name
+        id: artifact_name
+        run: |
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          echo "name=zulip-dev-${SHORT_SHA}" >> $GITHUB_OUTPUT
+
+      - name: Show current commit
+        run: |
+          echo "Branch: ${{ inputs.branch }}"
+          echo "Commit: $(git rev-parse HEAD)"
+          echo "Short:  $(git rev-parse --short HEAD)"
+          echo "Author: $(git log -1 --pretty=format:'%an <%ae>')"
+          echo "Date:   $(git log -1 --pretty=format:'%ad')"
+          echo "Subject: $(git log -1 --pretty=format:'%s')"
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Clone Flutter SDK
+        run: |
+          echo "Cloning Flutter SDK..."
+          ./tools/ci/clone-flutter-sdk
+
+      - name: Download Flutter SDK artifacts
+        run: flutter precache --universal
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Enable Android platform
+        run: flutter config --enable-android
+
+      - name: Replace version with commit hash
+        id: version
+        run: |
+          SHORT_SHA=$(git rev-parse --short=7 HEAD)
+          # 将commit hash转为十进制数字作为版本号
+          VERSION_NUM=$((16#$SHORT_SHA % 100000))
+          DEV_VERSION="1.${VERSION_NUM}.0+${SHORT_SHA}"
+          echo "version=$DEV_VERSION" >> $GITHUB_OUTPUT
+          echo "Replacing version in pubspec.yaml with: $DEV_VERSION"
+
+          # 替换 pubspec.yaml 中的版本号
+          sed -i "s/^version: .*/version: $DEV_VERSION/" pubspec.yaml
+
+          # 验证替换结果
+          echo "Updated pubspec.yaml version: $(grep '^version:' pubspec.yaml)"
+
+      - name: Setup signing for release builds
+        if: github.event.inputs.build_type == 'release'
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 -d > android/zulip-release.jks
+          echo "storeFile=zulip-release.jks" > android/release-keystore.properties
+          echo "storePassword=$KEYSTORE_PASSWORD" >> android/release-keystore.properties
+          echo "keyAlias=zulip-release" >> android/release-keystore.properties
+          echo "keyPassword=$KEYSTORE_KEY_PASSWORD" >> android/release-keystore.properties
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEYSTORE_KEY_PASSWORD: ${{ secrets.KEYSTORE_KEY_PASSWORD }}
+
+      - name: Build APK (${{ inputs.build_type }})
+        run: |
+          case "${{ inputs.build_type }}" in
+            debug)
+              flutter build apk --debug
+              ;;
+            release)
+              flutter build apk --release -Psigned
+              ;;
+            profile)
+              flutter build apk --profile
+              ;;
+          esac
+
+      - name: Rename APK
+        run: |
+          APK_FILE="build/app/outputs/flutter-apk/app-${{ inputs.build_type }}.apk"
+          NEW_NAME="${{ steps.artifact_name.outputs.name }}.apk"
+          if [ -f "$APK_FILE" ]; then
+            mv "$APK_FILE" "build/app/outputs/flutter-apk/$NEW_NAME"
+            echo "Renamed to: $NEW_NAME"
+          else
+            # Try to find any APK file
+            APK_FILE=$(find build/app/outputs/flutter-apk -name "*.apk" -type f | head -1)
+            if [ -n "$APK_FILE" ]; then
+              mv "$APK_FILE" "build/app/outputs/flutter-apk/${{ steps.artifact_name.outputs.name }}.apk"
+              echo "Renamed to: ${{ steps.artifact_name.outputs.name }}.apk"
+            fi
+          fi
+
+      - name: List built artifacts
+        run: |
+          echo "## 📦 构建产物" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          ls -lh build/app/outputs/flutter-apk/*.apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.artifact_name.outputs.name }}
+          path: build/app/outputs/flutter-apk/${{ steps.artifact_name.outputs.name }}.apk
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Output build summary
+        run: |
+          echo "## 📦 Android APK 构建摘要 (开发版)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**任务名称**: ${{ inputs.workflow_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**构建状态**: ${{ job.status == 'success' && '✅ 成功' || '❌ 失败' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**构建开始**: ${{ steps.build_time.outputs.start }}" >> $GITHUB_STEP_SUMMARY
+          echo "**构建完成**: $(TZ='Asia/Shanghai' date '+%Y-%m-%d %H:%M:%S') CST" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 参数" >> $GITHUB_STEP_SUMMARY
+          echo "  - 分支：\`${{ inputs.branch }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "  - Commit：\`$(git rev-parse --short HEAD)\`" >> $GITHUB_STEP_SUMMARY
+          echo "  - 版本（commit hash）：\`${{ steps.version.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "  - 构建类型：\`${{ inputs.build_type }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "  - Artifact 名称：\`${{ steps.artifact_name.outputs.name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📥 使用方法" >> $GITHUB_STEP_SUMMARY
+          echo '```bash' >> $GITHUB_STEP_SUMMARY
+          echo "# 1. 在 GitHub Actions 页面下载 artifact" >> $GITHUB_STEP_SUMMARY
+          echo "# 2. 安装到 Android 设备" >> $GITHUB_STEP_SUMMARY
+          echo "adb install app-${{ inputs.build_type }}.apk" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔗 链接" >> $GITHUB_STEP_SUMMARY
+          echo "- [查看构建日志](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
