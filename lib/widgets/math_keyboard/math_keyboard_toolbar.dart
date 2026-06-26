@@ -246,33 +246,40 @@ class _SymbolGrid extends StatelessWidget {
     if (category == MathKeyboardCategory.common) {
       return SingleChildScrollView(
         padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Wrap(
-              runAlignment: WrapAlignment.center,
-              children: [
-                for (final symbol in kCommonLeftSymbols)
-                  _SymbolButton(
-                    item: symbol,
-                    onTap: () => onSymbolTap(symbol),
-                  ),
-              ],
-            ),
-            Wrap(
-              runAlignment: WrapAlignment.center,
-              children: [
-                for (final symbol in kCommonRightSymbols)
-                  _SymbolButton(
-                    item: symbol,
-                    onTap: () => onSymbolTap(symbol),
-                    onLongPressVariant: _lowercaseVariant(symbol.display),
-                    onVariantTap: onVariantTap,
-                  ),
-              ],
-            ),
-          ],
+        child: Center(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Wrap(
+                  runAlignment: WrapAlignment.center,
+                  children: [
+                    for (final symbol in kCommonLeftSymbols)
+                      _SymbolButton(
+                        item: symbol,
+                        onTap: () => onSymbolTap(symbol),
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Wrap(
+                  runAlignment: WrapAlignment.center,
+                  children: [
+                    for (final symbol in kCommonRightSymbols)
+                      _SymbolButton(
+                        item: symbol,
+                        onTap: () => onSymbolTap(symbol),
+                        onLongPressVariant: _lowercaseVariant(symbol.display),
+                        onVariantTap: onVariantTap,
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
