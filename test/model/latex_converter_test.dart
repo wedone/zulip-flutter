@@ -189,33 +189,33 @@ void main() {
 
     test(r'a$$...$$ (letter before opening $$)', () {
       check(convertLatexDelimitersToZulip(r'a$$x^2$$'))
-        .equals('a\u200B$$x^2$$');
+        .equals('a\u200B\$\$x^2\$\$');
     });
 
     test(r'$$...$$a (letter after closing $$)', () {
       check(convertLatexDelimitersToZulip(r'$$x^2$$a'))
-        .equals('$$x^2$$\u200Ba');
+        .equals('\$\$x^2\$\$\u200Ba');
     });
 
     test(r'a$$...$$b (letters on both sides)', () {
       check(convertLatexDelimitersToZulip(r'a$$x^2$$b'))
-        .equals('a\u200B$$x^2$$\u200Bb');
+        .equals('a\u200B\$\$x^2\$\$\u200Bb');
     });
 
     test(r'内容$$...$$ (Chinese before opening $$)', () {
       check(convertLatexDelimitersToZulip(r'内容$$x^2$$'))
-        .equals('内容\u200B$$x^2$$');
+        .equals('内容\u200B\$\$x^2\$\$');
     });
 
     test(r'$$...$$内容 (Chinese after closing $$)', () {
       check(convertLatexDelimitersToZulip(r'$$x^2$$内容'))
-        .equals('$$x^2$$\u200B内容');
+        .equals('\$\$x^2\$\$\u200B内容');
     });
 
     test(r'$$...$$1 (digit after closing $$, needs ZWSP)', () {
       // Digits are \w, so \B fails; ZWSP is needed.
       check(convertLatexDelimitersToZulip(r'$$x^2$$1'))
-        .equals('$$x^2$$\u200B1');
+        .equals('\$\$x^2\$\$\u200B1');
     });
 
     test(r'#$$...$$ (symbol before, no ZWSP needed)', () {
@@ -231,31 +231,31 @@ void main() {
     test(r'$...$ with adjacent letter before', () {
       // $...$ → $$...$$, then ZWSP inserted for adjacent letter.
       check(convertLatexDelimitersToZulip(r'a$x^2$'))
-        .equals('a\u200B$$x^2$$');
+        .equals('a\u200B\$\$x^2\$\$');
     });
 
     test(r'$...$ with adjacent letter after', () {
       check(convertLatexDelimitersToZulip(r'$x^2$b'))
-        .equals('$$x^2$$\u200Bb');
+        .equals('\$\$x^2\$\$\u200Bb');
     });
 
     test(r'$$...$$ adjacent to Greek letter', () {
       check(convertLatexDelimitersToZulip(r'α$$x^2$$'))
-        .equals('α\u200B$$x^2$$');
+        .equals('α\u200B\$\$x^2\$\$');
     });
 
     test(r'code block with $$ adjacent to letters is not affected', () {
-      final input = '```\na$$x^2$$\n```\n$$y^2$$z';
+      final input = r'```\na$$x^2$$\n```\n$$y^2$$z';
       final result = convertLatexDelimitersToZulip(input);
       // The code block's $$ should remain untouched.
       // The external $$y^2$$z should get ZWSP after closing.
       check(result).contains(r'```\na$$x^2$$\n```');
-      check(result).contains('$$y^2$$\u200Bz');
+      check(result).contains('\$\$y^2\$\$\u200Bz');
     });
 
     test(r'multiple $$...$$ with adjacent letters', () {
       check(convertLatexDelimitersToZulip(r'a$$x^2$$b$$y^2$$c'))
-        .equals('a\u200B$$x^2$$\u200Bb\u200B$$y^2$$\u200Bc');
+        .equals('a\u200B\$\$x^2\$\$\u200Bb\u200B\$\$y^2\$\$\u200Bc');
     });
   });
 }
