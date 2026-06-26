@@ -266,6 +266,7 @@ class _SymbolGrid extends StatelessWidget {
               const SizedBox(width: 4),
               Expanded(
                 child: Wrap(
+                  alignment: WrapAlignment.end,
                   runAlignment: WrapAlignment.center,
                   children: [
                     for (final symbol in kCommonRightSymbols)
