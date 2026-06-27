@@ -41,10 +41,7 @@ dependencies:
   crypto: ^3.0.3
   flutter_math_fork: ^0.7.4
   mathlive_studio:
-    git:
-      url: https://github.com/wedone/mathlive_editor_package.git
-      path: flutter_mathlive_mixed
-      ref: main
+    path: packages/mathlive_studio
   flutter_svg: ^2.3.0
   device_info_plus: ^12.0.0
   drift: ^2.23.0
