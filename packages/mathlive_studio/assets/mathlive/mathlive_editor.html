@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
-  <!-- Absolute URLs: reliable in WebView + blob iframe; baseUrl in Dart matches this version -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mathlive@0.110.0/mathlive-static.css" />
-  <script src="https://cdn.jsdelivr.net/npm/mathlive@0.110.0/mathlive.min.js"></script>
+  <!-- 本地 asset：不再依赖 CDN，baseUrl 由 Dart 端 loadHtmlString 指定 -->
+  <link rel="stylesheet" href="mathlive-static.css" />
+  <script src="mathlive.min.js"></script>
   <style>
     /* Stable WebView layout: no document scroll, no double-tap zoom delay on buttons */
     html, body {
@@ -201,13 +201,10 @@
   </div>
 </div>
 <script>
-  /* 修正 mathlive 0.110.0 音效路径：本地 asset 或 CDN fallback */
+  /* mathlive 0.110.0 音效路径：必须用绝对路径，否则 resolveUrl 会基于 mathlive.min.js 的 URL 解析 */
   if (typeof MathfieldElement !== 'undefined') {
     try {
-      var isLocalBase = String(document.baseURI).indexOf('file://') === 0;
-      MathfieldElement.soundsDirectory = isLocalBase
-        ? './sounds'
-        : 'https://cdn.jsdelivr.net/npm/mathlive@0.110.0/sounds/';
+      MathfieldElement.soundsDirectory = new URL('./sounds', document.baseURI).href;
     } catch (eSound) {}
   }
 
