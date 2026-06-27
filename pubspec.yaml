@@ -40,6 +40,8 @@ dependencies:
   convert: ^3.1.1
   crypto: ^3.0.3
   flutter_math_fork: ^0.7.4
+  flutter_mathlive_mixed:
+    path: ../mathlive_editor_package/flutter_mathlive_mixed
   flutter_svg: ^2.3.0
   device_info_plus: ^12.0.0
   drift: ^2.23.0
