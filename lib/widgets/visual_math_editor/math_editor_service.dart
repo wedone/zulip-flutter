@@ -59,7 +59,7 @@ class MathEditorService {
   static DetectedFormula? detectLatexAtCursor(ComposeContentController controller) {
     final TextRange selection = controller.selection;
     if (!selection.isValid || !selection.isCollapsed) return null;
-    final int cursorOffset = selection.baseOffset;
+    final int cursorOffset = selection.start;
     final String text = controller.text;
 
     final pattern = RegExp(r'\\\(([\s\S]*?)\\\)');
