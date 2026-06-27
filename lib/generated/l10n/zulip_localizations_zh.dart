@@ -1417,34 +1417,7 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
   String get topicListEmptyPlaceholderHeader => 'There are no topics here yet.';
 
   @override
-  String get mathKeyboardButtonTooltip => 'Math keyboard';
-
-  @override
   String get visualMathButtonTooltip => 'Visual math editor';
-
-  @override
-  String get mathKeyboardRecentLabel => 'Recent';
-
-  @override
-  String get mathKeyboardNoRecentHint => 'No recent symbols';
-
-  @override
-  String get mathKeyboardCategoryCommon => 'Common';
-
-  @override
-  String get mathKeyboardCategoryGreek => 'Greek';
-
-  @override
-  String get mathKeyboardCategoryRelations => 'Relations';
-
-  @override
-  String get mathKeyboardCategoryTemplates => 'Templates';
-
-  @override
-  String get mathKeyboardCategoryFunctions => 'Functions';
-
-  @override
-  String get mathKeyboardCategoryRecent => 'Recent';
 
   @override
   String get checkForUpdate => 'Check for updates';
@@ -2592,34 +2565,7 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
   String get zulipAppTitle => 'Zulip';
 
   @override
-  String get mathKeyboardButtonTooltip => '数学键盘';
-
-  @override
   String get visualMathButtonTooltip => '可视公式编辑';
-
-  @override
-  String get mathKeyboardRecentLabel => '最近使用';
-
-  @override
-  String get mathKeyboardNoRecentHint => '暂无记录';
-
-  @override
-  String get mathKeyboardCategoryCommon => '常用';
-
-  @override
-  String get mathKeyboardCategoryGreek => '希腊';
-
-  @override
-  String get mathKeyboardCategoryRelations => '关系';
-
-  @override
-  String get mathKeyboardCategoryTemplates => '模板';
-
-  @override
-  String get mathKeyboardCategoryFunctions => '函数';
-
-  @override
-  String get mathKeyboardCategoryRecent => '最近';
 
   @override
   String get checkForUpdate => '检查更新';

@@ -29,12 +29,12 @@ import 'icons.dart';
 import 'inset_shadow.dart';
 import 'latex_preview.dart';
 import 'message_list.dart';
-import 'math_keyboard/math_keyboard_button.dart';
-import 'math_keyboard/math_keyboard_toolbar.dart';
 import 'page.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
+import 'visual_math_editor/math_editor_service.dart';
+import 'visual_math_editor/visual_math_button.dart';
 
 /// Compose-box styles that differ between light and dark theme.
 ///
@@ -513,14 +513,12 @@ class _ContentInput extends StatelessWidget {
     required this.controller,
     this.hintText,
     this.enabled = true,
-    this.mathKeyboardToolbarVisible = false,
   });
 
   final Narrow narrow;
   final ComposeBoxController controller;
   final String? hintText;
   final bool enabled;
-  final bool mathKeyboardToolbarVisible;
 
   void _handleContentInserted(BuildContext context, KeyboardInsertedContent content) async {
     if (content.data == null || content.data!.isEmpty) {
@@ -611,7 +609,6 @@ class _ContentInput extends StatelessWidget {
               focusNode: controller.contentFocusNode,
               fieldViewBuilder: (context) => TextField(
                 enabled: enabled,
-                readOnly: mathKeyboardToolbarVisible,
                 showCursor: true,
                 controller: controller.content,
                 focusNode: controller.contentFocusNode,
@@ -640,11 +637,10 @@ class _ContentInput extends StatelessWidget {
 
 /// The content input for _StreamComposeBox.
 class _StreamContentInput extends StatefulWidget {
-  const _StreamContentInput({required this.narrow, required this.controller, this.mathKeyboardToolbarVisible = false});
+  const _StreamContentInput({required this.narrow, required this.controller});
 
   final ChannelNarrow narrow;
   final StreamComposeBoxController controller;
-  final bool mathKeyboardToolbarVisible;
 
   @override
   State<_StreamContentInput> createState() => _StreamContentInputState();
@@ -744,7 +740,6 @@ class _StreamContentInputState extends State<_StreamContentInput> {
       child: _ContentInput(
         narrow: widget.narrow,
         controller: widget.controller,
-        mathKeyboardToolbarVisible: widget.mathKeyboardToolbarVisible,
         hintText: zulipLocalizations.composeBoxChannelContentHint(hintDestination)));
   }
 }
@@ -892,12 +887,10 @@ class _FixedDestinationContentInput extends StatelessWidget {
   const _FixedDestinationContentInput({
     required this.narrow,
     required this.controller,
-    this.mathKeyboardToolbarVisible = false,
   });
 
   final SendableNarrow narrow;
   final FixedDestinationComposeBoxController controller;
-  final bool mathKeyboardToolbarVisible;
 
   String _hintText(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
@@ -937,7 +930,6 @@ class _FixedDestinationContentInput extends StatelessWidget {
       child: _ContentInput(
         narrow: narrow,
         controller: controller,
-        mathKeyboardToolbarVisible: mathKeyboardToolbarVisible,
         hintText: _hintText(context)));
   }
 }
@@ -946,12 +938,10 @@ class _EditMessageContentInput extends StatelessWidget {
   const _EditMessageContentInput({
     required this.narrow,
     required this.controller,
-    this.mathKeyboardToolbarVisible = false,
   });
 
   final Narrow narrow;
   final EditMessageComposeBoxController controller;
-  final bool mathKeyboardToolbarVisible;
 
   @override
   Widget build(BuildContext context) {
@@ -962,7 +952,6 @@ class _EditMessageContentInput extends StatelessWidget {
       narrow: narrow,
       controller: controller,
       enabled: !awaitingRawContent,
-      mathKeyboardToolbarVisible: mathKeyboardToolbarVisible,
       hintText: awaitingRawContent
         ? zulipLocalizations.preparingEditMessageContentInput
         : null,
@@ -1420,7 +1409,6 @@ class _ComposeBoxContainer extends StatelessWidget {
   const _ComposeBoxContainer({
     required this.body,
     this.banner,
-    this.keyboard,
   }) : assert(body != null || banner != null);
 
   /// The text inputs, compose-button row, and send button.
@@ -1440,9 +1428,6 @@ class _ComposeBoxContainer extends StatelessWidget {
   /// (A bottom inset may occur if [body] is null.)
   final Widget? banner;
 
-  /// The math keyboard, rendered outside [SafeArea] to avoid horizontal padding.
-  final Widget? keyboard;
-
   Widget _paddedBody() {
     assert(body != null);
     return SafeArea(minimum: const EdgeInsets.symmetric(horizontal: 8),
@@ -1460,12 +1445,10 @@ class _ComposeBoxContainer extends StatelessWidget {
         MediaQuery.removePadding(context: context, removeBottom: true,
           child: banner!),
         _paddedBody(),
-        ?keyboard,
       ],
       (Widget(),     null) => [banner!],
       (null,     Widget()) => [
         _paddedBody(),
-        ?keyboard,
       ],
       (null,         null) => throw UnimplementedError(), // not allowed, see dartdoc
     };
@@ -1482,161 +1465,12 @@ class _ComposeBoxContainer extends StatelessWidget {
   }
 }
 
-/// 删除按钮（backspace），仅在数学面板可见时显示。
-/// 长按清空全部内容。
-class _BackspaceButton extends StatelessWidget {
-  const _BackspaceButton({required this.controller, required this.enabled});
-
-  final TextEditingController controller;
-  final bool enabled;
-
-  @override
-  Widget build(BuildContext context) {
-    final designVariables = DesignVariables.of(context);
-    return SizedBox(
-      width: _composeButtonSize,
-      child: IconButton(
-        icon: Icon(Icons.backspace_outlined,
-          color: designVariables.foreground.withFadedAlpha(0.5)),
-        onPressed: enabled ? _backspace : null,
-        onLongPress: enabled ? _clear : null,
-      ),
-    );
-  }
-
-  void _backspace() {
-    final selection = controller.selection;
-    if (!selection.isValid) return;
-    final text = controller.text;
-    final offset = selection.baseOffset;
-    if (offset > 0) {
-      controller.value = TextEditingValue(
-        text: text.substring(0, offset - 1) + text.substring(offset),
-        selection: TextSelection.collapsed(offset: offset - 1),
-      );
-    }
-  }
-
-  void _clear() {
-    controller.clear();
-  }
-}
-
-/// 光标左移按钮，仅在数学面板可见时显示。
-/// 长按跳到文本最前面。
-class _CursorLeftButton extends StatelessWidget {
-  const _CursorLeftButton({required this.controller, required this.enabled});
-
-  final TextEditingController controller;
-  final bool enabled;
-
-  @override
-  Widget build(BuildContext context) {
-    final designVariables = DesignVariables.of(context);
-    return SizedBox(
-      width: _composeButtonSize,
-      child: IconButton(
-        icon: Icon(Icons.arrow_back,
-          color: designVariables.foreground.withFadedAlpha(0.5)),
-        onPressed: enabled ? _cursorLeft : null,
-        onLongPress: enabled ? _cursorToStart : null,
-      ),
-    );
-  }
-
-  void _cursorLeft() {
-    final selection = controller.selection;
-    if (!selection.isValid) return;
-    final offset = selection.baseOffset;
-    if (offset > 0) {
-      controller.selection = TextSelection.collapsed(offset: offset - 1);
-    }
-  }
-
-  void _cursorToStart() {
-    controller.selection = const TextSelection.collapsed(offset: 0);
-  }
-}
-
-/// 光标右移按钮，仅在数学面板可见时显示。
-/// 长按跳到文本最后面。
-class _CursorRightButton extends StatelessWidget {
-  const _CursorRightButton({required this.controller, required this.enabled});
-
-  final TextEditingController controller;
-  final bool enabled;
-
-  @override
-  Widget build(BuildContext context) {
-    final designVariables = DesignVariables.of(context);
-    return SizedBox(
-      width: _composeButtonSize,
-      child: IconButton(
-        icon: Icon(Icons.arrow_forward,
-          color: designVariables.foreground.withFadedAlpha(0.5)),
-        onPressed: enabled ? _cursorRight : null,
-        onLongPress: enabled ? _cursorToEnd : null,
-      ),
-    );
-  }
-
-  void _cursorRight() {
-    final selection = controller.selection;
-    if (!selection.isValid) return;
-    final offset = selection.baseOffset;
-    if (offset < controller.text.length) {
-      controller.selection = TextSelection.collapsed(offset: offset + 1);
-    }
-  }
-
-  void _cursorToEnd() {
-    controller.selection = TextSelection.collapsed(offset: controller.text.length);
-  }
-}
-
-/// 换行按钮，仅在数学面板可见时显示。
-class _NewlineButton extends StatelessWidget {
-  const _NewlineButton({required this.controller, required this.enabled});
-
-  final TextEditingController controller;
-  final bool enabled;
-
-  @override
-  Widget build(BuildContext context) {
-    final designVariables = DesignVariables.of(context);
-    return SizedBox(
-      width: _composeButtonSize,
-      child: IconButton(
-        icon: Icon(Icons.keyboard_return,
-          color: designVariables.foreground.withFadedAlpha(0.5)),
-        onPressed: enabled ? _newline : null,
-      ),
-    );
-  }
-
-  void _newline() {
-    final selection = controller.selection;
-    final text = controller.text;
-    final offset = selection.isValid ? selection.start : text.length;
-    controller.value = TextEditingValue(
-      text: text.substring(0, offset) + '\n' + text.substring(offset),
-      selection: TextSelection.collapsed(offset: offset + 1),
-    );
-  }
-}
-
 /// The text inputs, compose-button row, and send button for the compose box.
 abstract class _ComposeBoxBody extends StatelessWidget {
   /// The narrow on view in the message list.
   Narrow get narrow;
 
   ComposeBoxController get controller;
-
-  /// Whether the math symbols toolbar is currently visible.
-  bool get mathKeyboardToolbarVisible;
-
-  /// Called to toggle the math symbols toolbar visibility.
-  VoidCallback get toggleMathKeyboardToolbar;
 
   Widget? buildTopicInput();
   Widget buildContentInput();
@@ -1672,17 +1506,17 @@ abstract class _ComposeBoxBody extends StatelessWidget {
       _AttachFileButton(controller: controller, enabled: composeButtonsEnabled),
       _AttachMediaButton(controller: controller, enabled: composeButtonsEnabled),
       _AttachFromCameraButton(controller: controller, enabled: composeButtonsEnabled),
-      MathKeyboardButton(
-        isActive: mathKeyboardToolbarVisible,
-        onPressed: toggleMathKeyboardToolbar,
+      VisualMathButton(
+        onPressed: () async {
+          final latex = await MathEditorService.openEditor(
+            context,
+            isDark: Theme.of(context).brightness == Brightness.dark,
+          );
+          if (latex == null) return;
+          MathEditorService.insertLatexAtCursor(controller.content, latex);
+        },
         enabled: composeButtonsEnabled,
       ),
-      if (mathKeyboardToolbarVisible) ...[
-        _BackspaceButton(controller: controller.content, enabled: composeButtonsEnabled),
-        _CursorLeftButton(controller: controller.content, enabled: composeButtonsEnabled),
-        _CursorRightButton(controller: controller.content, enabled: composeButtonsEnabled),
-        _NewlineButton(controller: controller.content, enabled: composeButtonsEnabled),
-      ],
     ];
 
     final topicInput = buildTopicInput();
@@ -1728,8 +1562,6 @@ class _StreamComposeBoxBody extends _ComposeBoxBody {
   _StreamComposeBoxBody({
     required this.narrow,
     required this.controller,
-    required this.mathKeyboardToolbarVisible,
-    required this.toggleMathKeyboardToolbar,
   });
 
   @override
@@ -1737,12 +1569,6 @@ class _StreamComposeBoxBody extends _ComposeBoxBody {
 
   @override
   final StreamComposeBoxController controller;
-
-  @override
-  final bool mathKeyboardToolbarVisible;
-
-  @override
-  final VoidCallback toggleMathKeyboardToolbar;
 
   @override Widget buildTopicInput() => _TopicInput(
     channelId: narrow.channelId,
@@ -1752,7 +1578,6 @@ class _StreamComposeBoxBody extends _ComposeBoxBody {
   @override Widget buildContentInput() => _StreamContentInput(
     narrow: narrow,
     controller: controller,
-    mathKeyboardToolbarVisible: mathKeyboardToolbarVisible,
   );
 
   @override bool getComposeButtonsEnabled(BuildContext context) => true;
@@ -1768,8 +1593,6 @@ class _FixedDestinationComposeBoxBody extends _ComposeBoxBody {
   _FixedDestinationComposeBoxBody({
     required this.narrow,
     required this.controller,
-    required this.mathKeyboardToolbarVisible,
-    required this.toggleMathKeyboardToolbar,
   });
 
   @override
@@ -1778,18 +1601,11 @@ class _FixedDestinationComposeBoxBody extends _ComposeBoxBody {
   @override
   final FixedDestinationComposeBoxController controller;
 
-  @override
-  final bool mathKeyboardToolbarVisible;
-
-  @override
-  final VoidCallback toggleMathKeyboardToolbar;
-
   @override Widget? buildTopicInput() => null;
 
   @override Widget buildContentInput() => _FixedDestinationContentInput(
     narrow: narrow,
     controller: controller,
-    mathKeyboardToolbarVisible: mathKeyboardToolbarVisible,
   );
 
   @override bool getComposeButtonsEnabled(BuildContext context) => true;
@@ -1805,8 +1621,6 @@ class _EditMessageComposeBoxBody extends _ComposeBoxBody {
   _EditMessageComposeBoxBody({
     required this.narrow,
     required this.controller,
-    required this.mathKeyboardToolbarVisible,
-    required this.toggleMathKeyboardToolbar,
   });
 
   @override
@@ -1815,18 +1629,11 @@ class _EditMessageComposeBoxBody extends _ComposeBoxBody {
   @override
   final EditMessageComposeBoxController controller;
 
-  @override
-  final bool mathKeyboardToolbarVisible;
-
-  @override
-  final VoidCallback toggleMathKeyboardToolbar;
-
   @override Widget? buildTopicInput() => null;
 
   @override Widget buildContentInput() => _EditMessageContentInput(
     narrow: narrow,
     controller: controller,
-    mathKeyboardToolbarVisible: mathKeyboardToolbarVisible,
   );
 
   @override bool getComposeButtonsEnabled(BuildContext context) =>
@@ -2291,18 +2098,6 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
   @override ComposeBoxController get controller => _controller!;
   ComposeBoxController? _controller;
 
-  bool _mathKeyboardToolbarVisible = false;
-
-  void _toggleMathKeyboardToolbar() {
-    setState(() {
-      _mathKeyboardToolbarVisible = !_mathKeyboardToolbarVisible;
-    });
-    // 关闭数学键盘时，请求焦点以弹出系统键盘
-    if (!_mathKeyboardToolbarVisible) {
-      _controller?.contentFocusNode.requestFocus();
-    }
-  }
-
   @override
   void restoreMessageNotSent(int localMessageId) async {
     final zulipLocalizations = ZulipLocalizations.of(context);
@@ -2471,7 +2266,6 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
 
   void _setNewController(PerAccountStore store) {
     _controller?.dispose(); // `?.` because this might be the first call
-    _mathKeyboardToolbarVisible = false;
     switch (widget.narrow) {
       case ChannelNarrow():
         _controller = StreamComposeBoxController(store: store);
@@ -2598,8 +2392,6 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
         body = _StreamComposeBoxBody(
           controller: controller,
           narrow: narrow,
-          mathKeyboardToolbarVisible: _mathKeyboardToolbarVisible,
-          toggleMathKeyboardToolbar: _toggleMathKeyboardToolbar,
         );
       }
       case FixedDestinationComposeBoxController(): {
@@ -2607,16 +2399,12 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
         body = _FixedDestinationComposeBoxBody(
           controller: controller,
           narrow: narrow,
-          mathKeyboardToolbarVisible: _mathKeyboardToolbarVisible,
-          toggleMathKeyboardToolbar: _toggleMathKeyboardToolbar,
         );
       }
       case EditMessageComposeBoxController(): {
         body = _EditMessageComposeBoxBody(
           controller: controller,
           narrow: narrow,
-          mathKeyboardToolbarVisible: _mathKeyboardToolbarVisible,
-          toggleMathKeyboardToolbar: _toggleMathKeyboardToolbar,
         );
         banner = _Banner(
           intent: _BannerIntent.info,
@@ -2629,9 +2417,6 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
       child: _ComposeBoxContainer(
         body: body,
         banner: banner,
-        keyboard: _mathKeyboardToolbarVisible
-          ? MathKeyboardToolbar(controller: controller.content)
-          : null,
       ));
   }
 }

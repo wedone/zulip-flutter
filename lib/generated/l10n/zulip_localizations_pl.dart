@@ -1439,34 +1439,7 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
       'Póki co pusto, bo brak wątków.';
 
   @override
-  String get mathKeyboardButtonTooltip => 'Math keyboard';
-
-  @override
   String get visualMathButtonTooltip => 'Visual math editor';
-
-  @override
-  String get mathKeyboardRecentLabel => 'Recent';
-
-  @override
-  String get mathKeyboardNoRecentHint => 'No recent symbols';
-
-  @override
-  String get mathKeyboardCategoryCommon => 'Common';
-
-  @override
-  String get mathKeyboardCategoryGreek => 'Greek';
-
-  @override
-  String get mathKeyboardCategoryRelations => 'Relations';
-
-  @override
-  String get mathKeyboardCategoryTemplates => 'Templates';
-
-  @override
-  String get mathKeyboardCategoryFunctions => 'Functions';
-
-  @override
-  String get mathKeyboardCategoryRecent => 'Recent';
 
   @override
   String get checkForUpdate => 'Check for updates';
