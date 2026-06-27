@@ -2474,6 +2474,12 @@ abstract class ZulipLocalizations {
   /// **'Math keyboard'**
   String get mathKeyboardButtonTooltip;
 
+  /// Tooltip for the visual math editor button in the compose box.
+  ///
+  /// In en, this message translates to:
+  /// **'Visual math editor'**
+  String get visualMathButtonTooltip;
+
   /// Label for the recently used math symbols section in the math keyboard toolbar.
   ///
   /// In en, this message translates to:

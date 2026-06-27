@@ -1569,6 +1569,7 @@
   "yesterday": "昨天",
   "zulipAppTitle": "Zulip",
   "mathKeyboardButtonTooltip": "数学键盘",
+  "visualMathButtonTooltip": "可视公式编辑",
   "mathKeyboardRecentLabel": "最近使用",
   "mathKeyboardNoRecentHint": "暂无记录",
   "mathKeyboardCategoryCommon": "常用",

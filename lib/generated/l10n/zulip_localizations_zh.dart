@@ -1420,6 +1420,9 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
   String get mathKeyboardButtonTooltip => 'Math keyboard';
 
   @override
+  String get visualMathButtonTooltip => 'Visual math editor';
+
+  @override
   String get mathKeyboardRecentLabel => 'Recent';
 
   @override
@@ -2590,6 +2593,9 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
 
   @override
   String get mathKeyboardButtonTooltip => '数学键盘';
+
+  @override
+  String get visualMathButtonTooltip => '可视公式编辑';
 
   @override
   String get mathKeyboardRecentLabel => '最近使用';

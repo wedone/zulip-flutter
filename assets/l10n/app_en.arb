@@ -1710,6 +1710,10 @@
   "@mathKeyboardButtonTooltip": {
     "description": "Tooltip for the math keyboard button in the compose box."
   },
+  "visualMathButtonTooltip": "Visual math editor",
+  "@visualMathButtonTooltip": {
+    "description": "Tooltip for the visual math editor button in the compose box."
+  },
   "mathKeyboardRecentLabel": "Recent",
   "@mathKeyboardRecentLabel": {
     "description": "Label for the recently used math symbols section in the math keyboard toolbar."

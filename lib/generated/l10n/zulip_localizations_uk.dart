@@ -1443,6 +1443,9 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
   String get mathKeyboardButtonTooltip => 'Math keyboard';
 
   @override
+  String get visualMathButtonTooltip => 'Visual math editor';
+
+  @override
   String get mathKeyboardRecentLabel => 'Recent';
 
   @override
