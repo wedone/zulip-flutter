@@ -1508,12 +1508,18 @@ abstract class _ComposeBoxBody extends StatelessWidget {
       _AttachFromCameraButton(controller: controller, enabled: composeButtonsEnabled),
       VisualMathButton(
         onPressed: () async {
+          final existing = MathEditorService.detectLatexAtCursor(controller.content);
           final latex = await MathEditorService.openEditor(
             context,
             isDark: Theme.of(context).brightness == Brightness.dark,
+            initialLatex: existing?.latex,
           );
           if (latex == null) return;
-          MathEditorService.insertLatexAtCursor(controller.content, latex);
+          if (existing != null) {
+            MathEditorService.replaceLatexRange(controller.content, existing.range, latex);
+          } else {
+            MathEditorService.insertLatexAtCursor(controller.content, latex);
+          }
         },
         enabled: composeButtonsEnabled,
       ),
