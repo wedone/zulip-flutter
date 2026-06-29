@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mathlive_studio/mathlive_studio.dart';
+import '../../mathlive/mathlive_studio.dart';
 
 import '../compose_box.dart';
 
