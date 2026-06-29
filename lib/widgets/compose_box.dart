@@ -1460,6 +1460,7 @@ class _ComposeBoxContainer extends StatelessWidget {
   const _ComposeBoxContainer({
     required this.body,
     this.banner,
+    this.keyboard,
   }) : assert(body != null || banner != null);
 
   /// The text inputs, compose-button row, and send button.
@@ -1479,6 +1480,9 @@ class _ComposeBoxContainer extends StatelessWidget {
   /// (A bottom inset may occur if [body] is null.)
   final Widget? banner;
 
+  /// The math keyboard, rendered outside [SafeArea] to avoid horizontal padding.
+  final Widget? keyboard;
+
   Widget _paddedBody() {
     assert(body != null);
     return SafeArea(minimum: const EdgeInsets.symmetric(horizontal: 8),
@@ -1496,10 +1500,12 @@ class _ComposeBoxContainer extends StatelessWidget {
         MediaQuery.removePadding(context: context, removeBottom: true,
           child: banner!),
         _paddedBody(),
+        ?keyboard,
       ],
       (Widget(),     null) => [banner!],
       (null,     Widget()) => [
         _paddedBody(),
+        ?keyboard,
       ],
       (null,         null) => throw UnimplementedError(), // not allowed, see dartdoc
     };
@@ -1565,7 +1571,6 @@ abstract class _ComposeBoxBody extends StatelessWidget {
 
     final topicInput = buildTopicInput();
     final sendButton = buildSendButton();
-    final inherited = ComposeBoxInheritedWidget.of(context);
     return Column(children: [
       ConstrainedBox(
         constraints: BoxConstraints(maxWidth: MessageListPage.maxContentWidth),
@@ -1589,15 +1594,6 @@ abstract class _ComposeBoxBody extends StatelessWidget {
                 Flexible(child: Row(children: composeButtons)),
                 ?sendButton,
               ]))),
-      ),
-      // 公式面板从底部升起，位于底栏下方，类似系统键盘。
-      // 收起时不占用空间；升起时不遮挡底栏。
-      MathFormulaPanel(
-        visible: inherited.mathPanelVisible,
-        isDark: Theme.of(context).brightness == Brightness.dark,
-        initialLatex: inherited.mathPanelInitialLatex,
-        onLatexConfirmed: inherited.onMathPanelLatexConfirmed,
-        onVisibilityChanged: inherited.onMathPanelVisibilityChanged,
       ),
     ]);
   }
@@ -2572,6 +2568,15 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
       child: _ComposeBoxContainer(
         body: body,
         banner: banner,
+        keyboard: _mathPanelVisible
+          ? MathFormulaPanel(
+              visible: true,
+              isDark: Theme.of(context).brightness == Brightness.dark,
+              initialLatex: _editingLatex,
+              onLatexConfirmed: _onLatexConfirmed,
+              onVisibilityChanged: _onMathPanelVisibilityChanged,
+            )
+          : null,
       ));
   }
 }
