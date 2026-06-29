@@ -507,7 +507,7 @@ class _TypingNotifierState extends State<_TypingNotifier> with WidgetsBindingObs
   Widget build(BuildContext context) => widget.child;
 }
 
-class _ContentInput extends StatelessWidget {
+class _ContentInput extends StatefulWidget {
   const _ContentInput({
     required this.narrow,
     required this.controller,
@@ -520,37 +520,8 @@ class _ContentInput extends StatelessWidget {
   final String? hintText;
   final bool enabled;
 
-  void _handleContentInserted(BuildContext context, KeyboardInsertedContent content) async {
-    if (content.data == null || content.data!.isEmpty) {
-      // As of writing, the engine implementation never leaves `content.data` as
-      // `null`, but ideally it should be when the data cannot be read for
-      // errors.
-      //
-      // When `content.data` is empty, the data is not literally empty — this
-      // can also happen when the data can't be read from the input stream
-      // provided by the Android SDK because of an IO exception.
-      //
-      // See Flutter engine implementation that prepares this data:
-      //   https://github.com/flutter/flutter/blob/0ffc4ce00/engine/src/flutter/shell/platform/android/io/flutter/plugin/editing/InputConnectionAdaptor.java#L497-L548
-      // TODO(upstream): improve the API for this
-      final zulipLocalizations = ZulipLocalizations.of(context);
-      showErrorDialog(context: context,
-        title: zulipLocalizations.errorContentNotInsertedTitle,
-        message: zulipLocalizations.errorContentToInsertIsEmpty);
-      return;
-    }
-
-    final file = FileToUpload(
-      content: Stream.fromIterable([content.data!]),
-      length: content.data!.length,
-      filename: path.basename(content.uri),
-      mimeType: content.mimeType);
-
-    await controller.uploadFiles(
-      context: context,
-      files: [file],
-      shouldRequestFocus: true);
-  }
+  @override
+  State<_ContentInput> createState() => _ContentInputState();
 
   /// Max height of the content input,
   /// including the shadowed strips at top and bottom.
@@ -580,17 +551,95 @@ class _ContentInput extends StatelessWidget {
   static const _fontSize = 17.0;
   static const _lineHeight = 22.0;
   static const _lineHeightRatio = _lineHeight / _fontSize;
+}
+
+class _ContentInputState extends State<_ContentInput> {
+  /// 上一次单击的时间戳，用于自定义双击检测。
+  DateTime? _lastTapTime;
+
+  /// 上一次单击的全局位置，用于判断两次点击是否足够近。
+  Offset? _lastTapPosition;
+
+  void _handleContentInserted(BuildContext context, KeyboardInsertedContent content) async {
+    if (content.data == null || content.data!.isEmpty) {
+      // As of writing, the engine implementation never leaves `content.data` as
+      // `null`, but ideally it should be when the data cannot be read for
+      // errors.
+      //
+      // When `content.data` is empty, the data is not literally empty — this
+      // can also happen when the data can't be read from the input stream
+      // provided by the Android SDK because of an IO exception.
+      //
+      // See Flutter engine implementation that prepares this data:
+      //   https://github.com/flutter/flutter/blob/0ffc4ce00/engine/src/flutter/shell/platform/android/io/flutter/plugin/editing/InputConnectionAdaptor.java#L497-L548
+      // TODO(upstream): improve the API for this
+      final zulipLocalizations = ZulipLocalizations.of(context);
+      showErrorDialog(context: context,
+        title: zulipLocalizations.errorContentNotInsertedTitle,
+        message: zulipLocalizations.errorContentToInsertIsEmpty);
+      return;
+    }
+
+    final file = FileToUpload(
+      content: Stream.fromIterable([content.data!]),
+      length: content.data!.length,
+      filename: path.basename(content.uri),
+      mimeType: content.mimeType);
+
+    await widget.controller.uploadFiles(
+      context: context,
+      files: [file],
+      shouldRequestFocus: true);
+  }
+
+  /// 监听 [PointerDownEvent] 以自定义双击检测。
+  ///
+  /// 使用 [Listener] 而非 [GestureDetector]，避免拦截 [TextField] 自身的
+  /// 手势（单击定位光标、长按选择等）。双击判定后让 [TextField] 先完成
+  /// 默认的单词选择，再在下一帧读取 selection 检测是否落在公式内。
+  void _handlePointerDown(PointerDownEvent event) {
+    final now = DateTime.now();
+    final lastTime = _lastTapTime;
+    final lastPos = _lastTapPosition;
+    _lastTapTime = now;
+    _lastTapPosition = event.position;
+    if (lastTime == null || lastPos == null) return;
+    if (now.difference(lastTime) > const Duration(milliseconds: 300)) return;
+    if ((event.position - lastPos).distance > 40) return;
+    // 检测到双击：清空记录，等一帧让 TextField 更新 selection。
+    _lastTapTime = null;
+    _lastTapPosition = null;
+    WidgetsBinding.instance.addPostFrameCallback((_) => _handleDoubleTap());
+  }
+
+  /// 双击后读取 [TextEditingController.selection] 检测是否落在 `\(...\)` 公式内。
+  ///
+  /// 双击后 selection 通常是 word selection（非 collapsed），用 baseOffset
+  /// 检测；若命中公式则通过 [ComposeBoxInheritedWidget.onFormulaDoubleTapped]
+  /// 打开公式面板加载该公式。
+  void _handleDoubleTap() {
+    if (!mounted) return;
+    final content = widget.controller.content;
+    final selection = content.selection;
+    if (!selection.isValid) return;
+    final detected = MathEditorService.detectLatexAtOffset(
+      content.text, selection.baseOffset);
+    if (detected != null) {
+      ComposeBoxInheritedWidget.of(context).onFormulaDoubleTapped(detected);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
+    final controller = widget.controller;
 
     return ConstrainedBox(
-      constraints: BoxConstraints(maxHeight: maxHeight(context)),
+      constraints: BoxConstraints(maxHeight: _ContentInput.maxHeight(context)),
       // This [ClipRect] replaces the [TextField] clipping we disable below.
       child: ClipRect(
         child: InsetShadowBox(
-          top: _verticalPadding, bottom: _verticalPadding,
+          top: _ContentInput._verticalPadding, bottom: _ContentInput._verticalPadding,
           color: designVariables.composeBoxBg,
           child: Padding(
             // This padding ensures that the user can always scroll long
@@ -602,36 +651,38 @@ class _ContentInput extends StatelessWidget {
             // Figma, and we can revisit if needed, but it's tricky to get
             // that 54px distance while also making the scrolling work like
             // this and offering two lines of touchable area.
-            padding: const EdgeInsets.symmetric(vertical: _verticalPadding),
+            padding: const EdgeInsets.symmetric(vertical: _ContentInput._verticalPadding),
             child: ComposeAutocomplete(
-              narrow: narrow,
+              narrow: widget.narrow,
               controller: controller.content,
               focusNode: controller.contentFocusNode,
-              fieldViewBuilder: (context) => TextField(
-                enabled: enabled,
-                showCursor: true,
-                controller: controller.content,
-                focusNode: controller.contentFocusNode,
-                contentInsertionConfiguration: ContentInsertionConfiguration(
-                  onContentInserted: (content) => _handleContentInserted(context, content)),
-                // Let the content bleed through the vertical padding that wraps
-                // the field so the [InsetShadowBox] can fade it smoothly there.
-                clipBehavior: Clip.none,
-                style: TextStyle(
-                  fontSize: _fontSize,
-                  height: _lineHeightRatio,
-                  color: designVariables.textInput),
-                // From the spec at
-                //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3960-5147&node-type=text&m=dev
-                // > Compose box has the height to fit 2 lines. This is [done] to
-                // > have a bigger hit area for the user to start the input. […]
-                minLines: 2,
-                maxLines: null,
-                textCapitalization: TextCapitalization.sentences,
-                decoration: InputDecoration(
-                  hintText: hintText,
-                  hintStyle: TextStyle(
-                    color: designVariables.textInput.withFadedAlpha(0.5)))))))));
+              fieldViewBuilder: (context) => Listener(
+                onPointerDown: _handlePointerDown,
+                child: TextField(
+                  enabled: widget.enabled,
+                  showCursor: true,
+                  controller: controller.content,
+                  focusNode: controller.contentFocusNode,
+                  contentInsertionConfiguration: ContentInsertionConfiguration(
+                    onContentInserted: (content) => _handleContentInserted(context, content)),
+                  // Let the content bleed through the vertical padding that wraps
+                  // the field so the [InsetShadowBox] can fade it smoothly there.
+                  clipBehavior: Clip.none,
+                  style: TextStyle(
+                    fontSize: _ContentInput._fontSize,
+                    height: _ContentInput._lineHeightRatio,
+                    color: designVariables.textInput),
+                  // From the spec at
+                  //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3960-5147&node-type=text&m=dev
+                  // > Compose box has the height to fit 2 lines. This is [done] to
+                  // > have a bigger hit area for the user to start the input. […]
+                  minLines: 2,
+                  maxLines: null,
+                  textCapitalization: TextCapitalization.sentences,
+                  decoration: InputDecoration(
+                    hintText: widget.hintText,
+                    hintStyle: TextStyle(
+                      color: designVariables.textInput.withFadedAlpha(0.5))))))))));
   }
 }
 
@@ -2085,6 +2136,12 @@ abstract class ComposeBoxState extends State<ComposeBox> {
   ///
   /// 由 [VisualMathButton] 通过 [ComposeBoxInheritedWidget] 触发。
   void toggleMathPanel();
+
+  /// 双击 TextField 中已有 `\(...\)` 公式时触发。
+  ///
+  /// 由 [_ContentInput] 通过 [ComposeBoxInheritedWidget] 触发，
+  /// 内部会打开面板并加载该公式进入编辑模式。
+  void onFormulaDoubleTapped(DetectedFormula formula);
 }
 
 class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateMixin<ComposeBox> implements ComposeBoxState {
@@ -2100,10 +2157,17 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
   /// 落在已有公式内，若是则将其 LaTeX 填入面板作为初始值。
   String? _editingLatex;
 
+  /// 打开面板时记录的公式范围（含界定符）；新建公式场景下为 null。
+  ///
+  /// 用于编辑已有公式场景：确认时用此范围调用
+  /// [MathEditorService.replaceLatexRange] 替换原公式。
+  /// 双击公式打开面板时也会设置此字段。
+  TextRange? _editingRange;
+
   /// 切换公式面板的显示/隐藏状态。
   ///
   /// 打开面板时检测当前光标是否落在 `\(...\)` 公式内：
-  /// 若是，则将该公式的 LaTeX 作为面板初始值（编辑场景）；
+  /// 若是，则将该公式的 LaTeX 作为面板初始值（编辑场景），并记录范围；
   /// 否则面板以空内容启动（新建场景）。
   @override
   void toggleMathPanel() {
@@ -2112,28 +2176,59 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
       if (_mathPanelVisible) {
         final existing = MathEditorService.detectLatexAtCursor(controller.content);
         _editingLatex = existing?.latex;
+        _editingRange = existing?.range;
+        _ensureComposeVisible();
       } else {
         _editingLatex = null;
+        _editingRange = null;
       }
+    });
+  }
+
+  /// 双击 TextField 中 `\(...\)` 公式区域时触发。
+  ///
+  /// 由 [_ContentInput] 通过 [ComposeBoxInheritedWidget] 触发。
+  /// 直接加载该公式进入面板编辑模式，记录范围用于确认时替换。
+  @override
+  void onFormulaDoubleTapped(DetectedFormula formula) {
+    setState(() {
+      _mathPanelVisible = true;
+      _editingLatex = formula.latex;
+      _editingRange = formula.range;
+      _ensureComposeVisible();
+    });
+  }
+
+  /// 面板打开时确保 compose box 可见（不被遮挡）。
+  void _ensureComposeVisible() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Scrollable.ensureVisible(
+        context,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+        alignment: 0.5,
+      );
     });
   }
 
   /// 用户在公式面板中点击「完成」或点击面板外部时触发。
   ///
   /// 将确认的 LaTeX 写回 [ComposeContentController]：
-  /// 若打开面板时检测到光标在已有公式内，则替换该公式；
+  /// 若打开面板时记录了 [_editingRange]（编辑已有公式场景），则替换该范围；
   /// 否则在当前光标位置插入新公式。
   void _onLatexConfirmed(String latex) {
     final controller = this.controller;
-    final existing = MathEditorService.detectLatexAtCursor(controller.content);
-    if (existing != null) {
-      MathEditorService.replaceLatexRange(controller.content, existing.range, latex);
+    final editingRange = _editingRange;
+    if (editingRange != null) {
+      MathEditorService.replaceLatexRange(controller.content, editingRange, latex);
     } else {
       MathEditorService.insertLatexAtCursor(controller.content, latex);
     }
     setState(() {
       _mathPanelVisible = false;
       _editingLatex = null;
+      _editingRange = null;
     });
   }
 
@@ -2143,6 +2238,7 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
       setState(() {
         _mathPanelVisible = false;
         _editingLatex = null;
+        _editingRange = null;
       });
     }
   }
@@ -2495,6 +2591,7 @@ class ComposeBoxInheritedWidget extends InheritedWidget {
         controller is EditMessageComposeBoxController
         && controller.originalRawContent == null,
       toggleMathPanel: state.toggleMathPanel,
+      onFormulaDoubleTapped: state.onFormulaDoubleTapped,
       child: child,
     );
   }
@@ -2502,6 +2599,7 @@ class ComposeBoxInheritedWidget extends InheritedWidget {
   const ComposeBoxInheritedWidget._({
     required this.awaitingRawMessageContentForEdit,
     required this.toggleMathPanel,
+    required this.onFormulaDoubleTapped,
     required super.child,
   });
 
@@ -2509,6 +2607,11 @@ class ComposeBoxInheritedWidget extends InheritedWidget {
 
   /// 切换公式面板显示/隐藏的回调，由 [VisualMathButton] 触发。
   final VoidCallback toggleMathPanel;
+
+  /// 双击 TextField 中已有 `\(...\)` 公式时触发，由 [_ContentInput] 调用。
+  ///
+  /// 参数为检测到的公式信息（范围 + LaTeX），回调内部会打开面板并加载该公式。
+  final ValueChanged<DetectedFormula> onFormulaDoubleTapped;
 
   @override
   bool updateShouldNotify(covariant ComposeBoxInheritedWidget oldWidget) =>

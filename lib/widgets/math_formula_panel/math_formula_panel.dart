@@ -11,12 +11,17 @@ import '../../mathlive/mathlive_studio.dart';
 /// 内部使用 [MathLiveEmbeddedEditor] 作为核心编辑器。一旦面板首次显示，
 /// WebView 实例会常驻于 widget 树中（通过 [GlobalKey] 保留 State），
 /// 避免重复加载 HTML/JS 资源。
+///
+/// 外部点击检测使用 [TapRegion]，覆盖整个屏幕（不限于 compose_box 区域）：
+/// 用户点击消息列表等 compose_box 外部区域时也会关闭面板。
+/// 同时保留半透明遮罩层（覆盖 compose_box 区域）作为视觉提示。
 class MathFormulaPanel extends StatefulWidget {
   const MathFormulaPanel({
     super.key,
     required this.visible,
     required this.isDark,
     this.initialLatex,
+    this.panelHeight,
     this.onLatexConfirmed,
     this.onVisibilityChanged,
   });
@@ -31,6 +36,12 @@ class MathFormulaPanel extends StatefulWidget {
   ///
   /// 当 [visible] 从 false 变为 true 时，会同步到内部的 latex 快照。
   final String? initialLatex;
+
+  /// 面板高度（像素）。
+  ///
+  /// 若为 null 或非正数，则使用默认逻辑：取屏幕高度的 45% 与 360px 中的较大值，
+  /// 与系统键盘高度（Android 约 280-320px，iOS 约 280-340px）+ math-field 行高相当。
+  final double? panelHeight;
 
   /// LaTeX 提交回调（用户点击「完成」或点击面板外部时触发）。
   ///
@@ -61,6 +72,25 @@ class _MathFormulaPanelState extends State<MathFormulaPanel>
   /// 是否曾经显示过面板。未显示过时不渲染编辑器，节省资源。
   bool _everShown = false;
 
+  /// 面板是否处于交互状态（可见且尚未触发关闭流程）。
+  ///
+  /// 用于防止 [TapRegion.onTapOutside] 与遮罩层 [GestureDetector.onTap]
+  /// 重复触发 [_onActionComplete]，以及面板已关闭后误触发提交。
+  bool _isInteracting = false;
+
+  /// 计算面板高度。
+  ///
+  /// 优先使用外部传入的 [MathFormulaPanel.panelHeight]；
+  /// 否则取屏幕高度 45% 与 360px 中的较大值。
+  double _resolvePanelHeight(BuildContext context) {
+    final configured = widget.panelHeight;
+    if (configured != null && configured > 0) return configured;
+    final mediaQuery = MediaQuery.of(context);
+    final heightByRatio = mediaQuery.size.height * 0.45;
+    const heightFixed = 360.0;
+    return heightByRatio > heightFixed ? heightByRatio : heightFixed;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -78,6 +108,7 @@ class _MathFormulaPanelState extends State<MathFormulaPanel>
     if (widget.visible) {
       _controller.value = 1.0;
       _everShown = true;
+      _isInteracting = true;
     }
   }
 
@@ -87,6 +118,7 @@ class _MathFormulaPanelState extends State<MathFormulaPanel>
     if (widget.visible != oldWidget.visible) {
       if (widget.visible) {
         _everShown = true;
+        _isInteracting = true;
         _controller.forward();
         // 面板打开时收起系统键盘，避免与 MathLive 虚拟键盘叠加。
         FocusManager.instance.primaryFocus?.unfocus();
@@ -95,6 +127,7 @@ class _MathFormulaPanelState extends State<MathFormulaPanel>
           _latexSnapshot.value = widget.initialLatex!;
         }
       } else {
+        _isInteracting = false;
         _controller.reverse();
       }
     }
@@ -107,17 +140,17 @@ class _MathFormulaPanelState extends State<MathFormulaPanel>
     super.dispose();
   }
 
+  /// 用户点击「完成」或点击面板外部时触发。
+  ///
+  /// 通过 [_isInteracting] 保证只触发一次：提交 LaTeX 并通知外部关闭。
   void _onActionComplete() {
+    if (!_isInteracting) return;
+    _isInteracting = false;
     final String latex = _latexSnapshot.value;
     if (latex.trim().isNotEmpty) {
       widget.onLatexConfirmed?.call(latex);
     }
     widget.onVisibilityChanged?.call(false);
-  }
-
-  void _onTapOutside() {
-    // 点击面板外部，行为同点击「完成」。
-    _onActionComplete();
   }
 
   @override
@@ -127,7 +160,7 @@ class _MathFormulaPanelState extends State<MathFormulaPanel>
       return const SizedBox.shrink();
     }
 
-    final double panelHeight = MediaQuery.of(context).size.height * 0.45;
+    final double panelHeight = _resolvePanelHeight(context);
 
     return AnimatedBuilder(
       animation: _controller,
@@ -138,41 +171,49 @@ class _MathFormulaPanelState extends State<MathFormulaPanel>
           ignoring: t == 0,
           child: Stack(
             children: <Widget>[
-              // 半透明遮罩层：点击关闭。
+              // 半透明遮罩层（覆盖 compose_box 区域）：点击关闭。
+              // 视觉提示用户面板外部可点击关闭；全屏外部点击由 TapRegion 处理。
               if (t > 0)
-                GestureDetector(
-                  onTap: _onTapOutside,
-                  behavior: HitTestBehavior.opaque,
-                  child: ColoredBox(
-                    color: Colors.black.withOpacity(0.4 * t),
+                Positioned.fill(
+                  child: GestureDetector(
+                    onTap: _onActionComplete,
+                    behavior: HitTestBehavior.opaque,
+                    child: ColoredBox(
+                      color: Colors.black.withValues(alpha: 0.4 * t),
+                    ),
                   ),
                 ),
               // 面板本体。
+              // 用 TapRegion 检测全屏外部点击（包括消息列表等 compose_box 外区域）。
               Positioned(
                 left: 0,
                 right: 0,
                 bottom: 0,
                 child: SlideTransition(
                   position: _offsetAnimation,
-                  child: GestureDetector(
-                    // 阻止点击面板内部时冒泡到遮罩层关闭面板。
-                    onTap: () {},
-                    child: Material(
-                      elevation: 8,
-                      color:
-                          widget.isDark ? const Color(0xFF141922) : Colors.white,
-                      child: SizedBox(
-                        height: panelHeight,
-                        child: MathLiveEmbeddedEditor(
-                          key: _editorKey,
-                          isDark: widget.isDark,
-                          initialLatex: widget.initialLatex,
-                          onLatexChanged: (String latex) {
-                            _latexSnapshot.value = latex;
-                          },
-                          latexSnapshot: _latexSnapshot,
-                          onActionComplete: _onActionComplete,
+                  child: TapRegion(
+                    onTapOutside: (_) => _onActionComplete(),
+                    child: GestureDetector(
+                      // 阻止点击面板内部空白区域时冒泡到遮罩层关闭面板。
+                      onTap: () {},
+                      child: Material(
+                        elevation: 8,
+                        color: widget.isDark
+                            ? const Color(0xFF141922)
+                            : Colors.white,
+                        child: SizedBox(
                           height: panelHeight,
+                          child: MathLiveEmbeddedEditor(
+                            key: _editorKey,
+                            isDark: widget.isDark,
+                            initialLatex: widget.initialLatex,
+                            onLatexChanged: (String latex) {
+                              _latexSnapshot.value = latex;
+                            },
+                            latexSnapshot: _latexSnapshot,
+                            onActionComplete: _onActionComplete,
+                            height: panelHeight,
+                          ),
                         ),
                       ),
                     ),

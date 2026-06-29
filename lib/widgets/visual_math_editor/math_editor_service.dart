@@ -48,14 +48,24 @@ class MathEditorService {
   static DetectedFormula? detectLatexAtCursor(ComposeContentController controller) {
     final TextRange selection = controller.selection;
     if (!selection.isValid || !selection.isCollapsed) return null;
-    final int cursorOffset = selection.start;
-    final String text = controller.text;
+    return detectLatexAtOffset(controller.text, selection.start);
+  }
 
+  /// 检测 [offset] 是否落在 `\(...\)` 包裹的公式区域内。
+  ///
+  /// 与 [detectLatexAtCursor] 类似，但直接接收文本和 offset，
+  /// 适用于双击等场景（此时 selection 可能是非 collapsed 的 word 选区）。
+  ///
+  /// [offset] 必须严格大于公式区域 start、严格小于 end
+  /// （即落在 `\(` 之后、`\)` 之前的任意位置，包括 LaTeX 内容内部）。
+  ///
+  /// 嵌套界定符场景按非贪婪匹配处理，与 [convertLatexDelimitersToZulip] 一致。
+  static DetectedFormula? detectLatexAtOffset(String text, int offset) {
     final pattern = RegExp(r'\\\(([\s\S]*?)\\\)');
     for (final match in pattern.allMatches(text)) {
       final int start = match.start;
       final int end = match.end;
-      if (cursorOffset > start && cursorOffset < end) {
+      if (offset > start && offset < end) {
         return DetectedFormula(
           range: TextRange(start: start, end: end),
           latex: match[1]!,
