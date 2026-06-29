@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import '../../mathlive/mathlive_studio.dart';
 
 import '../compose_box.dart';
 
 /// 可视公式编辑器服务。
 ///
-/// 封装 [MathLiveEditorPage.open()] 调用和将 LaTeX 插入
-/// [ComposeContentController] 的逻辑。
+/// 封装将 LaTeX 插入 [ComposeContentController] 的逻辑。
+/// [openEditor] 在 Task 5 中将替换为 [MathFormulaPanel] 调用。
 class MathEditorService {
   MathEditorService._();
 
@@ -14,16 +13,13 @@ class MathEditorService {
   ///
   /// 用户点击返回按钮（不确认）时返回 null。
   /// [initialLatex] 可选，用于编辑已有公式（Task 5 使用）。
+  // TODO: Task 5 中替换为 MathFormulaPanel 调用
   static Future<String?> openEditor(
     BuildContext context, {
     required bool isDark,
     String? initialLatex,
   }) async {
-    return MathLiveEditorPage.open(
-      context,
-      isDark: isDark,
-      initialLatex: initialLatex,
-    );
+    throw UnimplementedError('MathLiveEditorPage 已移除，待 Task 5 重构');
   }
 
   /// 将 [latex] 用 `\(` `\)` 界定符包裹后插入到 [controller] 的当前光标位置，

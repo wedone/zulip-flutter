@@ -11,6 +11,7 @@ Widget mathLiveMixedWebEditorBody({
   void Function(double chromeHeight)? onEditorChromeHeight,
   TextStyle? loadingTextStyle,
   Color? accentColor,
+  VoidCallback? onActionComplete,
 }) {
   return const SizedBox.shrink();
 }

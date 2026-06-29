@@ -20,6 +20,7 @@ Widget mathLiveMixedWebEditorBody({
   void Function(double chromeHeight)? onEditorChromeHeight,
   TextStyle? loadingTextStyle,
   Color? accentColor,
+  VoidCallback? onActionComplete,
 }) {
   return _MathLiveMixedWebHost(
     isDark: isDark,
@@ -29,6 +30,7 @@ Widget mathLiveMixedWebEditorBody({
     backgroundColor: backgroundColor,
     initialLatex: initialLatex,
     onEditorChromeHeight: onEditorChromeHeight,
+    onActionComplete: onActionComplete,
   );
 }
 
@@ -41,6 +43,7 @@ class _MathLiveMixedWebHost extends StatefulWidget {
     required this.backgroundColor,
     this.initialLatex,
     this.onEditorChromeHeight,
+    this.onActionComplete,
   });
 
   final bool isDark;
@@ -50,6 +53,10 @@ class _MathLiveMixedWebHost extends StatefulWidget {
   final Color backgroundColor;
   final String? initialLatex;
   final void Function(double chromeHeight)? onEditorChromeHeight;
+
+  /// 用户点击「完成」按钮时触发（HTML 通过 postMessage 发送
+  /// `action: 'complete'` 信号）。
+  final VoidCallback? onActionComplete;
 
   @override
   State<_MathLiveMixedWebHost> createState() => _MathLiveMixedWebHostState();
@@ -217,6 +224,12 @@ class _MathLiveMixedWebHostState extends State<_MathLiveMixedWebHost> {
       return;
     }
     if (map['clientId'] != _rootId) {
+      return;
+    }
+    /* 处理 action 信号（如「完成」按钮触发 action: 'complete'） */
+    final Object? action = map['action'];
+    if (action != null && action == 'complete') {
+      widget.onActionComplete?.call();
       return;
     }
     final Object? latex = map['latex'];

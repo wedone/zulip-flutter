@@ -26,6 +26,7 @@ class MathLiveEmbeddedEditor extends StatefulWidget {
     this.latexSnapshot,
     this.theme = MathLiveMixedTheme.defaults,
     this.loadingTextStyle,
+    this.onActionComplete,
   });
 
   final bool isDark;
@@ -35,6 +36,12 @@ class MathLiveEmbeddedEditor extends StatefulWidget {
   final ValueNotifier<String>? latexSnapshot;
   final MathLiveMixedTheme theme;
   final TextStyle? loadingTextStyle;
+
+  /// 用户点击「完成」按钮时触发（HTML 通过 JS channel/postMessage 发送
+  /// `__ACTION_COMPLETE__` 标记或 `action: 'complete'` 信号）。
+  ///
+  /// 调用前会先同步最新的 LaTeX 到 [latexSnapshot]，回调内可读取其值。
+  final VoidCallback? onActionComplete;
 
   @override
   State<MathLiveEmbeddedEditor> createState() => _MathLiveEmbeddedEditorState();
@@ -72,6 +79,13 @@ class _MathLiveEmbeddedEditorState extends State<MathLiveEmbeddedEditor> {
         onMessageReceived: (JavaScriptMessage message) {
           if (!mounted) return;
           final String latex = message.message;
+          /* 检测「完成」信号：HTML 端通过 FlutterLatexSync.postMessage 发送
+             __ACTION_COMPLETE__ 标记字符串触发关闭（mobile 平台） */
+          if (latex == '__ACTION_COMPLETE__') {
+            widget.onActionComplete?.call();
+            return;
+          }
+          /* 正常的 latex 同步 */
           widget.latexSnapshot?.value = latex;
           _debounce?.cancel();
           _debounce = Timer(const Duration(milliseconds: 280), () {
@@ -287,6 +301,7 @@ class _MathLiveEmbeddedEditorState extends State<MathLiveEmbeddedEditor> {
                     _error = success ? null : 'Could not load math editor';
                   });
                 },
+                onActionComplete: widget.onActionComplete,
               ),
               if (_loading) _loadingOverlay(),
             ],

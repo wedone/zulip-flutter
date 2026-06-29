@@ -472,6 +472,7 @@
 
   /* 通知 Flutter 端：用户点击了「完成」按钮，导出 LaTeX 并请求关闭面板 */
   function mlMixedPostActionComplete() {
+    /* 1. 通过 postMessage 发送（web 平台） */
     try {
       var payload = { channel: 'MathLiveMixed', action: 'complete', clientId: '___MATHLIVE_MIXED_CLIENT___' };
       if (window.parent && window.parent !== window) {
@@ -480,6 +481,22 @@
         window.postMessage(payload, '*');
       }
     } catch (e) {}
+
+    /* 2. 通过 JavaScript channel 发送（mobile 平台） */
+    /* 使用特殊标记字符串 __ACTION_COMPLETE__，Dart 端检测此字符串触发关闭 */
+    /* __ACTION_COMPLETE__ 不可能是有效的 LaTeX 内容，所以不会与正常的 latex 同步冲突 */
+    try {
+      if (typeof FlutterLatexSync !== 'undefined' && FlutterLatexSync.postMessage) {
+        FlutterLatexSync.postMessage('__ACTION_COMPLETE__');
+        return;
+      }
+    } catch (eSync) {}
+    try {
+      if (typeof FlutterLatex !== 'undefined' && FlutterLatex.postMessage) {
+        FlutterLatex.postMessage('__ACTION_COMPLETE__');
+        return;
+      }
+    } catch (e1) {}
   }
 
   function mlMixedActionComplete() {
