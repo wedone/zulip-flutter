@@ -166,31 +166,32 @@ class _MathFormulaPanelState extends State<MathFormulaPanel>
       animation: _controller,
       builder: (BuildContext context, Widget? _) {
         final double t = _controller.value;
-        // 面板完全收起时忽略触摸，避免拦截下层交互。
-        return IgnorePointer(
-          ignoring: t == 0,
-          child: TapRegion(
-            onTapOutside: (_) => _onActionComplete(),
-            child: SlideTransition(
-              position: _offsetAnimation,
-              child: Material(
-                elevation: 8,
-                color: widget.isDark
-                    ? const Color(0xFF141922)
-                    : Colors.white,
-                child: SizedBox(
+        // 面板完全收起时不渲染任何内容，避免占用布局空间。
+        // WebView State 仍由 [_editorKey] 保留，下次展开时复用。
+        if (t == 0) {
+          return const SizedBox.shrink();
+        }
+        return TapRegion(
+          onTapOutside: (_) => _onActionComplete(),
+          child: SlideTransition(
+            position: _offsetAnimation,
+            child: Material(
+              elevation: 8,
+              color: widget.isDark
+                  ? const Color(0xFF141922)
+                  : Colors.white,
+              child: SizedBox(
+                height: panelHeight,
+                child: MathLiveEmbeddedEditor(
+                  key: _editorKey,
+                  isDark: widget.isDark,
+                  initialLatex: widget.initialLatex,
+                  onLatexChanged: (String latex) {
+                    _latexSnapshot.value = latex;
+                  },
+                  latexSnapshot: _latexSnapshot,
+                  onActionComplete: _onActionComplete,
                   height: panelHeight,
-                  child: MathLiveEmbeddedEditor(
-                    key: _editorKey,
-                    isDark: widget.isDark,
-                    initialLatex: widget.initialLatex,
-                    onLatexChanged: (String latex) {
-                      _latexSnapshot.value = latex;
-                    },
-                    latexSnapshot: _latexSnapshot,
-                    onActionComplete: _onActionComplete,
-                    height: panelHeight,
-                  ),
                 ),
               ),
             ),

@@ -1565,6 +1565,7 @@ abstract class _ComposeBoxBody extends StatelessWidget {
 
     final topicInput = buildTopicInput();
     final sendButton = buildSendButton();
+    final inherited = ComposeBoxInheritedWidget.of(context);
     return Column(children: [
       ConstrainedBox(
         constraints: BoxConstraints(maxWidth: MessageListPage.maxContentWidth),
@@ -1588,6 +1589,15 @@ abstract class _ComposeBoxBody extends StatelessWidget {
                 Flexible(child: Row(children: composeButtons)),
                 ?sendButton,
               ]))),
+      ),
+      // 公式面板从底部升起，位于底栏下方，类似系统键盘。
+      // 收起时不占用空间；升起时不遮挡底栏。
+      MathFormulaPanel(
+        visible: inherited.mathPanelVisible,
+        isDark: Theme.of(context).brightness == Brightness.dark,
+        initialLatex: inherited.mathPanelInitialLatex,
+        onLatexConfirmed: inherited.onMathPanelLatexConfirmed,
+        onVisibilityChanged: inherited.onMathPanelVisibilityChanged,
       ),
     ]);
   }
@@ -2559,21 +2569,9 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
     }
 
     return ComposeBoxInheritedWidget.fromComposeBoxState(this,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          _ComposeBoxContainer(
-            body: body,
-            banner: banner,
-          ),
-          MathFormulaPanel(
-            visible: _mathPanelVisible,
-            isDark: Theme.of(context).brightness == Brightness.dark,
-            initialLatex: _editingLatex,
-            onLatexConfirmed: _onLatexConfirmed,
-            onVisibilityChanged: _onMathPanelVisibilityChanged,
-          ),
-        ],
+      child: _ComposeBoxContainer(
+        body: body,
+        banner: banner,
       ));
   }
 }
@@ -2582,7 +2580,7 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
 /// such as flags that should cause the upload buttons to be disabled.
 class ComposeBoxInheritedWidget extends InheritedWidget {
   factory ComposeBoxInheritedWidget.fromComposeBoxState(
-    ComposeBoxState state, {
+    _ComposeBoxState state, {
     required Widget child,
   }) {
     final controller = state.controller;
@@ -2592,6 +2590,10 @@ class ComposeBoxInheritedWidget extends InheritedWidget {
         && controller.originalRawContent == null,
       toggleMathPanel: state.toggleMathPanel,
       onFormulaDoubleTapped: state.onFormulaDoubleTapped,
+      mathPanelVisible: state._mathPanelVisible,
+      mathPanelInitialLatex: state._editingLatex,
+      onMathPanelLatexConfirmed: state._onLatexConfirmed,
+      onMathPanelVisibilityChanged: state._onMathPanelVisibilityChanged,
       child: child,
     );
   }
@@ -2600,6 +2602,10 @@ class ComposeBoxInheritedWidget extends InheritedWidget {
     required this.awaitingRawMessageContentForEdit,
     required this.toggleMathPanel,
     required this.onFormulaDoubleTapped,
+    required this.mathPanelVisible,
+    required this.mathPanelInitialLatex,
+    required this.onMathPanelLatexConfirmed,
+    required this.onMathPanelVisibilityChanged,
     required super.child,
   });
 
@@ -2613,9 +2619,22 @@ class ComposeBoxInheritedWidget extends InheritedWidget {
   /// 参数为检测到的公式信息（范围 + LaTeX），回调内部会打开面板并加载该公式。
   final ValueChanged<DetectedFormula> onFormulaDoubleTapped;
 
+  /// 公式面板当前是否可见。
+  final bool mathPanelVisible;
+
+  /// 公式面板打开时的初始 LaTeX（编辑已有公式场景）。
+  final String? mathPanelInitialLatex;
+
+  /// 公式面板确认提交 LaTeX 的回调。
+  final ValueChanged<String>? onMathPanelLatexConfirmed;
+
+  /// 公式面板可见性变化的回调。
+  final ValueChanged<bool>? onMathPanelVisibilityChanged;
+
   @override
   bool updateShouldNotify(covariant ComposeBoxInheritedWidget oldWidget) =>
-    awaitingRawMessageContentForEdit != oldWidget.awaitingRawMessageContentForEdit;
+    awaitingRawMessageContentForEdit != oldWidget.awaitingRawMessageContentForEdit
+    || mathPanelVisible != oldWidget.mathPanelVisible;
 
   static ComposeBoxInheritedWidget of(BuildContext context) {
     final widget = context.dependOnInheritedWidgetOfExactType<ComposeBoxInheritedWidget>();
