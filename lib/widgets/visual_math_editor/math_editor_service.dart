@@ -2,25 +2,18 @@ import 'package:flutter/material.dart';
 
 import '../compose_box.dart';
 
-/// 可视公式编辑器服务。
+/// 公式编辑器服务。
 ///
-/// 封装将 LaTeX 插入 [ComposeContentController] 的逻辑。
-/// [openEditor] 在 Task 5 中将替换为 [MathFormulaPanel] 调用。
+/// 本服务仅提供在 [ComposeContentController] 中插入、检测、替换 LaTeX
+/// 公式的工具方法；用户交互界面由内联面板 [MathFormulaPanel] 实现。
+///
+/// 典型流程：
+/// 1. 打开面板前调用 [detectLatexAtCursor] 判断光标是否落在已有公式内；
+/// 2. 用户在 [MathFormulaPanel] 中编辑并确认 LaTeX；
+/// 3. 根据上一步的检测结果，调用 [replaceLatexRange] 替换原公式，
+///    或调用 [insertLatexAtCursor] 插入新公式。
 class MathEditorService {
   MathEditorService._();
-
-  /// 打开 MathLive WYSIWYG 编辑器；用户确认后返回 LaTeX 字符串（不含界定符）。
-  ///
-  /// 用户点击返回按钮（不确认）时返回 null。
-  /// [initialLatex] 可选，用于编辑已有公式（Task 5 使用）。
-  // TODO: Task 5 中替换为 MathFormulaPanel 调用
-  static Future<String?> openEditor(
-    BuildContext context, {
-    required bool isDark,
-    String? initialLatex,
-  }) async {
-    throw UnimplementedError('MathLiveEditorPage 已移除，待 Task 5 重构');
-  }
 
   /// 将 [latex] 用 `\(` `\)` 界定符包裹后插入到 [controller] 的当前光标位置，
   /// 并把光标移到插入内容之后。

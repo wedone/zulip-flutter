@@ -27,7 +27,7 @@ import 'color.dart';
 import 'dialog.dart';
 import 'icons.dart';
 import 'inset_shadow.dart';
-import 'latex_preview.dart';
+import 'math_formula_panel/math_formula_panel.dart';
 import 'message_list.dart';
 import 'page.dart';
 import 'store.dart';
@@ -1507,20 +1507,7 @@ abstract class _ComposeBoxBody extends StatelessWidget {
       _AttachMediaButton(controller: controller, enabled: composeButtonsEnabled),
       _AttachFromCameraButton(controller: controller, enabled: composeButtonsEnabled),
       VisualMathButton(
-        onPressed: () async {
-          final existing = MathEditorService.detectLatexAtCursor(controller.content);
-          final latex = await MathEditorService.openEditor(
-            context,
-            isDark: Theme.of(context).brightness == Brightness.dark,
-            initialLatex: existing?.latex,
-          );
-          if (latex == null) return;
-          if (existing != null) {
-            MathEditorService.replaceLatexRange(controller.content, existing.range, latex);
-          } else {
-            MathEditorService.insertLatexAtCursor(controller.content, latex);
-          }
-        },
+        onPressed: ComposeBoxInheritedWidget.of(context).toggleMathPanel,
         enabled: composeButtonsEnabled,
       ),
     ];
@@ -1530,19 +1517,14 @@ abstract class _ComposeBoxBody extends StatelessWidget {
     return Column(children: [
       ConstrainedBox(
         constraints: BoxConstraints(maxWidth: MessageListPage.maxContentWidth),
-        child: Column(children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Theme(
-              data: inputThemeData,
-              child: Column(children: [
-                ?topicInput,
-                buildContentInput(),
-              ]))),
-          LatexPreviewArea(
-            controller: controller.content,
-            focusNode: controller.contentFocusNode),
-        ])),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Theme(
+            data: inputThemeData,
+            child: Column(children: [
+              ?topicInput,
+              buildContentInput(),
+            ])))),
       ConstrainedBox(
         constraints: BoxConstraints(maxWidth: MessageListPage.maxContentWidth),
         child: SizedBox(
@@ -2098,11 +2080,72 @@ abstract class ComposeBoxState extends State<ComposeBox> {
 
   /// Switch the compose box back to regular non-edit mode, with no content.
   void endEditInteraction();
+
+  /// 切换内联公式面板（[MathFormulaPanel]）的显示/隐藏状态。
+  ///
+  /// 由 [VisualMathButton] 通过 [ComposeBoxInheritedWidget] 触发。
+  void toggleMathPanel();
 }
 
 class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateMixin<ComposeBox> implements ComposeBoxState {
   @override ComposeBoxController get controller => _controller!;
   ComposeBoxController? _controller;
+
+  /// 内联公式面板是否可见。
+  bool _mathPanelVisible = false;
+
+  /// 当前正在编辑的 LaTeX（不含界定符）；新建公式场景下为 null。
+  ///
+  /// 打开面板时通过 [MathEditorService.detectLatexAtCursor] 检测光标是否
+  /// 落在已有公式内，若是则将其 LaTeX 填入面板作为初始值。
+  String? _editingLatex;
+
+  /// 切换公式面板的显示/隐藏状态。
+  ///
+  /// 打开面板时检测当前光标是否落在 `\(...\)` 公式内：
+  /// 若是，则将该公式的 LaTeX 作为面板初始值（编辑场景）；
+  /// 否则面板以空内容启动（新建场景）。
+  @override
+  void toggleMathPanel() {
+    setState(() {
+      _mathPanelVisible = !_mathPanelVisible;
+      if (_mathPanelVisible) {
+        final existing = MathEditorService.detectLatexAtCursor(controller.content);
+        _editingLatex = existing?.latex;
+      } else {
+        _editingLatex = null;
+      }
+    });
+  }
+
+  /// 用户在公式面板中点击「完成」或点击面板外部时触发。
+  ///
+  /// 将确认的 LaTeX 写回 [ComposeContentController]：
+  /// 若打开面板时检测到光标在已有公式内，则替换该公式；
+  /// 否则在当前光标位置插入新公式。
+  void _onLatexConfirmed(String latex) {
+    final controller = this.controller;
+    final existing = MathEditorService.detectLatexAtCursor(controller.content);
+    if (existing != null) {
+      MathEditorService.replaceLatexRange(controller.content, existing.range, latex);
+    } else {
+      MathEditorService.insertLatexAtCursor(controller.content, latex);
+    }
+    setState(() {
+      _mathPanelVisible = false;
+      _editingLatex = null;
+    });
+  }
+
+  /// 公式面板可见性变化回调（面板内部触发关闭时调用）。
+  void _onMathPanelVisibilityChanged(bool visible) {
+    if (!visible && _mathPanelVisible) {
+      setState(() {
+        _mathPanelVisible = false;
+        _editingLatex = null;
+      });
+    }
+  }
 
   @override
   void restoreMessageNotSent(int localMessageId) async {
@@ -2420,9 +2463,21 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
     }
 
     return ComposeBoxInheritedWidget.fromComposeBoxState(this,
-      child: _ComposeBoxContainer(
-        body: body,
-        banner: banner,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          _ComposeBoxContainer(
+            body: body,
+            banner: banner,
+          ),
+          MathFormulaPanel(
+            visible: _mathPanelVisible,
+            isDark: Theme.of(context).brightness == Brightness.dark,
+            initialLatex: _editingLatex,
+            onLatexConfirmed: _onLatexConfirmed,
+            onVisibilityChanged: _onMathPanelVisibilityChanged,
+          ),
+        ],
       ));
   }
 }
@@ -2439,16 +2494,21 @@ class ComposeBoxInheritedWidget extends InheritedWidget {
       awaitingRawMessageContentForEdit:
         controller is EditMessageComposeBoxController
         && controller.originalRawContent == null,
+      toggleMathPanel: state.toggleMathPanel,
       child: child,
     );
   }
 
   const ComposeBoxInheritedWidget._({
     required this.awaitingRawMessageContentForEdit,
+    required this.toggleMathPanel,
     required super.child,
   });
 
   final bool awaitingRawMessageContentForEdit;
+
+  /// 切换公式面板显示/隐藏的回调，由 [VisualMathButton] 触发。
+  final VoidCallback toggleMathPanel;
 
   @override
   bool updateShouldNotify(covariant ComposeBoxInheritedWidget oldWidget) =>
