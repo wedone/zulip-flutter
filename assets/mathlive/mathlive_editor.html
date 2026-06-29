@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
@@ -7,82 +7,65 @@
   <link rel="stylesheet" href="mathlive-static.css" />
   <script src="mathlive.min.js"></script>
   <style>
-    /* Stable WebView layout: no document scroll, no double-tap zoom delay on buttons */
+    /* 非全屏布局：高度由 math-field + 虚拟键盘决定 */
     html, body {
       margin: 0;
-      height: 100%;
       width: 100%;
       overflow: hidden;
       overscroll-behavior: none;
       touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
       background: #ffffff;
+      font-family: system-ui, sans-serif;
     }
-    /* Flutter web: editor is injected into a div in the host page (not iframe) — same rules */
     .mathlive-mixed-root {
       margin: 0;
-      height: 100%;
       width: 100%;
-      overflow: hidden;
-      overscroll-behavior: none;
-      touch-action: manipulation;
-      -webkit-tap-highlight-color: transparent;
       background: #ffffff;
       box-sizing: border-box;
     }
-    /* X 外层容器：高度由 A（预览）+ B（键盘）决定 */
-    #X {
+    /* math-field 编辑区 */
+    #editor-shell {
       box-sizing: border-box;
-      padding: 10px;
-      padding-top: max(10px, env(safe-area-inset-top, 0px));
-      padding-bottom: max(10px, env(safe-area-inset-bottom, 0px));
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      min-height: 0;
+      padding: 8px 12px;
+      padding-top: max(8px, env(safe-area-inset-top, 0px));
+      padding-bottom: max(8px, env(safe-area-inset-bottom, 0px));
+    }
+    math-field {
+      width: 100%;
+      min-height: 80px;
+      font-size: 24px;
+      border: none;
+      outline: none;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 8px 4px;
+      box-sizing: border-box;
+    }
+    math-field:focus-within {
+      border-bottom-color: #0d80f2;
     }
     /*
-     * Native MathLive toggles live in the shadow DOM with ::part(). Hide them
-     * as we do not provide an in-page toolbar.
+     * 隐藏 math-field 菜单切换按钮和虚拟键盘切换按钮
+     * （我们用自定义布局，不需要原生 toolbar）
      */
     math-field::part(menu-toggle),
     math-field::part(virtual-keyboard-toggle) {
       display: none !important;
     }
-    /* A：公式预览区，固定 ~60px */
-    #A {
-      flex: 0 0 auto;
-      height: 60px;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
+    /* 虚拟键盘顶部与 math-field 底部无缝连接 */
+    body > .ML__keyboard.is-visible > .MLK__backdrop {
+      box-shadow: none;
+      border-top: none;
     }
-    #A math-field {
-      flex: 1 1 auto;
-      width: 100%;
-      min-height: 0;
-      font-size: 18px;
-      border-radius: 8px;
-      padding: 6px 10px;
-      border: 1px solid #e2e8f0;
-      box-sizing: border-box;
-    }
-    #A math-field:focus { outline: 2px solid #ff6200; outline-offset: 2px; }
-    /* B：虚拟键盘区 */
-    #B {
-      flex: 0 0 auto;
-      position: relative;
-      width: 100%;
-      min-height: 0;
-    }
+    /* 暗色主题 */
     .mathlive-mixed-root.theme-dark { background: #141922; }
     body.theme-dark { background: #141922; }
-    .mathlive-mixed-root.theme-dark #A math-field,
-    body.theme-dark #A math-field {
-      background: #1e2532;
+    .mathlive-mixed-root.theme-dark math-field,
+    body.theme-dark math-field {
       color: #e2e8f0;
-      border-color: #334155;
+      border-bottom-color: #334155;
     }
+    /* 移动端按键尺寸 */
     @media (pointer: coarse) {
       body {
         --keycap-height: 42px;
@@ -95,7 +78,7 @@
         --keycap-gap: 4px;
         --keyboard-padding-horizontal: 2px;
       }
-      #A math-field { font-size: 24px; min-height: 0; }
+      math-field { font-size: 24px; }
     }
     /*
      * Keep MathLive's popup menu + its "Insert" submenu fully inside narrow
@@ -123,13 +106,8 @@
 </head>
 <body>
 <div class="mathlive-mixed-root" id="MATHLIVE_MIXED_ROOT_ID">
-  <div id="X">
-    <div id="A">
-      <math-field id="mf" math-mode-space="\ " virtual-keyboard-mode="manual"></math-field>
-    </div>
-    <div id="B">
-      <math-virtual-keyboard></math-virtual-keyboard>
-    </div>
+  <div id="editor-shell">
+    <math-field id="mf" math-mode-space="\ " virtual-keyboard-mode="manual"></math-field>
   </div>
 </div>
 <script>
@@ -139,6 +117,8 @@
       MathfieldElement.soundsDirectory = new URL('./sounds', document.baseURI).href;
     } catch (eSound) {}
   }
+
+  /* ==================== JS Bridge 通信逻辑（保留 v1） ==================== */
 
   function mlMixedPostToHost(s) {
     var str = String(s == null ? '' : s);
@@ -254,6 +234,14 @@
                 el ? el.offsetHeight : 0
               ));
             }
+            /* 加上虚拟键盘的高度（如果可见） */
+            try {
+              if (typeof mathVirtualKeyboard !== 'undefined' && mathVirtualKeyboard.visible) {
+                var kh = 0;
+                try { kh = mathVirtualKeyboard.boundingRect.height || 0; } catch (eVk2) {}
+                if (kh > 0) h += kh;
+              }
+            } catch (eVk) {}
             if (h < 80) h = 80;
             var payload = { channel: 'MathLiveMixed', editorHeight: h, clientId: '___MATHLIVE_MIXED_CLIENT___' };
             if (window.parent && window.parent !== window) {
@@ -267,40 +255,110 @@
     } catch (e2) {}
   }
 
-  function mlMixedAttachVirtualKeyboard() {
-    var vkRoot = document.getElementById('B');
-    if (typeof mathVirtualKeyboard === 'undefined') return;
-    /*
-     * Attach keyboard to #vk-root when allowed. Blob iframes (legacy) cannot reassign
-     * container; Flutter web now hosts this HTML in a div on the main document instead.
-     */
-    if (vkRoot && !mlMixedIsInIframe()) {
-      try {
-        mathVirtualKeyboard.container = vkRoot;
-      } catch (eContainer) {
-        /* keep default container */
+  /* 粘贴文本：Dart 端通过 runJavaScript('mlMixedPasteText(...)') 调用 */
+  function mlMixedPasteText(text) {
+    try {
+      var mf = document.getElementById('mf');
+      if (!mf) return;
+      var s = String(text == null ? '' : text);
+      if (typeof mf.insert === 'function') {
+        mf.insert(s, { focus: true });
+      } else if (typeof mf.executeCommand === 'function') {
+        mf.executeCommand(['insert', s]);
       }
+    } catch (e) {}
+  }
+
+  /* ==================== 自定义虚拟键盘布局（v2 新增） ==================== */
+
+  function mlMixedAttachVirtualKeyboard() {
+    if (typeof mathVirtualKeyboard === 'undefined') return;
+
+    var mf = document.getElementById('mf');
+    if (mf) {
+      mf.mathVirtualKeyboardPolicy = 'manual';
     }
+
+    /* 三个 layout：基本/符号/希腊，每个 layout 含 fixedRows 固定底部行 */
+    mathVirtualKeyboard.layouts = [
+      {
+        label: '基本',
+        layers: [
+          {
+            rows: [
+              ['[7]', '[8]', '[9]', '[+]', { class: 'separator', width: 0.5 },
+                { class: 'small', latex: '\\frac{#@}{#?}' }, '\\varnothing', '\\infty', '\\in', '\\notin'],
+              ['[4]', '[5]', '[6]', '[-]', { class: 'separator', width: 0.5 },
+                '[(]', '[)]', '\\lt', '\\le', '\\hat{=}'],
+              ['[1]', '[2]', '[3]', '\\cdot', { class: 'separator', width: 0.5 },
+                '[', ']', '\\gt', '\\ne', '\\ge'],
+              [{ label: '[0]', width: 2 }, '[.]', '\\colon', { class: 'separator', width: 0.5 },
+                '\\lbrace', '\\rbrace', '=', '\\ne'],
+              ['\\alpha', '\\beta', '\\gamma', '\\delta', { class: 'separator', width: 0.5 },
+                '\\sum', '\\prod', '\\int', '\\oint'],
+              ['\\sin', '\\cos', '\\tan', '\\log', { class: 'separator', width: 0.5 },
+                '\\lim', '\\infty', '\\partial', '\\nabla'],
+            ],
+            fixedRows: [
+              ['[left]', '[right]', '[backspace]', { class: 'separator', width: 0.5 },
+                '[-]', '[+]', '[=]', '[.]',
+                { label: '完成', width: 1.5, class: 'action', command: 'ml-mixed-complete' }],
+            ],
+          },
+        ],
+      },
+      {
+        label: '符号',
+        layers: [
+          {
+            rows: [
+              ['\\pm', '\\mp', '\\times', '\\div', '\\cdot', '\\ast', '\\star', '\\circ'],
+              ['\\cap', '\\cup', '\\wedge', '\\vee', '\\oplus', '\\otimes', '\\ominus', '\\oslash'],
+              ['\\subseteq', '\\supseteq', '\\subset', '\\supset', '\\in', '\\notin', '\\ni', '\\emptyset'],
+              ['\\rightarrow', '\\leftarrow', '\\Rightarrow', '\\Leftarrow', '\\mapsto', '\\longmapsto', '\\implies', '\\iff'],
+              ['\\approx', '\\simeq', '\\cong', '\\equiv', '\\propto', '\\sim', '\\models', '\\dashv'],
+              ['\\forall', '\\exists', '\\nexists', '\\neg', '\\top', '\\bot', '\\vdash', '\\vDash'],
+            ],
+            fixedRows: [
+              ['[left]', '[right]', '[backspace]', { class: 'separator', width: 0.5 },
+                '[-]', '[+]', '[=]', '[.]',
+                { label: '完成', width: 1.5, class: 'action', command: 'ml-mixed-complete' }],
+            ],
+          },
+        ],
+      },
+      {
+        label: '希腊',
+        layers: [
+          {
+            rows: [
+              ['\\alpha', '\\beta', '\\gamma', '\\delta', '\\epsilon', '\\zeta', '\\eta', '\\theta'],
+              ['\\iota', '\\kappa', '\\lambda', '\\mu', '\\nu', '\\xi', '\\omicron', '\\pi'],
+              ['\\rho', '\\sigma', '\\tau', '\\upsilon', '\\phi', '\\chi', '\\psi', '\\omega'],
+              ['\\Gamma', '\\Delta', '\\Theta', '\\Lambda', '\\Xi', '\\Pi', '\\Sigma', '\\Phi'],
+              ['\\Psi', '\\Omega', '\\varpi', '\\varrho', '\\varsigma', '\\varphi', '\\aleph', '\\hbar'],
+            ],
+            fixedRows: [
+              ['[left]', '[right]', '[backspace]', { class: 'separator', width: 0.5 },
+                '[-]', '[+]', '[=]', '[.]',
+                { label: '完成', width: 1.5, class: 'action', command: 'ml-mixed-complete' }],
+            ],
+          },
+        ],
+      },
+    ];
+
+    /* 监听键盘几何变化，通知 Flutter 端更新高度 */
     try {
       mathVirtualKeyboard.addEventListener('geometrychange', function () {
-        var h = 0;
-        try {
-          h = mathVirtualKeyboard.boundingRect.height;
-        } catch (e0) {}
-        if (vkRoot) {
-          if (h > 0) {
-            vkRoot.style.minHeight = h + 'px';
-            vkRoot.style.height = h + 'px';
-          } else {
-            vkRoot.style.minHeight = '';
-            vkRoot.style.height = 'auto';
-          }
-        }
         mlMixedNotifyHostChromeHeight();
       });
-    } catch (e1) {}
+    } catch (e) {}
+
     mlMixedNotifyHostChromeHeight();
   }
+
+  /* ==================== 特殊键处理（保留 v1 的 mlMixedFixKeys） ==================== */
 
   function mlMixedEventTargetsMathField(ev, mf) {
     if (!mf) return false;
@@ -357,6 +415,7 @@
 
     mlMixedEnsureMathModeSpace();
 
+    /* Enter 键插入换行 */
     mf.addEventListener(
       'keydown',
       function (ev) {
@@ -376,6 +435,7 @@
       true
     );
 
+    /* 空格键插入 \+空格 */
     mf.addEventListener(
       'keydown',
       function (ev) {
@@ -408,6 +468,64 @@
     );
   }
 
+  /* ==================== 「完成」按钮处理（v2 新增） ==================== */
+
+  /* 通知 Flutter 端：用户点击了「完成」按钮，导出 LaTeX 并请求关闭面板 */
+  function mlMixedPostActionComplete() {
+    try {
+      var payload = { channel: 'MathLiveMixed', action: 'complete', clientId: '___MATHLIVE_MIXED_CLIENT___' };
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage(payload, '*');
+      } else {
+        window.postMessage(payload, '*');
+      }
+    } catch (e) {}
+  }
+
+  function mlMixedActionComplete() {
+    /* 1. 先导出 LaTeX（通过 FlutterLatexSync/FlutterLatex/postMessage 通道） */
+    mlMixedExportLatex();
+    /* 2. 再发送「完成」信号，通知 Flutter 端关闭面板 */
+    mlMixedPostActionComplete();
+  }
+
+  /*
+   * 拦截「完成」按键的 executeCommand。
+   * keycap 的 command 是 'ml-mixed-complete'，MathLive 内部会通过 parseCommand
+   * 将 kebab-case 转换为 camelCase，最终调用 mf.executeCommand('mlMixedComplete')。
+   * 我们重写 mf.executeCommand 来拦截这个命令，避免触发 MathLive 的
+   * "Unknown command" 错误。
+   */
+  function mlMixedSetupActionKey() {
+    var mf = document.getElementById('mf');
+    if (!mf || mf.dataset.mlMixedActionSetup === '1') return;
+    mf.dataset.mlMixedActionSetup = '1';
+
+    try {
+      var origExecute = mf.executeCommand.bind(mf);
+      mf.executeCommand = function (cmd) {
+        /* 处理两种形式：字符串 'mlMixedComplete' 或数组 ['mlMixedComplete', ...] */
+        var selector = cmd;
+        if (Array.isArray(cmd)) {
+          selector = cmd[0];
+        } else if (typeof cmd === 'string') {
+          /* 处理 'performWithFeedback(mlMixedComplete)' 形式 */
+          var match = cmd.match(/^performWithFeedback\((.+)\)$/);
+          if (match) {
+            selector = match[1];
+          }
+        }
+        if (selector === 'mlMixedComplete' || selector === 'ml-mixed-complete') {
+          mlMixedActionComplete();
+          return false;
+        }
+        return origExecute.apply(this, arguments);
+      };
+    } catch (e) {}
+  }
+
+  /* ==================== 初始化 ==================== */
+
   (function init() {
     mlMixedEnsureMathModeSpace();
     mlMixedAttachVirtualKeyboard();
@@ -420,15 +538,27 @@
         mlMixedEnsureMathModeSpace();
         mlMixedAttachVirtualKeyboard();
         mlMixedFixKeys();
-        try { mathVirtualKeyboard.show(); } catch (e) {}
+        mlMixedSetupActionKey();
+        /* 显示虚拟键盘（manual policy 下需要手动 show） */
+        try {
+          if (typeof mathVirtualKeyboard !== 'undefined') {
+            mathVirtualKeyboard.show();
+          }
+        } catch (e) {}
+        /* 通知 Flutter 端高度 */
+        setTimeout(mlMixedNotifyHostChromeHeight, 0);
+        setTimeout(mlMixedNotifyHostChromeHeight, 200);
+        setTimeout(mlMixedNotifyHostChromeHeight, 500);
       }).catch(function () {});
     }
 
+    /* 兜底重试 */
     setTimeout(mlMixedEnsureMathModeSpace, 0);
     setTimeout(mlMixedAttachVirtualKeyboard, 50);
     setTimeout(mlMixedAttachVirtualKeyboard, 300);
     setTimeout(mlMixedFixKeys, 50);
-    setTimeout(function () { try { mathVirtualKeyboard.show(); } catch (e) {} }, 200);
+    setTimeout(mlMixedSetupActionKey, 100);
+    setTimeout(function () { try { if (typeof mathVirtualKeyboard !== 'undefined') mathVirtualKeyboard.show(); } catch (e) {} }, 200);
   })();
 </script>
 </body>
