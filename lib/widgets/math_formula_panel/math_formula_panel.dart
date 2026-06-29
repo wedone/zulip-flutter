@@ -12,9 +12,9 @@ import '../../mathlive/mathlive_studio.dart';
 /// WebView 实例会常驻于 widget 树中（通过 [GlobalKey] 保留 State），
 /// 避免重复加载 HTML/JS 资源。
 ///
-/// 外部点击检测使用 [TapRegion]，覆盖整个屏幕（不限于 compose_box 区域）：
-/// 用户点击消息列表等 compose_box 外部区域时也会关闭面板。
-/// 同时保留半透明遮罩层（覆盖 compose_box 区域）作为视觉提示。
+/// 面板从底部升起，不覆盖 compose_box 上方的消息列表区域，
+/// 类似系统键盘的交互方式。点击面板外部（消息列表区域）时面板收起。
+/// 无半透明遮罩层，避免遮挡消息列表。
 class MathFormulaPanel extends StatefulWidget {
   const MathFormulaPanel({
     super.key,
@@ -169,58 +169,31 @@ class _MathFormulaPanelState extends State<MathFormulaPanel>
         // 面板完全收起时忽略触摸，避免拦截下层交互。
         return IgnorePointer(
           ignoring: t == 0,
-          child: Stack(
-            children: <Widget>[
-              // 半透明遮罩层（覆盖 compose_box 区域）：点击关闭。
-              // 视觉提示用户面板外部可点击关闭；全屏外部点击由 TapRegion 处理。
-              if (t > 0)
-                Positioned.fill(
-                  child: GestureDetector(
-                    onTap: _onActionComplete,
-                    behavior: HitTestBehavior.opaque,
-                    child: ColoredBox(
-                      color: Colors.black.withValues(alpha: 0.4 * t),
-                    ),
-                  ),
-                ),
-              // 面板本体。
-              // 用 TapRegion 检测全屏外部点击（包括消息列表等 compose_box 外区域）。
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: SlideTransition(
-                  position: _offsetAnimation,
-                  child: TapRegion(
-                    onTapOutside: (_) => _onActionComplete(),
-                    child: GestureDetector(
-                      // 阻止点击面板内部空白区域时冒泡到遮罩层关闭面板。
-                      onTap: () {},
-                      child: Material(
-                        elevation: 8,
-                        color: widget.isDark
-                            ? const Color(0xFF141922)
-                            : Colors.white,
-                        child: SizedBox(
-                          height: panelHeight,
-                          child: MathLiveEmbeddedEditor(
-                            key: _editorKey,
-                            isDark: widget.isDark,
-                            initialLatex: widget.initialLatex,
-                            onLatexChanged: (String latex) {
-                              _latexSnapshot.value = latex;
-                            },
-                            latexSnapshot: _latexSnapshot,
-                            onActionComplete: _onActionComplete,
-                            height: panelHeight,
-                          ),
-                        ),
-                      ),
-                    ),
+          child: TapRegion(
+            onTapOutside: (_) => _onActionComplete(),
+            child: SlideTransition(
+              position: _offsetAnimation,
+              child: Material(
+                elevation: 8,
+                color: widget.isDark
+                    ? const Color(0xFF141922)
+                    : Colors.white,
+                child: SizedBox(
+                  height: panelHeight,
+                  child: MathLiveEmbeddedEditor(
+                    key: _editorKey,
+                    isDark: widget.isDark,
+                    initialLatex: widget.initialLatex,
+                    onLatexChanged: (String latex) {
+                      _latexSnapshot.value = latex;
+                    },
+                    latexSnapshot: _latexSnapshot,
+                    onActionComplete: _onActionComplete,
+                    height: panelHeight,
                   ),
                 ),
               ),
-            ],
+            ),
           ),
         );
       },

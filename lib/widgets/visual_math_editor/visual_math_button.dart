@@ -29,7 +29,7 @@ class VisualMathButton extends StatelessWidget {
       width: 44,
       child: IconButton(
         icon: Icon(
-          Icons.functions,
+          Icons.keyboard,
           color: designVariables.foreground.withFadedAlpha(0.5),
         ),
         tooltip: zulipLocalizations.visualMathButtonTooltip,
