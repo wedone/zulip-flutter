@@ -13,6 +13,7 @@ import '../api/exception.dart';
 import '../api/model/model.dart';
 import '../api/route/messages.dart';
 import '../generated/l10n/zulip_localizations.dart';
+import '../model/latex_converter.dart' show FormulaType, wrapFormula, formulaDelimiters;
 import '../model/binding.dart';
 import '../model/compose.dart';
 import '../model/message.dart';
@@ -25,6 +26,7 @@ import 'color.dart';
 import 'dialog.dart';
 import 'icons.dart';
 import 'inset_shadow.dart';
+import 'math_live_panel.dart';
 import 'message_list.dart';
 import 'page.dart';
 import 'store.dart';
@@ -608,6 +610,15 @@ class _ContentInput extends StatelessWidget {
                 focusNode: controller.contentFocusNode,
                 contentInsertionConfiguration: ContentInsertionConfiguration(
                   onContentInserted: (content) => _handleContentInserted(context, content)),
+                // Tapping the content input dismisses the MathLive math
+                // keyboard panel (if open) so the system soft keyboard takes
+                // over again, matching the user's expectation when they
+                // explicitly tap the field to edit text.
+                onTap: () {
+                  if (controller.mathKeyboardVisible.value) {
+                    controller.mathKeyboardVisible.value = false;
+                  }
+                },
                 // Let the content bleed through the vertical padding that wraps
                 // the field so the [InsetShadowBox] can fade it smoothly there.
                 clipBehavior: Clip.none,
@@ -1248,6 +1259,45 @@ class _AttachFromCameraButton extends _AttachUploadsButton {
   }
 }
 
+/// A toggle button that shows or hides the MathLive math keyboard panel.
+///
+/// Reflects and toggles [ComposeBoxController.mathKeyboardVisible].
+/// When the panel is shown, the system soft keyboard is hidden so the
+/// user interacts with the MathLive virtual keyboard instead.
+class _MathKeyboardToggleButton extends StatelessWidget {
+  const _MathKeyboardToggleButton({
+    required this.controller,
+    required this.enabled,
+  });
+
+  final ComposeBoxController controller;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    return SizedBox(
+      width: _composeButtonSize,
+      child: ValueListenableBuilder<bool>(
+        valueListenable: controller.mathKeyboardVisible,
+        builder: (context, visible, _) {
+          final iconColor = visible
+            ? designVariables.icon
+            : designVariables.foreground.withFadedAlpha(0.5);
+          return IconButton(
+            tooltip: '数学键盘', // TODO(i18n): translate once strings are available.
+            icon: Icon(Icons.keyboard, color: iconColor),
+            isSelected: visible,
+            onPressed: enabled
+              ? () => controller.toggleMathKeyboard(context)
+              : null,
+          );
+        },
+      ),
+    );
+  }
+}
+
 class _SendButton extends StatefulWidget {
   const _SendButton({required this.controller, required this.getDestination});
 
@@ -1493,6 +1543,8 @@ abstract class _ComposeBoxBody extends StatelessWidget {
       _AttachFileButton(controller: controller, enabled: composeButtonsEnabled),
       _AttachMediaButton(controller: controller, enabled: composeButtonsEnabled),
       _AttachFromCameraButton(controller: controller, enabled: composeButtonsEnabled),
+      _MathKeyboardToggleButton(
+        controller: controller, enabled: composeButtonsEnabled),
     ];
 
     final topicInput = buildTopicInput();
@@ -1518,6 +1570,18 @@ abstract class _ComposeBoxBody extends StatelessWidget {
                 Row(children: composeButtons),
                 ?sendButton,
               ]))),
+        // The MathLive math keyboard panel; shown below the compose-button
+        // row when the user has toggled it on with [_MathKeyboardToggleButton].
+        ValueListenableBuilder<bool>(
+          valueListenable: controller.mathKeyboardVisible,
+          builder: (context, visible, _) {
+            if (!visible) return const SizedBox.shrink();
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+            return MathLivePanel(
+              isDark: isDark,
+              onFormulaInserted: controller.onFormulaInserted,
+            );
+          }),
       ]));
   }
 }
@@ -1607,6 +1671,71 @@ sealed class ComposeBoxController {
   final ComposeContentController content;
   final contentFocusNode = FocusNode();
 
+  /// Whether the MathLive math keyboard panel is currently shown.
+  ///
+  /// Toggled by [_MathKeyboardToggleButton]. When true, the
+  /// [MathLivePanel] is rendered below the compose-button row and
+  /// the system soft keyboard is hidden so the user interacts with
+  /// the MathLive virtual keyboard instead.
+  final ValueNotifier<bool> mathKeyboardVisible = ValueNotifier<bool>(false);
+
+  /// Toggles the MathLive math keyboard panel.
+  ///
+  /// When opening the panel, the system soft keyboard is hidden by
+  /// unfocusing the content input and explicitly hiding the text input
+  /// channel, so the MathLive virtual keyboard takes over.
+  void toggleMathKeyboard(BuildContext context) {
+    final newValue = !mathKeyboardVisible.value;
+    if (newValue) {
+      // Hide the system soft keyboard so the user can interact with the
+      // MathLive virtual keyboard without two keyboards being shown at once.
+      FocusScope.of(context).unfocus();
+      SystemChannels.textInput.invokeMethod<void>('TextInput.hide');
+    }
+    mathKeyboardVisible.value = newValue;
+  }
+
+  /// Inserts a formula into the content input at the cursor position.
+  ///
+  /// Called from [MathLivePanel.onFormulaInserted] when the user taps the
+  /// insert key in the MathLive virtual keyboard. [typeStr] is either
+  /// `'inline'` or `'block'` (matching the JSON posted from the HTML page).
+  ///
+  /// The wrapped formula is separated from any adjacent formula delimiters
+  /// (`$$` or ` ``` `) by a zero-width space (ZWSP, U+200B) to avoid
+  /// delimiter concatenation that would prevent rendering on the server
+  /// (e.g. ` ```...``````...``` ` — six consecutive backticks — is not
+  /// recognized as two block formulas).
+  void onFormulaInserted(String typeStr, String latex) {
+    final type = typeStr == 'block' ? FormulaType.block : FormulaType.inline;
+    final wrapped = wrapFormula(type, latex);
+    final i = content.insertionIndex();
+    final text = content.text;
+    final before = text.substring(0, i.start);
+    final after = text.substring(i.start);
+
+    const zwsp = '\u200B';
+    var insertion = wrapped;
+    // If the text before the cursor ends with a formula delimiter, the new
+    // formula's opening delimiter would directly follow it; insert a ZWSP.
+    for (final delimiter in formulaDelimiters) {
+      if (before.endsWith(delimiter)) {
+        insertion = zwsp + insertion;
+        break;
+      }
+    }
+    // If the text after the cursor starts with a formula delimiter, the new
+    // formula's closing delimiter would directly precede it; insert a ZWSP.
+    for (final delimiter in formulaDelimiters) {
+      if (after.startsWith(delimiter)) {
+        insertion = insertion + zwsp;
+        break;
+      }
+    }
+
+    content.value = content.value.replaced(i, insertion);
+  }
+
   /// If no input is focused, requests focus on the appropriate input.
   ///
   /// This encapsulates choosing the topic or content input
@@ -1644,6 +1773,7 @@ sealed class ComposeBoxController {
 
   @mustCallSuper
   void dispose() {
+    mathKeyboardVisible.dispose();
     content.dispose();
     contentFocusNode.dispose();
   }
