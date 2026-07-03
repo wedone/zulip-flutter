@@ -1,4 +1,4 @@
-// src/ui/utils/capabilities.ts
+var _a, _b, _c, _d, _e, _f, _g;
 function isBrowser() {
   return "window" in globalThis && "document" in globalThis;
 }
@@ -50,8 +50,6 @@ function supportRegexPropertyEscape() {
 function supportPopover() {
   return HTMLElement.prototype.hasOwnProperty("popover");
 }
-
-// src/editor/keyboard-layouts/dvorak.ts
 var DVORAK = {
   id: "dvorak",
   locale: "en",
@@ -128,8 +126,6 @@ var DVORAK = {
     AudioVolumeUp: ["", "=", "", "="]
   }
 };
-
-// src/editor/keyboard-layouts/english.ts
 var APPLE_ENGLISH = {
   id: "apple.en-intl",
   displayName: "English (international)",
@@ -347,8 +343,6 @@ var LINUX_ENGLISH = {
     NumpadParenRight: [")", ")", ")", ")"]
   }
 };
-
-// src/editor/keyboard-layouts/french.ts
 var APPLE_FRENCH = {
   id: "apple.french",
   locale: "fr",
@@ -544,8 +538,6 @@ var LINUX_FRENCH = {
     IntlBackslash: ["<", ">", "|", "\xA6"]
   }
 };
-
-// src/editor/keyboard-layouts/german.ts
 var APPLE_GERMAN = {
   id: "apple.german",
   locale: "de",
@@ -755,8 +747,6 @@ var LINUX_GERMAN = {
     MetaRight: [".", ".", ".", "."]
   }
 };
-
-// src/editor/keyboard-layouts/spanish.ts
 var APPLE_SPANISH = {
   id: "apple.spanish",
   locale: "es",
@@ -977,8 +967,6 @@ var LINUX_SPANISH = {
     NumpadParenRight: [")", ")", ")", ")"]
   }
 };
-
-// src/editor/keyboard-layout.ts
 function keystrokeModifiersFromString(key) {
   const segments = key.split("+");
   const result = {
@@ -1192,21 +1180,15 @@ switch (platform()) {
     break;
 }
 register(DVORAK);
-
-// src/public/keyboard-layout.ts
 function setKeyboardLayout2(name) {
   setKeyboardLayout(name);
 }
 function setKeyboardLayoutLocale2(locale) {
   setKeyboardLayoutLocale(locale);
 }
-
-// src/common/types.ts
 function isArray(x) {
   return Array.isArray(x);
 }
-
-// src/editor/l10n-strings.ts
 var STRINGS = {
   "en": {
     "keyboard.tooltip.symbols": "Symbols",
@@ -2348,8 +2330,6 @@ var STRINGS = {
     "color.white": "\u767D\u8272"
   }
 };
-
-// src/core/l10n.ts
 var l10n = {
   strings: STRINGS,
   _locale: "",
@@ -2471,8 +2451,6 @@ function localize(key, ...params) {
   result = result.replace(/%%/g, "%");
   return result;
 }
-
-// src/core/color.ts
 var MATHEMATICA_COLORS = {
   m0: "#3F3D99",
   // Strong blue
@@ -2787,8 +2765,6 @@ function highlight(color) {
   l -= 0.1;
   return rgbToHexstring(hslToRgb({ h, s, l }));
 }
-
-// src/core/unicode.ts
 var UNICODE_TO_LATEX = {
   60: "\\lt",
   62: "\\gt",
@@ -3128,8 +3104,6 @@ function codePointToLatex(c) {
   }
   return latex;
 }
-
-// src/latex-commands/definitions-utils.ts
 function argAtoms(arg) {
   if (!arg) return [];
   if (Array.isArray(arg)) return arg;
@@ -3818,8 +3792,6 @@ function charToLatex(parseMode, codepoint) {
   }
   return String.fromCodePoint(codepoint);
 }
-
-// src/core/font-metrics-data.ts
 var M1 = [0, 0.68889, 0, 0, 0.72222];
 var M2 = [0, 0.68889, 0, 0, 0.66667];
 var M3 = [0, 0.68889, 0, 0, 0.77778];
@@ -8222,8 +8194,6 @@ var font_metrics_data_default = {
     // U+2423 ␣
   }
 };
-
-// src/core/font-metrics.ts
 var CJK_REGEX = /[\u3040-\u309F]|[\u30A0-\u30FF]|[\u4E00-\u9FAF]|[\uAC00-\uD7AF]/;
 var PT_PER_EM = 10;
 var AXIS_HEIGHT = 0.25;
@@ -8407,8 +8377,6 @@ function getCharacterMetrics(codepoint, fontName) {
     width: 0.8
   };
 }
-
-// src/core/svg-box.ts
 var SVG_BODY = {
   // Adapted from https://github.com/KaTeX/KaTeX/blob/master/src/stretchy.js
   overrightarrow: [["rightarrow"], 0.888, 522, "xMaxYMin"],
@@ -8805,8 +8773,6 @@ function svgBodyHeight(svgBodyName) {
   if (SVG_BODY[svgBodyName]) return SVG_BODY[svgBodyName][2] / 1e3;
   return SVG_ACCENTS[svgBodyName][2];
 }
-
-// src/core/grapheme-splitter.ts
 function stringToCodepoints(string) {
   const result = [];
   for (let i = 0; i < string.length; i++) {
@@ -8888,8 +8854,6 @@ function splitGraphemes(string) {
   }
   return result;
 }
-
-// src/core/tokenizer.ts
 var Tokenizer = class {
   constructor(s) {
     this.obeyspaces = false;
@@ -9098,17 +9062,12 @@ function tokensToString(tokens) {
     )
   );
 }
-
-// src/core/modes-utils.ts
-var Mode = class _Mode {
-  static {
-    this._registry = {};
-  }
+var Mode = (_a = class {
   constructor(name) {
-    _Mode._registry[name] = this;
+    _a._registry[name] = this;
   }
   static createAtom(mode, command, style) {
-    return _Mode._registry[mode].createAtom(
+    return _a._registry[mode].createAtom(
       command,
       getDefinition(command, mode),
       style
@@ -9119,7 +9078,7 @@ var Mode = class _Mode {
     if (options.skipStyles ?? false) {
       const body = [];
       for (const run of getModeRuns(atoms)) {
-        const mode = _Mode._registry[run[0].mode];
+        const mode = _a._registry[run[0].mode];
         body.push(...mode.serialize(run, options));
       }
       return joinLatex(body);
@@ -9127,9 +9086,9 @@ var Mode = class _Mode {
     return joinLatex(emitFontSizeRun(atoms, options));
   }
   static getFont(mode, box, style) {
-    return _Mode._registry[mode].getFont(box, style);
+    return _a._registry[mode].getFont(box, style);
   }
-};
+}, _a._registry = {}, _a);
 function getModeRuns(atoms) {
   const result = [];
   let run = [];
@@ -9266,8 +9225,6 @@ function emitFontSizeRun(run, options) {
   }
   return result;
 }
-
-// src/core/box.ts
 function boxType(type) {
   if (!type) return void 0;
   const result = {
@@ -9327,7 +9284,7 @@ var Box = class _Box {
         letterShapeStyle: options.letterShapeStyle
       }) ?? void 0;
     }
-    fontName ||= "Main-Regular";
+    fontName || (fontName = "Main-Regular");
     this._height = 0;
     this._depth = 0;
     this._width = 0;
@@ -9714,8 +9671,6 @@ function sanitizeAttributeValue(value) {
   if (value.length === 0) throw new Error(`Invalid empty attribute value`);
   return `"${value.replace(/"/g, "&quot;")}"`;
 }
-
-// src/core/v-box.ts
 function getVListChildrenAndDepth(params) {
   if ("individualShift" in params) {
     const oldChildren = params.individualShift;
@@ -9919,8 +9874,6 @@ function makeLimitsStack(context, options) {
   }
   return new Box(result, { type: options.type ?? "op" });
 }
-
-// src/core/mathstyle.ts
 var D = 7;
 var Dc = 6;
 var T = 5;
@@ -10001,8 +9954,6 @@ var MATHSTYLES = {
   scriptstyle: NUMERIC_MATHSTYLES[S],
   scriptscriptstyle: NUMERIC_MATHSTYLES[SS]
 };
-
-// src/core/registers-utils.ts
 function convertDimensionToPt(value, precision) {
   if (!value) return 0;
   const f = {
@@ -10120,8 +10071,6 @@ function multiplyLatexValue(value, factor) {
   }
   return null;
 }
-
-// src/core/registers.ts
 var DEFAULT_REGISTERS = {
   "p@": { dimension: 1 },
   "z@": { dimension: 0 },
@@ -10268,8 +10217,6 @@ var DEFAULT_REGISTERS = {
 function getDefaultRegisters() {
   return { ...DEFAULT_REGISTERS };
 }
-
-// src/core/context-utils.ts
 function getDefaultContext() {
   return {
     registers: getDefaultRegisters(),
@@ -10284,8 +10231,6 @@ function getDefaultContext() {
     getMacro: (token) => getMacroDefinition(token, getMacros())
   };
 }
-
-// src/core/context.ts
 var Context = class _Context {
   constructor(options, style) {
     let template;
@@ -10520,8 +10465,6 @@ var Context = class _Context {
     return null;
   }
 };
-
-// src/core/atom-class.ts
 var NAMED_BRANCHES = [
   "body",
   "above",
@@ -10537,8 +10480,6 @@ function isCellBranch(branch) {
 }
 var Atom = class _Atom {
   constructor(options) {
-    // If `true`, the atom is the root of the tree. That's the case for
-    // some environment, such as `lines`, etc...
     this.isRoot = false;
     this.type = options.type;
     if (typeof options.value === "string") this.value = options.value;
@@ -11317,8 +11258,6 @@ function argumentsToJson(args) {
     return arg;
   });
 }
-
-// src/atoms/text.ts
 var TextAtom = class _TextAtom extends Atom {
   constructor(command, value, style) {
     super({
@@ -11343,8 +11282,6 @@ var TextAtom = class _TextAtom extends Atom {
     return this.verbatimLatex ?? charToLatex("text", this.value.codePointAt(0));
   }
 };
-
-// src/editor-model/selection-utils.ts
 function compareSelection(a, b) {
   if (a.direction === b.direction) {
     const l = a.ranges.length;
@@ -11391,8 +11328,6 @@ function getMode(model, offset) {
   }
   return result;
 }
-
-// src/editor/shortcuts.ts
 function validateShortcut(siblings, shortcut) {
   if (!shortcut) return "";
   if (typeof shortcut === "string") return shortcut;
@@ -11443,8 +11378,6 @@ function getInlineShortcut(context, s, shortcuts) {
   if (!shortcuts) return "";
   return validateShortcut(context, shortcuts[s]);
 }
-
-// src/editor/shortcuts-definitions.ts
 var INLINE_SHORTCUTS = {
   "&": "\\&",
   "%": "\\%",
@@ -11867,8 +11800,6 @@ var INLINE_SHORTCUTS = {
   "cbrt": "\\sqrt[3]{#?}",
   "nthroot": "\\sqrt[#?]{#?}"
 };
-
-// src/formats/parse-math-string.ts
 function parseMathString(s, options) {
   let format = options?.format ?? "auto";
   if (format === "auto") [format, s] = inferFormat(s);
@@ -12088,8 +12019,6 @@ function inferFormat(s) {
   }
   return [void 0, s];
 }
-
-// src/editor-mathfield/mode-editor.ts
 var CLIPBOARD_LATEX_BEGIN = "$$";
 var CLIPBOARD_LATEX_END = "$$";
 var defaultExportHook = (_from, latex, _range) => {
@@ -12099,12 +12028,9 @@ var defaultExportHook = (_from, latex, _range) => {
     latex = `${CLIPBOARD_LATEX_BEGIN} ${latex} ${CLIPBOARD_LATEX_END}`;
   return latex;
 };
-var ModeEditor = class _ModeEditor {
-  static {
-    this._modes = {};
-  }
+var ModeEditor = (_b = class {
   constructor(name) {
-    _ModeEditor._modes[name] = this;
+    _b._modes[name] = this;
   }
   static onPaste(mode, mathfield, data) {
     if (!mathfield.contentEditable && mathfield.userSelect === "none") {
@@ -12121,7 +12047,7 @@ var ModeEditor = class _ModeEditor {
       cancelable: true
     });
     if (!mathfield.host?.dispatchEvent(redispatchedEvent)) return false;
-    return _ModeEditor._modes[mode].onPaste(mathfield, data);
+    return _b._modes[mode].onPaste(mathfield, data);
   }
   /** Call this method from a menu */
   static copyToClipboard(mathfield, format) {
@@ -12205,7 +12131,7 @@ var ModeEditor = class _ModeEditor {
   }
   static insert(model, text, options = {}) {
     const mode = options.mode === "auto" ? model.mode : options.mode ?? model.mode;
-    return _ModeEditor._modes[mode].insert(model, text, options);
+    return _b._modes[mode].insert(model, text, options);
   }
   onPaste(_mathfield, _data) {
     return false;
@@ -12213,9 +12139,7 @@ var ModeEditor = class _ModeEditor {
   insert(_model, _text, _options) {
     return false;
   }
-};
-
-// src/editor/keybindings-definitions.ts
+}, _b._modes = {}, _b);
 var DEFAULT_KEYBINDINGS = [
   { key: "left", command: "moveToPreviousChar" },
   { key: "right", command: "moveToNextChar" },
@@ -12650,8 +12574,6 @@ var REVERSE_KEYBINDINGS = {
   "\\varnothing": "shift+alt+o",
   "\\~": "~"
 };
-
-// src/editor-mathfield/utils.ts
 function isValidMathfield(mf) {
   return mf.element?.mathfield === mf;
 }
@@ -12901,8 +12823,6 @@ function getHref(mf, offset) {
   }
   return "";
 }
-
-// css/mathfield.less
 var mathfield_default = `@keyframes ML__caret-blink {
   0%,
   100% {
@@ -13404,14 +13324,8 @@ menu .ML__base {
   margin-left: 2ex;
 }
 `;
-
-// css/core.less
 var core_default = ".ML__container {\n  min-height: auto !important;\n  --_hue: var(--hue, 212);\n  --_placeholder-color: var(--placeholder-color, hsl(var(--_hue), 40%, 49%));\n  --_placeholder-opacity: var(--placeholder-opacity, 0.4);\n  --_text-font-family: var(--text-font-family, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif);\n}\n.ML__sr-only {\n  position: absolute;\n  width: 1px;\n  height: 1px;\n  margin: -1px;\n  padding: 0;\n  overflow: hidden;\n  clip: rect(0, 0, 0, 0);\n  clip-path: inset(50%);\n  white-space: nowrap;\n  border: 0;\n}\n.ML__is-inline {\n  display: inline-block;\n}\n.ML__base {\n  visibility: inherit;\n  display: inline-block;\n  position: relative;\n  cursor: text;\n  padding: 0;\n  margin: 0;\n  box-sizing: content-box;\n  border: 0;\n  outline: 0;\n  vertical-align: baseline;\n  font-weight: inherit;\n  font-family: inherit;\n  font-style: inherit;\n  text-decoration: none;\n  width: min-content;\n}\n.ML__strut,\n.ML__strut--bottom {\n  display: inline-block;\n  min-height: 0.5em;\n}\n.ML__small-delim {\n  font-family: KaTeX_Main;\n}\n/* Text mode */\n.ML__text {\n  font-family: var(--_text-font-family);\n  white-space: pre;\n}\n/* Use cmr for 'math upright' */\n.ML__cmr {\n  font-family: KaTeX_Main;\n  font-style: normal;\n}\n.ML__mathit {\n  font-family: KaTeX_Math;\n  /* The KaTeX_Math font is italic by default, so the font-style below is only \n     useful when a fallback font is used\n  */\n  font-style: italic;\n}\n.ML__mathbf {\n  font-family: KaTeX_Main;\n  font-weight: bold;\n}\n/* Lowercase greek symbols should stick to math font when \\mathbf is applied \n   to match TeX idiosyncratic behavior */\n.lcGreek.ML__mathbf {\n  font-family: KaTeX_Math;\n}\n.ML__mathbfit {\n  font-family: KaTeX_Math;\n  font-weight: bold;\n  font-style: italic;\n}\n.ML__ams {\n  font-family: KaTeX_AMS;\n}\n/* Blackboard */\n.ML__bb {\n  font-family: KaTeX_AMS;\n}\n.ML__cal {\n  font-family: KaTeX_Caligraphic;\n}\n.ML__frak {\n  font-family: KaTeX_Fraktur;\n}\n.ML__tt {\n  font-family: KaTeX_Typewriter;\n}\n.ML__script {\n  font-family: KaTeX_Script;\n}\n.ML__sans {\n  font-family: KaTeX_SansSerif;\n}\n.ML__series_ul {\n  font-weight: 100;\n}\n.ML__series_el {\n  font-weight: 100;\n}\n.ML__series_l {\n  font-weight: 200;\n}\n.ML__series_sl {\n  font-weight: 300;\n}\n.ML__series_sb {\n  font-weight: 500;\n}\n.ML__bold {\n  font-weight: 700;\n}\n.ML__series_eb {\n  font-weight: 800;\n}\n.ML__series_ub {\n  font-weight: 900;\n}\n.ML__series_uc {\n  font-stretch: ultra-condensed;\n}\n.ML__series_ec {\n  font-stretch: extra-condensed;\n}\n.ML__series_c {\n  font-stretch: condensed;\n}\n.ML__series_sc {\n  font-stretch: semi-condensed;\n}\n.ML__series_sx {\n  font-stretch: semi-expanded;\n}\n.ML__series_x {\n  font-stretch: expanded;\n}\n.ML__series_ex {\n  font-stretch: extra-expanded;\n}\n.ML__series_ux {\n  font-stretch: ultra-expanded;\n}\n.ML__it {\n  font-style: italic;\n}\n.ML__shape_ol {\n  -webkit-text-stroke: 1px black;\n  text-stroke: 1px black;\n  color: transparent;\n}\n.ML__shape_sc {\n  font-variant: small-caps;\n}\n.ML__shape_sl {\n  font-style: oblique;\n}\n/* First level emphasis */\n.ML__emph {\n  color: #bc2612;\n}\n/* Second level emphasis */\n.ML__emph .ML__emph {\n  color: #0c7f99;\n}\n.ML__highlight {\n  color: #007cb2;\n  background: #edd1b0;\n}\n.ML__center {\n  text-align: center;\n}\n.ML__left {\n  text-align: left;\n}\n.ML__right {\n  text-align: right;\n}\n.ML__label_padding {\n  padding: 0 0.5em;\n}\n.ML__frac-line {\n  width: 100%;\n  min-height: 1px;\n}\n.ML__frac-line:after {\n  content: '';\n  display: block;\n  margin-top: max(-1px, -0.04em);\n  min-height: max(1px, 0.04em);\n  /* Ensure the line is visible when printing even if \"turn off background images\" is on*/\n  -webkit-print-color-adjust: exact;\n  print-color-adjust: exact;\n  /* There's a bug since Chrome 62 where \n      sub-pixel border lines don't draw at some zoom \n      levels (110%, 90%). \n      Setting the min-height used to work around it, but that workaround\n      broke in Chrome 84 or so.\n      Setting the background (and the min-height) seems to work for now.\n      */\n  background: currentColor;\n  box-sizing: content-box;\n  /* Vuetify sets the box-sizing to inherit \n            causes the fraction line to not draw at all sizes (see #26) */\n  /* On some versions of Firefox on Windows, the line fails to \n            draw at some zoom levels, but setting the transform triggers\n            the hardware accelerated path, which works */\n  transform: translate(0, 0);\n  forced-color-adjust: preserve-parent-color;\n}\n@media (forced-colors: active) {\n  .ML__frac-line {\n    min-height: 0px;\n  }\n}\n.ML__sqrt {\n  display: inline-block;\n}\n.ML__sqrt-sign {\n  display: inline-block;\n  position: relative;\n}\n.ML__sqrt-line {\n  display: inline-block;\n  height: max(1px, 0.04em);\n  width: 100%;\n}\n.ML__sqrt-line:before {\n  content: '';\n  display: block;\n  margin-top: min(-1px, -0.04em);\n  min-height: max(1px, 0.04em);\n  /* Ensure the line is visible when printing even if \"turn off background images\" is on*/\n  -webkit-print-color-adjust: exact;\n  print-color-adjust: exact;\n  background: currentColor;\n  /* On some versions of Firefox on Windows, the line fails to \n            draw at some zoom levels, but setting the transform triggers\n            the hardware accelerated path, which works */\n  transform: translate(0, 0);\n  forced-color-adjust: preserve-parent-color;\n}\n@media (forced-colors: active) {\n  .ML__sqrt-line:after {\n    background: white !important;\n  }\n}\n.ML__sqrt-line:after {\n  border-bottom-width: 1px;\n  content: ' ';\n  display: block;\n  margin-top: -0.1em;\n}\n.ML__sqrt-index {\n  margin-left: 0.27777778em;\n  margin-right: -0.55555556em;\n}\n.ML__delim-size1 {\n  font-family: KaTeX_Size1;\n}\n.ML__delim-size2 {\n  font-family: KaTeX_Size2;\n}\n.ML__delim-size3 {\n  font-family: KaTeX_Size3;\n}\n.ML__delim-size4 {\n  font-family: KaTeX_Size4;\n}\n.ML__delim-mult .delim-size1 > span {\n  font-family: KaTeX_Size1;\n}\n.ML__delim-mult .delim-size4 > span {\n  font-family: KaTeX_Size4;\n}\n.ML__accent-body {\n  font-family: KaTeX_Main;\n}\n.ML__accent-combining-char {\n  position: relative;\n  left: 0.24em;\n}\n/** The markup for a LaTeX formula, either in an editable mathfield or \n    in a static display.\n*/\n.ML__latex {\n  display: inline-block;\n  direction: ltr;\n  text-align: left;\n  text-indent: 0;\n  text-rendering: auto;\n  font-family: inherit;\n  font-style: normal;\n  font-size-adjust: none;\n  font-stretch: normal;\n  font-variant-caps: normal;\n  letter-spacing: normal;\n  line-height: 1.2;\n  word-wrap: normal;\n  word-spacing: normal;\n  white-space: nowrap;\n  text-shadow: none;\n  -webkit-user-select: none;\n  user-select: none;\n  width: min-content;\n  forced-color-adjust: preserve-parent-color;\n}\n.ML__latex .style-wrap {\n  position: relative;\n}\n.ML__latex .ML__mfrac {\n  display: inline-block;\n}\n.ML__latex .ML__left-right {\n  display: inline-block;\n}\n.ML__latex .ML__vlist-t {\n  display: inline-table;\n  table-layout: fixed;\n  border-collapse: collapse;\n}\n.ML__latex .ML__vlist-r {\n  display: table-row;\n}\n.ML__latex .ML__vlist {\n  display: table-cell;\n  vertical-align: bottom;\n  position: relative;\n}\n.ML__latex .ML__vlist > span {\n  display: block;\n  height: 0;\n  position: relative;\n}\n.ML__latex .ML__vlist > span > span {\n  display: inline-block;\n}\n.ML__latex .ML__vlist > span > .ML__pstrut {\n  overflow: hidden;\n  width: 0;\n}\n.ML__latex .ML__vlist-t2 {\n  margin-right: -2px;\n}\n.ML__latex .ML__vlist-s {\n  display: table-cell;\n  vertical-align: bottom;\n  font-size: 1px;\n  width: 2px;\n  min-width: 2px;\n}\n.ML__latex .ML__msubsup {\n  text-align: left;\n}\n.ML__latex .ML__negativethinspace {\n  display: inline-block;\n  margin-left: -0.16667em;\n  height: 0.71em;\n}\n.ML__latex .ML__thinspace {\n  display: inline-block;\n  width: 0.16667em;\n  height: 0.71em;\n}\n.ML__latex .ML__mediumspace {\n  display: inline-block;\n  width: 0.22222em;\n  height: 0.71em;\n}\n.ML__latex .ML__thickspace {\n  display: inline-block;\n  width: 0.27778em;\n  height: 0.71em;\n}\n.ML__latex .ML__enspace {\n  display: inline-block;\n  width: 0.5em;\n  height: 0.71em;\n}\n.ML__latex .ML__quad {\n  display: inline-block;\n  width: 1em;\n  height: 0.71em;\n}\n.ML__latex .ML__qquad {\n  display: inline-block;\n  width: 2em;\n  height: 0.71em;\n}\n.ML__latex .ML__llap,\n.ML__latex .ML__rlap {\n  width: 0;\n  position: relative;\n  display: inline-block;\n}\n.ML__latex .ML__llap > .ML__inner,\n.ML__latex .ML__rlap > .ML__inner {\n  position: absolute;\n}\n.ML__latex .ML__llap > .ML__fix,\n.ML__latex .ML__rlap > .ML__fix {\n  display: inline-block;\n}\n.ML__latex .ML__llap > .ML__inner {\n  right: 0;\n}\n.ML__latex .ML__rlap > .ML__inner {\n  left: 0;\n}\n.ML__latex .ML__rule {\n  display: inline-block;\n  border: solid 0;\n  position: relative;\n  box-sizing: border-box;\n}\n.ML__latex .overline .overline-line,\n.ML__latex .underline .underline-line {\n  width: 100%;\n}\n.ML__latex .overline .overline-line:before,\n.ML__latex .underline .underline-line:before {\n  content: '';\n  border-bottom-style: solid;\n  border-bottom-width: max(1px, 0.04em);\n  -webkit-print-color-adjust: exact;\n  print-color-adjust: exact;\n  display: block;\n}\n.ML__latex .overline .overline-line:after,\n.ML__latex .underline .underline-line:after {\n  border-bottom-style: solid;\n  border-bottom-width: max(1px, 0.04em);\n  -webkit-print-color-adjust: exact;\n  print-color-adjust: exact;\n  content: '';\n  display: block;\n  margin-top: -1px;\n}\n.ML__latex .ML__stretchy {\n  display: block;\n  position: absolute;\n  width: 100%;\n  left: 0;\n  overflow: hidden;\n}\n.ML__latex .ML__stretchy:before,\n.ML__latex .ML__stretchy:after {\n  content: '';\n}\n.ML__latex .ML__stretchy svg {\n  display: block;\n  position: absolute;\n  width: 100%;\n  height: inherit;\n  fill: currentColor;\n  stroke: currentColor;\n  fill-rule: nonzero;\n  fill-opacity: 1;\n  stroke-width: 1;\n  stroke-linecap: butt;\n  stroke-linejoin: miter;\n  stroke-miterlimit: 4;\n  stroke-dasharray: none;\n  stroke-dashoffset: 0;\n  stroke-opacity: 1;\n}\n.ML__latex .slice-1-of-2 {\n  display: inline-flex;\n  position: absolute;\n  left: 0;\n  width: 50.2%;\n  overflow: hidden;\n}\n.ML__latex .slice-2-of-2 {\n  display: inline-flex;\n  position: absolute;\n  right: 0;\n  width: 50.2%;\n  overflow: hidden;\n}\n.ML__latex .slice-1-of-3 {\n  display: inline-flex;\n  position: absolute;\n  left: 0;\n  width: 25.1%;\n  overflow: hidden;\n}\n.ML__latex .slice-2-of-3 {\n  display: inline-flex;\n  position: absolute;\n  left: 25%;\n  width: 50%;\n  overflow: hidden;\n}\n.ML__latex .slice-3-of-3 {\n  display: inline-flex;\n  position: absolute;\n  right: 0;\n  width: 25.1%;\n  overflow: hidden;\n}\n.ML__latex .slice-1-of-1 {\n  display: inline-flex;\n  position: absolute;\n  width: 100%;\n  left: 0;\n  overflow: hidden;\n}\n.ML__latex .ML__nulldelimiter {\n  display: inline-block;\n}\n.ML__latex .ML__op-group {\n  display: inline-block;\n}\n.ML__latex .ML__op-symbol {\n  position: relative;\n}\n.ML__latex .ML__op-symbol.ML__small-op {\n  font-family: KaTeX_Size1;\n}\n.ML__latex .ML__op-symbol.ML__large-op {\n  font-family: KaTeX_Size2;\n}\n.ML__latex:has(.ML__center_environment),\n.ML__latex:has(.ML__multiline_environment),\n.ML__latex:has(.ML__align_environment),\n.ML__latex:has(.ML__eqnarray_environment),\n.ML__latex:has(.ML__gather_environment) {\n  width: 100%;\n}\n.ML__latex .ML__multiline_environment {\n  display: inline-flex;\n  width: 100%;\n}\n.ML__latex .ML__center_environment {\n  display: inline-flex;\n  width: 100%;\n  justify-content: center;\n}\n.ML__latex .ML__align_environment,\n.ML__latex .ML__eqnarray_environment,\n.ML__latex .ML__gather_environment {\n  display: inline-block;\n}\n.ML__latex .ML__mtable .ML__vertical-separator {\n  display: inline-block;\n  min-width: 1px;\n  box-sizing: border-box;\n}\n.ML__latex .ML__mtable .ML__arraycolsep {\n  display: inline-block;\n}\n.ML__latex .ML__mtable .col-align-m > .ML__vlist-t {\n  text-align: center;\n}\n.ML__latex .ML__mtable .col-align-c > .ML__vlist-t {\n  text-align: center;\n}\n.ML__latex .ML__mtable .col-align-l > .ML__vlist-t {\n  text-align: left;\n}\n.ML__latex .ML__mtable .col-align-r > .ML__vlist-t {\n  text-align: right;\n}\n[data-href] {\n  cursor: pointer;\n}\n.ML__error {\n  display: inline-block;\n  background-image: radial-gradient(ellipse at center, hsl(341, 100%, 40%), rgba(0, 0, 0, 0) 70%);\n  background-color: hsla(341, 100%, 40%, 0.1);\n  background-repeat: repeat-x;\n  background-size: 3px 3px;\n  padding-bottom: 3px;\n  background-position: 0 100%;\n}\n.ML__error > .ML__error {\n  background: transparent;\n  padding: 0;\n}\n.ML__placeholder {\n  color: var(--_placeholder-color);\n  opacity: var(--_placeholder-opacity);\n  padding-left: 0.4ex;\n  padding-right: 0.4ex;\n  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;\n}\n.ML__notation {\n  position: absolute;\n  box-sizing: border-box;\n  line-height: 0;\n}\n/* This class is used to implement the `\\mathtip` and `\\texttip` commands\n   For UI elements, see `[data-ML__tooltip]`\n*/\n.ML__tooltip-container {\n  position: relative;\n  transform: scale(0);\n}\n.ML__tooltip-container .ML__tooltip-content {\n  position: fixed;\n  display: inline-table;\n  visibility: hidden;\n  z-index: 2;\n  width: max-content;\n  max-width: 400px;\n  padding: 12px 12px;\n  border: var(--_tooltip-border);\n  border-radius: var(--_tooltip-border-radius);\n  background: var(--_tooltip-background-color);\n  --_selection-color: var(--_tooltip-color);\n  color: var(--_tooltip-color);\n  box-shadow: var(--_tooltip-box-shadow);\n  opacity: 0;\n  transition: opacity 0.15s cubic-bezier(0.4, 0, 1, 1);\n}\n.ML__tooltip-container .ML__tooltip-content .ML__text {\n  white-space: normal;\n}\n.ML__tooltip-container .ML__tooltip-content .ML__base {\n  display: contents;\n}\n.ML__tooltip-container:hover .ML__tooltip-content {\n  visibility: visible;\n  opacity: 1;\n  font-size: 0.75em;\n  transform: scale(1) translate(0, 3em);\n}\n.ML__bg {\n  background-color: transparent !important;\n}\n.ML__bg::before {\n  content: '';\n  position: absolute;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background-color: var(--bg-color);\n  z-index: -1;\n  box-sizing: border-box;\n}\n";
-
-// css/environment-popover.less
 var environment_popover_default = "#mathlive-environment-popover.is-visible {\n  visibility: visible;\n}\n#mathlive-environment-popover {\n  --_environment-panel-height: var(--environment-panel-height, 70px);\n  --_accent-color: var(--accent-color, #aaa);\n  --_background: var(--environment-panel-background, #fff);\n  --_button-background: var(--environment-panel-button-background, white);\n  --_button-background-hover: var(--environment-panel-button-background-hover, #f5f5f7);\n  --_button-background-active: var(--environment-panel-button-background-active, #f5f5f7);\n  --_button-text: var(--environment-panel-button-text, #e3e4e8);\n  position: absolute;\n  width: calc(var(--_environment-panel-height) * 2);\n  height: var(--_environment-panel-height);\n  border-radius: 4px;\n  border: 1.5px solid var(--_accent-color);\n  background-color: var(--_background);\n  box-shadow: 0 0 30px 0 var(--environment-shadow, rgba(0, 0, 0, 0.4));\n  pointer-events: all;\n  visibility: hidden;\n}\n#mathlive-environment-popover .MLEP__array-buttons {\n  height: calc(var(--_environment-panel-height) * 5/4);\n  width: calc(var(--_environment-panel-height) * 5/4);\n  margin-left: calc(0px - var(--_environment-panel-height) * 0.16);\n  margin-top: calc(0px - var(--_environment-panel-height) * 0.19);\n}\n#mathlive-environment-popover .MLEP__array-buttons .font {\n  fill: white;\n}\n#mathlive-environment-popover .MLEP__array-buttons circle {\n  fill: #7f7f7f;\n  transition: fill 300ms;\n}\n#mathlive-environment-popover .MLEP__array-buttons .MLEP__array-insert-background {\n  fill-opacity: 1;\n  fill: var(--_background);\n  stroke: var(--_accent-color);\n  stroke-width: 3px;\n}\n#mathlive-environment-popover .MLEP__array-buttons line {\n  stroke: var(--_accent-color);\n  stroke-opacity: 0;\n  stroke-width: 40;\n  pointer-events: none;\n  transition: stroke-opacity 300ms;\n  stroke-linecap: round;\n}\n#mathlive-environment-popover .MLEP__array-buttons g[data-command]:hover circle {\n  fill: var(--_accent-color);\n}\n#mathlive-environment-popover .MLEP__array-buttons g[data-command]:hover line {\n  stroke-opacity: 1;\n}\n#mathlive-environment-popover .MLEP__environment-delimiter-controls {\n  height: 100%;\n  width: 50%;\n}\n#mathlive-environment-popover .MLEP__environment-delimiter-controls .MLEP__array-delimiter-options {\n  width: var(--_environment-panel-height);\n  height: var(--_environment-panel-height);\n  display: flex;\n  flex-wrap: wrap;\n  flex-direction: row;\n  justify-content: space-around;\n}\n#mathlive-environment-popover .MLEP__environment-delimiter-controls .MLEP__array-delimiter-options svg {\n  pointer-events: all;\n  margin-top: 2px;\n  width: calc(var(--_environment-panel-height) / 3 * 28 / 24);\n  height: calc(var(--_environment-panel-height) / 3 - 2px);\n  border-radius: calc(var(--_environment-panel-height) / 25);\n  background-color: var(--_button-background);\n}\n#mathlive-environment-popover .MLEP__environment-delimiter-controls .MLEP__array-delimiter-options svg:hover {\n  background-color: var(--_button-background-hover);\n}\n#mathlive-environment-popover .MLEP__environment-delimiter-controls .MLEP__array-delimiter-options svg path,\n#mathlive-environment-popover .MLEP__environment-delimiter-controls .MLEP__array-delimiter-options svg line {\n  stroke: var(--_button-text);\n  stroke-width: 2;\n  stroke-linecap: round;\n}\n#mathlive-environment-popover .MLEP__environment-delimiter-controls .MLEP__array-delimiter-options svg rect,\n#mathlive-environment-popover .MLEP__environment-delimiter-controls .MLEP__array-delimiter-options svg path {\n  fill-opacity: 0;\n}\n#mathlive-environment-popover .MLEP__environment-delimiter-controls .MLEP__array-delimiter-options svg.active {\n  pointer-events: none;\n  background-color: var(--_button-background-active);\n}\n#mathlive-environment-popover .MLEP__environment-delimiter-controls .MLEP__array-delimiter-options svg.active path,\n#mathlive-environment-popover .MLEP__environment-delimiter-controls .MLEP__array-delimiter-options svg.active line {\n  stroke: var(--_accent-color);\n}\n#mathlive-environment-popover .MLEP__environment-delimiter-controls .MLEP__array-delimiter-options svg.active circle {\n  fill: var(--_accent-color);\n}\n";
-
-// css/suggestion-popover.less
 var suggestion_popover_default = `/* The element that display info while in latex mode */
 #mathlive-suggestion-popover {
   --_suggestion-zindex: var(--suggestion-zindex, 100);
@@ -13528,11 +13442,7 @@ var suggestion_popover_default = `/* The element that display info while in late
   opacity: 0.5;
 }
 `;
-
-// css/keystroke-caption.less
 var keystroke_caption_default = "/* The element that displays the keys as the user type them */\n#mathlive-keystroke-caption-panel {\n  visibility: hidden;\n  /*min-width: 160px;*/\n  /*background-color: rgba(97, 97, 200, .95);*/\n  background: var(--secondary, hsl(var(--_hue), 19%, 26%));\n  border-color: var(--secondary-border, hsl(0, 0%, 91%));\n  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);\n  text-align: center;\n  border-radius: 6px;\n  padding: 16px;\n  position: absolute;\n  z-index: 1;\n  display: flex;\n  flex-direction: row-reverse;\n  justify-content: center;\n  --keystroke: white;\n  --on-keystroke: #555;\n  --keystroke-border: #f7f7f7;\n}\n@media (prefers-color-scheme: dark) {\n  body:not([theme='light']) #mathlive-keystroke-caption-panel {\n    --keystroke: hsl(var(--_hue), 50%, 30%);\n    --on-keystroke: hsl(0, 0%, 98%);\n    --keystroke-border: hsl(var(--_hue), 50%, 25%);\n  }\n}\nbody[theme='dark'] #mathlive-keystroke-caption-panel {\n  --keystroke: hsl(var(--_hue), 50%, 30%);\n  --on-keystroke: hsl(0, 0%, 98%);\n  --keystroke-border: hsl(var(--_hue), 50%, 25%);\n}\n#mathlive-keystroke-caption-panel > span {\n  min-width: 14px;\n  /*height: 8px;*/\n  margin: 0 8px 0 0;\n  padding: 4px;\n  background-color: var(--keystroke);\n  color: var(--on-keystroke);\n  fill: currentColor;\n  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;\n  font-size: 1em;\n  border-radius: 6px;\n  border: 2px solid var(--keystroke-border);\n  /*box-shadow: 0 7px 14px rgba(0,0,0,0.25), 0 5px 5px rgba(0,0,0,0.22);*/\n}\n";
-
-// css/virtual-keyboard.less
 var virtual_keyboard_default = `.ML__keyboard {
   --_keyboard-height: 0;
   --_keyboard-zindex: var(--keyboard-zindex, 105);
@@ -14432,14 +14342,8 @@ Note there are a different set of tooltip rules for the keyboard toggle
   --_variant-keycap-background-active: var(--variant-keycap-background-active, var(--_accent-color));
 }
 `;
-
-// src/ui/style.less
 var style_default = ":host {\n  --primary-color: #5898ff;\n  --primary-color-dimmed: #c0c0f0;\n  --primary-color-dark: var(--blue-500);\n  --primary-color-light: var(--blue-100);\n  --primary-color-reverse: #ffffff;\n  --secondary-color: #ff8a65;\n  --secondary-color-dimmed: #f0d5c5;\n  --secondary-color-dark: var(--orange-500);\n  --secondary-color-light: var(--orange-100);\n  --secondary-color-reverse: #ffffff;\n  --link-color: #5898ff;\n  --link-color-dimmed: #c5c5c5;\n  --link-color-dark: #121212;\n  --link-color-light: #e2e2e2;\n  --link-color-reverse: #ffffff;\n  --semantic-blue: var(--blue-700);\n  --semantic-red: var(--red-400);\n  --semantic-orange: var(--orange-400);\n  --semantic-green: var(--green-700);\n  --neutral-100: #f5f5f5;\n  --neutral-200: #eeeeee;\n  --neutral-300: #e0e0e0;\n  --neutral-400: #bdbdbd;\n  --neutral-500: #9e9e9e;\n  --neutral-600: #757575;\n  --neutral-700: #616161;\n  --neutral-800: #424242;\n  --neutral-900: #212121;\n  --red-25: #fff8f7;\n  --red-50: #fff1ef;\n  --red-100: #ffeae6;\n  --red-200: #ffcac1;\n  --red-300: #ffa495;\n  --red-400: #ff7865;\n  --red-500: #f21c0d;\n  --red-600: #e50018;\n  --red-700: #d30024;\n  --red-800: #bd002c;\n  --red-900: #a1002f;\n  --orange-25: #fffbf8;\n  --orange-50: #fff7f1;\n  --orange-100: #fff3ea;\n  --orange-200: #ffe1c9;\n  --orange-300: #ffcca2;\n  --orange-400: #ffb677;\n  --orange-500: #fe9310;\n  --orange-600: #f58700;\n  --orange-700: #ea7c00;\n  --orange-800: #dc6d00;\n  --orange-900: #ca5b00;\n  --brown-25: #fff8ef;\n  --brown-50: #fff1df;\n  --brown-100: #ffe9ce;\n  --brown-200: #ebcca6;\n  --brown-300: #cdaf8a;\n  --brown-400: #af936f;\n  --brown-500: #856a47;\n  --brown-600: #7f5e34;\n  --brown-700: #78511f;\n  --brown-800: #6e4200;\n  --brown-900: #593200;\n  --yellow-25: #fffdf9;\n  --yellow-50: #fffcf2;\n  --yellow-100: #fffaec;\n  --yellow-200: #fff2ce;\n  --yellow-300: #ffe8ab;\n  --yellow-400: #ffdf85;\n  --yellow-500: #ffcf33;\n  --yellow-600: #f1c000;\n  --yellow-700: #dfb200;\n  --yellow-800: #c9a000;\n  --yellow-900: #ad8a00;\n  --lime-25: #f4ffee;\n  --lime-50: #e9ffdd;\n  --lime-100: #ddffca;\n  --lime-200: #a8fb6f;\n  --lime-300: #94e659;\n  --lime-400: #80d142;\n  --lime-500: #63b215;\n  --lime-600: #45a000;\n  --lime-700: #268e00;\n  --lime-800: #007417;\n  --lime-900: #005321;\n  --green-25: #f5fff5;\n  --green-50: #ebffea;\n  --green-100: #e0ffdf;\n  --green-200: #a7ffa7;\n  --green-300: #5afa65;\n  --green-400: #45e953;\n  --green-500: #17cf36;\n  --green-600: #00b944;\n  --green-700: #00a34a;\n  --green-800: #008749;\n  --green-900: #00653e;\n  --teal-25: #f3ffff;\n  --teal-50: #e6fffe;\n  --teal-100: #d9fffe;\n  --teal-200: #8dfffe;\n  --teal-300: #57f4f4;\n  --teal-400: #43e5e5;\n  --teal-500: #17cfcf;\n  --teal-600: #00c2c0;\n  --teal-700: #00b5b1;\n  --teal-800: #00a49e;\n  --teal-900: #009087;\n  --cyan-25: #f7fcff;\n  --cyan-50: #eff8ff;\n  --cyan-100: #e7f5ff;\n  --cyan-200: #c2e6ff;\n  --cyan-300: #95d5ff;\n  --cyan-400: #61c4ff;\n  --cyan-500: #13a7ec;\n  --cyan-600: #069eda;\n  --cyan-700: #0095c9;\n  --cyan-800: #0088b2;\n  --cyan-900: #0a7897;\n  --blue-25: #f7faff;\n  --blue-50: #eef5ff;\n  --blue-100: #e5f1ff;\n  --blue-200: #bfdbff;\n  --blue-300: #92c2ff;\n  --blue-400: #63a8ff;\n  --blue-500: #0d80f2;\n  --blue-600: #0077db;\n  --blue-700: #006dc4;\n  --blue-800: #0060a7;\n  --blue-900: #005086;\n  --indigo-25: #f8f7ff;\n  --indigo-50: #f1efff;\n  --indigo-100: #eae7ff;\n  --indigo-200: #ccc3ff;\n  --indigo-300: #ac99ff;\n  --indigo-400: #916aff;\n  --indigo-500: #63c;\n  --indigo-600: #5a21b2;\n  --indigo-700: #4e0b99;\n  --indigo-800: #3b0071;\n  --indigo-900: #220040;\n  --purple-25: #fbf7ff;\n  --purple-50: #f8f0ff;\n  --purple-100: #f4e8ff;\n  --purple-200: #e4c4ff;\n  --purple-300: #d49aff;\n  --purple-400: #c36aff;\n  --purple-500: #a219e6;\n  --purple-600: #9000c4;\n  --purple-700: #7c009f;\n  --purple-800: #600073;\n  --purple-900: #3d0043;\n  --magenta-25: #fff8fb;\n  --magenta-50: #fff2f6;\n  --magenta-100: #ffebf2;\n  --magenta-200: #ffcddf;\n  --magenta-300: #ffa8cb;\n  --magenta-400: #ff7fb7;\n  --magenta-500: #eb4799;\n  --magenta-600: #da3689;\n  --magenta-700: #c82179;\n  --magenta-800: #b00065;\n  --magenta-900: #8a004c;\n}\n@media (prefers-color-scheme: dark) {\n  :host {\n    --semantic-blue: var(--blue-700);\n    --semantic-red: var(--red-400);\n    --semantic-orange: var(--orange-400);\n    --semantic-green: var(--green-700);\n    --semantic-bg-blue: var(--blue-25);\n    --semantic-bg-red: var(--red-25);\n    --semantic-bg-orange: var(--orange-25);\n    --semantic-bg-green: var(--green-25);\n    --neutral-100: #121212;\n    --neutral-200: #424242;\n    --neutral-300: #616161;\n    --neutral-400: #757575;\n    --neutral-500: #9e9e9e;\n    --neutral-600: #bdbdbd;\n    --neutral-700: #e0e0e0;\n    --neutral-800: #eeeeee;\n    --neutral-900: #f5f5f5;\n  }\n}\n:host([theme='dark']) {\n  --semantic-blue: var(--blue-700);\n  --semantic-red: var(--red-400);\n  --semantic-orange: var(--orange-400);\n  --semantic-green: var(--green-700);\n  --semantic-bg-blue: var(--blue-25);\n  --semantic-bg-red: var(--red-25);\n  --semantic-bg-orange: var(--orange-25);\n  --semantic-bg-green: var(--green-25);\n  --neutral-100: #121212;\n  --neutral-200: #424242;\n  --neutral-300: #616161;\n  --neutral-400: #757575;\n  --neutral-500: #9e9e9e;\n  --neutral-600: #bdbdbd;\n  --neutral-700: #e0e0e0;\n  --neutral-800: #eeeeee;\n  --neutral-900: #f5f5f5;\n}\n/* @media (prefers-color-scheme: dark) {\n  :host {\n      --label-color: #fff;\n      --active-label-color: #000;\n      --menu-bg: #525252;\n      --active-bg: #5898ff;\n      --active-bg-dimmed: #5c5c5c;\n  }\n} */\n:host {\n  --ui-font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';\n  --ui-font-size: 14px;\n  --ui-line-height: 1.5;\n  --ui-letter-spacing: 0.007em;\n  --mono-font-family: 'Berkeley Mono', 'JetBrains Mono', 'IBM Plex Mono', 'Source Code Pro', Menlo, Monaco, 'Courier New', monospace;\n  --ui-layer-1: var(--neutral-100);\n  --ui-layer-2: var(--neutral-200);\n  --ui-layer-3: var(--neutral-300);\n  --ui-layer-4: var(--neutral-400);\n  --ui-layer-5: var(--neutral-500);\n  --ui-layer-6: var(--neutral-600);\n  --ui-border-color: var(--primary-color);\n  --ui-border-radius: 4px;\n  --ui-text: var(--neutral-900);\n  --ui-text-secondary: var(--neutral-700);\n  --ui-text-placeholder: var(--neutral-500);\n  --ui-text-muted: var(--neutral-300);\n  /** A field is a UI element in which a user can type data, for\n  * example an input or textarea element.\n  */\n  --ui-field-bg: var(--neutral-100);\n  --ui-field-bg-hover: var(--neutral-100);\n  --ui-field-bg-disabled: var(--neutral-300);\n  --ui-field-bg-invalid: var(--red-100);\n  --ui-field-bg-focus: var(--neutral-100);\n  --ui-field-border: 0.5px solid var(--border-color);\n  --ui-field-border-hover: 0.5px solid var(--border-color);\n  --ui-field-border-disabled: 0.5px solid var(--border-color);\n  --ui-field-border-invalid: 0.5px solid var(--border-color);\n  --ui-field-border-focus: 0.5px solid var(--border-color);\n  --ui-menu-bg: var(--neutral-100);\n  --ui-menu-text: var(--neutral-900);\n  --ui-menu-bg-hover: var(--neutral-200);\n  --ui-menu-text-hover: var(--neutral-900);\n  /** The `active` state is used for the state of menu items\n  * when they are selected.\n  */\n  --ui-menu-bg-active: var(--primary-color);\n  --ui-menu-text-active: var(--primary-color-reverse);\n  /** The `active-muted` set is used for the state of\n  * submenus when they are open.\n  */\n  --ui-menu-bg-active-muted: var(--neutral-300);\n  --ui-menu-text-active-muted: var(--neutral-900);\n  /* --ui-menu-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.302),\n0 2px 6px 2px rgba(60, 64, 67, 0.149); */\n  --ui-menu-shadow: 0 0 2px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 0, 0, 0.2);\n  --ui-menu-divider: 0.5px solid #c7c7c7;\n  /* var(--neutral-300); */\n  --ui-menu-z-index: 10000;\n  --page-bg: var(--neutral-100);\n  --content-bg: var(--neutral-200);\n}\n@media (prefers-color-scheme: dark) {\n  :host {\n    --ui-menu-bg: var(--neutral-200);\n  }\n}\n:host([theme='dark']) {\n  --ui-menu-bg: var(--neutral-200);\n}\n/* PingFang SC is a macOS font. Microsoft Yahei is a Windows font. \n  Noto  is a Linux/Android font.\n*/\n:lang(zh-cn),\n:lang(zh-sg),\n:lang(zh-my),\n:lang(zh) {\n  --ui-font-family: -apple-system, system-ui, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Noto Sans SC', 'Noto Sans', 'Microsoft Yahei UI', 'Microsoft YaHei New', 'Microsoft Yahei', '\u5FAE\u8F6F\u96C5\u9ED1', SimSun, '\u5B8B\u4F53', STXihei, '\u534E\u6587\u7EC6\u9ED1', sans-serif;\n}\n:lang(zh-tw),\n:lang(zh-hk),\n:lang(zh-mo) {\n  --ui-font-family: -apple-system, system-ui, 'Noto Sans', 'Microsoft JhengHei UI', 'Microsoft JhengHei', '\u5FAE\u8EDF\u6B63\u9ED1\u9AD4', '\u65B0\u7D30\u660E\u9AD4', 'PMingLiU', '\u7D30\u660E\u9AD4', 'MingLiU', sans-serif;\n}\n:lang(ja),\n:lang(ja-jp),\n:lang(ja-jp-mac) {\n  --ui-font-family: -apple-system, system-ui, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans CJK JP', 'Noto Sans JP', 'Noto Sans', '\u6E38\u30B4\u30B7\u30C3\u30AF', '\u6E38\u30B4\u30B7\u30C3\u30AF\u4F53', YuGothic, 'Yu Gothic', '\u30E1\u30A4\u30EA\u30AA', Meiryo, '\uFF2D\uFF33 \uFF30\u30B4\u30B7\u30C3\u30AF', 'MS PGothic', sans-serif;\n}\n:lang(ko),\n:lang(ko-kr),\n:lang(ko-kr-std) {\n  --ui-font-family: -apple-system, system-ui, 'Noto Sans CJK KR', 'Noto Sans KR', 'Noto Sans', 'Malgun Gothic', '\uB9D1\uC740 \uACE0\uB515', 'Apple SD Gothic Neo', '\uC560\uD50C SD \uC0B0\uB3CC\uACE0\uB515 Neo', 'Apple SD \uC0B0\uB3CC\uACE0\uB515 Neo', '\uB3CB\uC6C0', Dotum, sans-serif;\n}\n:lang(ko-kr-apple) {\n  --ui-font-family: -apple-system, system-ui, 'Noto Sans CJK KR', 'Noto Sans KR', 'Noto Sans', 'Apple SD Gothic Neo', '\uC560\uD50C SD \uC0B0\uB3CC\uACE0\uB515 Neo', 'Apple SD \uC0B0\uB3CC\uACE0\uB515 Neo', '\uB3CB\uC6C0', Dotum, sans-serif;\n}\n:lang(zh-cn),\n:lang(zh-sg),\n:lang(zh-my),\n:lang(zh),\n:lang(zh-tw),\n:lang(zh-hk),\n:lang(zh-mo),\n:lang(ja),\n:lang(ja-jp),\n:lang(ja-jp-mac),\n:lang(ko),\n:lang(ko-kr),\n:lang(ko-kr-std),\n:lang(ko-kr-apple) {\n  --ui-font-size: 1rem;\n  --ui-line-height: 1.7;\n  --ui-letter-spacing: 0;\n}\n:dir(rtl) {\n  --ui-line-height: auto;\n  --ui-letter-spacing: 0;\n}\n";
-
-// src/ui/menu/style.less
 var style_default2 = ".ui-menu *,\n.ui-menu ::before,\n.ui-menu ::after {\n  box-sizing: border-box;\n}\n.ui-menu {\n  display: none;\n  color-scheme: light dark;\n  -webkit-user-select: none;\n  /* Important: Safari iOS doesn't respect user-select */\n  user-select: none;\n  cursor: default;\n  -webkit-touch-callout: none;\n  -webkit-tap-highlight-color: rgba(0 0 0 0);\n  --active-label-color: #fff;\n  /* ui-menu-text-active */\n  --label-color: #121212;\n  /* ui-menu-text */\n  --menu-bg: #e2e2e2;\n  /* ui-menu-background */\n  --active-bg: #5898ff;\n  /* ui-menu-background-active */\n  --active-bg-dimmed: #c5c5c5;\n  /* ui-menu-background-active-muted */\n}\n/** Use the :where pseudo selector to make the specificity of the\n * selector 0, so that it can be overridden by the user.\n */\n:where(.ui-menu-container) {\n  position: absolute;\n  overflow: visible;\n  width: auto;\n  height: auto;\n  z-index: 10000;\n  border-radius: 8px;\n  background: var(--ui-menu-bg);\n  box-shadow: var(--ui-menu-shadow);\n  list-style: none;\n  padding: 6px 0 6px 0;\n  margin: 0;\n  user-select: none;\n  cursor: default;\n  color: var(--ui-menu-text);\n  font-weight: normal;\n  font-style: normal;\n  text-shadow: none;\n  text-transform: none;\n  letter-spacing: 0;\n  outline: none;\n  opacity: 1;\n  /* The [popover] elements have a 1px solid black border. Ugh. */\n  border: none;\n  width: fit-content;\n  height: fit-content;\n}\n:where(.ui-menu-container > li) {\n  display: flex;\n  flex-flow: row;\n  align-items: center;\n  padding: 1px 7px 1px 7px;\n  margin-top: 0;\n  margin-left: 6px;\n  margin-right: 6px;\n  border-radius: 4px;\n  white-space: nowrap;\n  position: relative;\n  outline: none;\n  fill: currentColor;\n  user-select: none;\n  cursor: default;\n  text-align: left;\n  color: inherit;\n  font-family: var(--ui-font-family);\n  font-size: var(--ui-font-size);\n  line-height: var(--ui-line-height);\n  letter-spacing: var(--ui-letter-spacing);\n}\n:where(.ui-menu-container > li > .label) {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  appearance: none;\n  background: none;\n  outline: none;\n  width: 100%;\n  margin: 0;\n  padding: 1px 2px 1px 1px;\n  overflow: visible;\n  border: 1px solid transparent;\n  white-space: nowrap;\n  text-align: start;\n  align-content: center;\n}\n:where(.ui-menu-container > li:has(.heading)) {\n  margin-top: 0.5em;\n}\n:where(.ui-menu-container > li > .label.heading) {\n  font-weight: bold;\n  opacity: 0.4;\n}\n:where(.ui-menu-container > li.indent > .label) {\n  margin-inline-start: 12px;\n}\n:where(.ui-menu-container > li > .label.indent) {\n  margin-inline-start: 12px;\n}\n:where(.ui-menu-container > li[role='divider']) {\n  border-bottom: 1px solid var(--ui-menu-divider);\n  border-radius: 0;\n  padding: 0;\n  margin-left: 15px;\n  margin-right: 15px;\n  padding-top: 5px;\n  margin-bottom: 5px;\n  width: calc(100% - 30px);\n  /** 100% - (margin-left + margin-right) */\n}\n:where(.ui-menu-container > li[aria-disabled='true']) {\n  opacity: 0.5;\n}\n:where(.ui-menu-container > li.active) {\n  background: var(--ui-menu-bg-active);\n  background: -apple-system-control-accent;\n  color: var(--ui-menu-text-active);\n}\n:where(.ui-menu-container > li.active.is-submenu-open) {\n  background: var(--ui-menu-bg-active-muted);\n  color: inherit;\n}\n:where(.ui-menu-container > li[aria-haspopup='true'] > .label) {\n  padding-inline-end: 0;\n}\n:where(.ui-menu-container > li[aria-haspopup='true'].active::after) {\n  color: var(--ui-menu-text-active);\n}\n/** Keyboard shortcut */\n:where(.ui-menu-container > li > kbd) {\n  font-family: var(--ui-font-family);\n  margin-inline-start: 12px;\n  opacity: 0.4;\n}\n:where(.ui-menu-container > li.active > kbd) {\n  opacity: 0.85;\n}\n.ui-trailing-chevron {\n  display: flex;\n  margin-inline-start: 24px;\n  width: 10px;\n  height: 10px;\n  margin-bottom: 4px;\n}\n.ui-trailing-chevron:dir(rtl) {\n  transform: scaleX(-1);\n}\n.ui-checkmark {\n  display: flex;\n  margin-inline-end: -11px;\n  margin-inline-start: -4px;\n  margin-top: 2px;\n  width: 16px;\n  height: 16px;\n}\n.ui-mixedmark {\n  display: flex;\n  margin-inline-end: -11px;\n  margin-inline-start: -4px;\n  margin-top: 2px;\n  width: 16px;\n  height: 16px;\n}\n";
-
-// src/common/stylesheet.ts
 var gStylesheets;
 function getStylesheetContent(id) {
   let content = "";
@@ -14535,8 +14439,6 @@ function releaseStylesheet(id) {
     );
   }
 }
-
-// src/atoms/accent.ts
 var AccentAtom = class _AccentAtom extends Atom {
   constructor(options) {
     super({ ...options, type: "accent", body: options.body ?? void 0 });
@@ -14601,8 +14503,6 @@ var AccentAtom = class _AccentAtom extends Atom {
     return this.attachSupsub(context, { base: result });
   }
 };
-
-// src/core/delimiters.ts
 var RIGHT_DELIM = {
   "(": ")",
   "{": "}",
@@ -15070,8 +14970,6 @@ function makeNullDelimiter(parent, classes) {
   box.width = parent.getRegisterAsEm("nulldelimiterspace");
   return box.wrap(new Context({ parent, mathstyle: "textstyle" }));
 }
-
-// src/atoms/placeholder.ts
 var PlaceholderAtom = class _PlaceholderAtom extends Atom {
   constructor(options) {
     super({
@@ -15102,8 +15000,6 @@ var PlaceholderAtom = class _PlaceholderAtom extends Atom {
     return "\\placeholder{}";
   }
 };
-
-// src/latex-commands/environment-types.ts
 var matrices = [
   "matrix",
   "matrix*",
@@ -15141,8 +15037,6 @@ function isCasesEnvironment(environment) {
 function isAlignEnvironment(environment) {
   return align.includes(environment);
 }
-
-// src/atoms/array.ts
 function normalizeCells(atom, cells, options) {
   let maxColCount = 0;
   for (const colSpec of options.columns)
@@ -15757,8 +15651,6 @@ function makeColOfRepeatingElements(context, rows, offset, element) {
   }
   return new VBox({ individualShift: col }).wrap(context);
 }
-
-// src/atoms/box.ts
 var BoxAtom = class _BoxAtom extends Atom {
   constructor(options) {
     super({
@@ -15858,8 +15750,6 @@ var BoxAtom = class _BoxAtom extends Atom {
     return joinLatex([this.bodyToLatex(options), this.supsubToLatex(options)]);
   }
 };
-
-// src/atoms/composition.ts
 var CompositionAtom = class _CompositionAtom extends Atom {
   constructor(value, options) {
     super({ type: "composition", mode: options?.mode ?? "math", value });
@@ -15883,8 +15773,6 @@ var CompositionAtom = class _CompositionAtom extends Atom {
     return "";
   }
 };
-
-// src/atoms/error.ts
 var ErrorAtom = class _ErrorAtom extends Atom {
   constructor(value) {
     super({ type: "error", value, command: value, mode: "math" });
@@ -15902,8 +15790,6 @@ var ErrorAtom = class _ErrorAtom extends Atom {
     return result;
   }
 };
-
-// src/atoms/group.ts
 var GroupAtom = class _GroupAtom extends Atom {
   constructor(arg, mode) {
     super({ type: "group", mode });
@@ -15931,8 +15817,6 @@ var GroupAtom = class _GroupAtom extends Atom {
     return `{${this.bodyToLatex(options)}}`;
   }
 };
-
-// src/atoms/leftright.ts
 var LeftRightAtom = class _LeftRightAtom extends Atom {
   constructor(variant, body, options) {
     super({
@@ -16088,8 +15972,6 @@ function upgradeMiddle(boxes, atom, context, height, depth) {
       upgradeMiddle(child.children, atom, context, height, depth);
   }
 }
-
-// src/atoms/macro.ts
 var MacroAtom = class _MacroAtom extends Atom {
   constructor(macro, options) {
     super({ type: "macro", command: macro, style: options.style });
@@ -16147,8 +16029,6 @@ var MacroArgumentAtom = class _MacroArgumentAtom extends Atom {
     return null;
   }
 };
-
-// src/atoms/prompt.ts
 var PromptAtom = class _PromptAtom extends Atom {
   constructor(placeholderId, correctness, locked = false, body, options) {
     super({
@@ -16290,8 +16170,6 @@ var PromptAtom = class _PromptAtom extends Atom {
     return latexCommand(command, value);
   }
 };
-
-// src/atoms/subsup.ts
 var SubsupAtom = class _SubsupAtom extends Atom {
   constructor(options) {
     super({ type: "subsup", style: options?.style });
@@ -16343,8 +16221,6 @@ var SubsupAtom = class _SubsupAtom extends Atom {
     return this.supsubToLatex(options);
   }
 };
-
-// src/core/parser.ts
 function isLiteral(token) {
   if (!token) return false;
   return !/^(<$$>|<$>|<space>|<{>|<}>|#[0-9\?]|\\.+)$/.test(token);
@@ -16358,14 +16234,10 @@ var Parser = class {
    *
    */
   constructor(tokens, context, options) {
-    // Accumulated errors encountered while parsing
     this.errors = [];
-    // The current token to be parsed: index in `this.tokens`
     this.index = 0;
-    // Counter to prevent deadlock. If `end()` is called too many
-    // times (1,000) in a row for the same token, bail.
     this.endCount = 0;
-    options ??= {};
+    options ?? (options = {});
     this.tokens = tokens;
     this.context = context instanceof Context && !options?.parseMode && !options.mathstyle ? context : new Context(
       { from: context, mathstyle: options.mathstyle },
@@ -17658,8 +17530,6 @@ function validateLatex(s, options) {
   while (!parser.end()) parser.scan();
   return parser.errors;
 }
-
-// src/latex-commands/mhchem.ts
 var ChemAtom = class _ChemAtom extends Atom {
   constructor(command, arg) {
     super({ type: "chem" }, { command, mode: "math" });
@@ -19961,8 +19831,6 @@ function assertNever(a) {
 }
 function assertString(a) {
 }
-
-// src/atoms/delim.ts
 var MiddleDelimAtom = class _MiddleDelimAtom extends Atom {
   constructor(options) {
     super({ ...options, type: "delim" });
@@ -20022,8 +19890,6 @@ var SizedDelimAtom = class _SizedDelimAtom extends Atom {
     return latexCommand(this.command, this.value);
   }
 };
-
-// src/atoms/enclose.ts
 function escapeSvgAttr(s) {
   return s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
@@ -20309,13 +20175,9 @@ function getClearance(ctx) {
   const phi = ctx.isDisplayStyle ? X_HEIGHT : ctx.metrics.defaultRuleThickness;
   return ctx.metrics.defaultRuleThickness + ctx.scalingFactor * phi / 4;
 }
-
-// src/core/math-environment.ts
 var _MathEnvironment = {
   fractionNavigationOrder: "numerator-denominator"
 };
-
-// src/atoms/genfrac.ts
 var GenfracAtom = class _GenfracAtom extends Atom {
   constructor(above, below, options) {
     super({
@@ -20529,8 +20391,6 @@ function align2(v) {
     center: "ML__center"
   }[v] ?? "ML__center";
 }
-
-// src/atoms/latex.ts
 var LatexAtom = class _LatexAtom extends Atom {
   // Display errors with wavy red line
   constructor(value, options) {
@@ -20583,8 +20443,6 @@ var LatexGroupAtom = class _LatexGroupAtom extends Atom {
     return this.body?.map((x) => x.value).join("") ?? "";
   }
 };
-
-// src/atoms/extensible-symbol.ts
 var ExtensibleSymbolAtom = class _ExtensibleSymbolAtom extends Atom {
   constructor(symbol, options) {
     super({
@@ -20649,8 +20507,6 @@ var ExtensibleSymbolAtom = class _ExtensibleSymbolAtom extends Atom {
     return joinLatex(result);
   }
 };
-
-// src/atoms/overlap.ts
 var OverlapAtom = class _OverlapAtom extends Atom {
   constructor(options) {
     const body = options.body;
@@ -20686,8 +20542,6 @@ var OverlapAtom = class _OverlapAtom extends Atom {
     );
   }
 };
-
-// src/atoms/overunder.ts
 var OverunderAtom = class _OverunderAtom extends Atom {
   constructor(options) {
     super({
@@ -20821,8 +20675,6 @@ function makeOverunderStack(context, options) {
   }
   return new Box(result, { type: options.type });
 }
-
-// src/atoms/phantom.ts
 var PhantomAtom = class _PhantomAtom extends Atom {
   constructor(options) {
     super({ ...options, type: "phantom" });
@@ -20873,8 +20725,6 @@ var PhantomAtom = class _PhantomAtom extends Atom {
     ).wrap(context);
   }
 };
-
-// src/atoms/spacing.ts
 var SpacingAtom = class _SpacingAtom extends Atom {
   constructor(options) {
     super({ type: "spacing", ...options });
@@ -20926,8 +20776,6 @@ var SpacingAtom = class _SpacingAtom extends Atom {
     return `${command}${serializeLatexValue(this.width)}`;
   }
 };
-
-// src/atoms/surd.ts
 var SurdAtom = class _SurdAtom extends Atom {
   constructor(options) {
     super({
@@ -21069,8 +20917,6 @@ var SurdAtom = class _SurdAtom extends Atom {
     return this.bind(context, result);
   }
 };
-
-// src/core/skip-box.ts
 var SkipBox = class extends Box {
   constructor(width) {
     super(null, { type: "skip" });
@@ -21096,8 +20942,6 @@ function addSkipBefore(box, width) {
   if (i > 0 && siblings[i - 1].type === "skip") siblings[i - 1].width += width;
   else siblings.splice(i, 0, new SkipBox(width));
 }
-
-// src/core/inter-box-spacing.ts
 var INTER_BOX_SPACING = {
   ord: { op: 3, bin: 4, rel: 5, inner: 3 },
   op: { ord: 3, op: 3, rel: 5, inner: 3 },
@@ -21154,8 +20998,6 @@ function traverseBoxes(boxes, f, prev = void 0) {
   }
   return prev;
 }
-
-// src/atoms/tooltip.ts
 var TooltipAtom = class _TooltipAtom extends Atom {
   constructor(options) {
     super({
@@ -21205,8 +21047,6 @@ var TooltipAtom = class _TooltipAtom extends Atom {
     return this.bind(context, box);
   }
 };
-
-// src/atoms/operator.ts
 var OperatorAtom = class _OperatorAtom extends Atom {
   constructor(symbol, options) {
     super({
@@ -21269,8 +21109,6 @@ var OperatorAtom = class _OperatorAtom extends Atom {
     return joinLatex(result);
   }
 };
-
-// src/core/atom.ts
 function fromJson(json) {
   if (isArray(json)) return json.map((x) => fromJson(x));
   if (typeof json === "string") return Atom.fromJson(json);
@@ -21353,8 +21191,6 @@ function argumentsFromJson(json) {
     return arg;
   });
 }
-
-// src/editor-model/styling.ts
 function applyStyleToUnstyledAtoms(atom, style) {
   if (!atom || !style) return;
   if (isArray(atom)) {
@@ -21419,8 +21255,6 @@ function removeItalic(v) {
     "": void 0
   }[v ?? ""];
 }
-
-// src/latex-commands/accents.ts
 var ACCENTS = {
   acute: 714,
   grave: 715,
@@ -21628,8 +21462,6 @@ defineFunction("c", "{:string}", {
     value: options.args[0] ? { c: "\xE7", C: "\xC7" }[options.args[0]] ?? "" : ""
   })
 });
-
-// src/latex-commands/enclose.ts
 defineFunction("enclose", "{notation:string}[style:string]{body:auto}", {
   createAtom: (atomOptions) => {
     const args = atomOptions.args;
@@ -21731,8 +21563,6 @@ defineFunction("xcancel", "{body:auto}", {
     }
   )
 });
-
-// src/latex-commands/environments.ts
 defineRootEnvironment(["math", "displaymath"], makeEnvironment);
 defineRootEnvironment("center", makeEnvironment);
 defineTabularEnvironment(["multline", "multline*"], "", makeEnvironment);
@@ -22045,8 +21875,6 @@ function casesColumns(maxCasesColumns = 10) {
   }
   return columns;
 }
-
-// src/latex-commands/extensible-symbols.ts
 defineFunction(
   [
     "overrightarrow",
@@ -22179,8 +22007,6 @@ defineFunction(
     serialize: (atom, options) => atom.command + (!atom.hasEmptyBranch("below") ? `[${atom.belowToLatex(options)}]` : "") + `{${atom.aboveToLatex(options)}}${atom.supsubToLatex(options)}`
   }
 );
-
-// src/latex-commands/functions.ts
 defineFunction(
   [
     "arccos",
@@ -22592,8 +22418,6 @@ defineFunction("the", "{:value}", {
   },
   serialize: (atom) => `\\the${serializeLatexValue(atom.args[0]) ?? "\\relax"}`
 });
-
-// src/latex-commands/styling.ts
 defineFunction("mathtip", "{:auto}{:math}", {
   createAtom: (options) => new TooltipAtom({
     ...options,
@@ -23563,8 +23387,6 @@ defineFunction("lower", "{:value}{:auto}", {
     atom.bodyToLatex(options)
   )
 });
-
-// src/latex-commands/symbols.ts
 defineSymbols("0123456789/@.?!");
 defineSymbolRange(65, 90);
 defineSymbolRange(97, 122);
@@ -24218,8 +24040,6 @@ defineSymbols([
   // Double Prime
   // defineSymbol( "\'', 0x2033,  'mord',  MAIN],       // Double Prime
 ]);
-
-// src/core/modes-math.ts
 var VARIANTS = {
   // Handle some special characters which are only available in "main" font (not "math")
   "main": ["Main-Regular", "ML__cmr"],
@@ -24473,8 +24293,6 @@ function emitVariantRun(run, options) {
   });
 }
 new MathMode();
-
-// src/core/modes-text.ts
 function emitStringTextRun(run, options) {
   return run.map((x) => x._serialize(options));
 }
@@ -24630,8 +24448,6 @@ var TextMode = class extends Mode {
   }
 };
 new TextMode();
-
-// src/core/modes-latex.ts
 var LatexMode = class extends Mode {
   constructor() {
     super("latex");
@@ -24647,8 +24463,6 @@ var LatexMode = class extends Mode {
   }
 };
 new LatexMode();
-
-// src/ui/events/keyboard.ts
 function getKeybindingMarkup(keybinding) {
   const useGlyph = /macos|ios/.test(osPlatform());
   const segments = keybinding.split("+");
@@ -24719,8 +24533,6 @@ function getKeybindingMarkup(keybinding) {
   }
   return result;
 }
-
-// src/ui/events/utils.ts
 function eventLocation(evt) {
   if (evt instanceof MouseEvent || evt instanceof PointerEvent)
     return { x: evt.clientX, y: evt.clientY };
@@ -24849,8 +24661,6 @@ function deepActiveElement() {
   while (a?.shadowRoot?.activeElement) a = a.shadowRoot.activeElement;
   return a;
 }
-
-// src/ui/utils/scrim.ts
 var Scrim = class _Scrim {
   static get scrim() {
     if (!_Scrim._scrim) _Scrim._scrim = new _Scrim();
@@ -24965,8 +24775,6 @@ var Scrim = class _Scrim {
     }
   }
 };
-
-// src/editor/keyboard.ts
 function delegateKeyboardEvents(keyboardSink, element, delegate) {
   let keydownEvent = null;
   let keypressEvent = null;
@@ -25180,8 +24988,6 @@ function keyboardEventToString(evt) {
   modifiers.push(`[${evt.code}]`);
   return modifiers.join("+");
 }
-
-// src/editor/keybindings.ts
 function matchPlatform(p) {
   if (isBrowser()) {
     const plat = osPlatform();
@@ -25327,8 +25133,6 @@ function normalizeKeybindings(keybindings, layout) {
   }
   return [result, errors];
 }
-
-// src/editor-mathfield/mode-editor-latex.ts
 var LatexModeEditor = class extends ModeEditor {
   constructor() {
     super("latex");
@@ -25423,8 +25227,6 @@ function getCommandSuggestionRange(model, options) {
   return [start - 1, end - 1];
 }
 new LatexModeEditor();
-
-// src/editor-mathfield/styling.ts
 function applyStyle2(mathfield, inStyle) {
   mathfield.flushInlineShortcutBuffer();
   mathfield.stopCoalescingUndo();
@@ -25575,8 +25377,6 @@ function ungroup(model, atom, bias) {
   if (bias !== "right") return model.offsetOf(atom.body[0]);
   return model.offsetOf(atom.body[atom.body.length - 1]);
 }
-
-// src/editor-mathfield/autocomplete.ts
 function removeSuggestion(mathfield) {
   const group = getLatexGroupBody(mathfield.model).filter(
     (x) => x.isSuggestion
@@ -25683,8 +25483,6 @@ function complete(mathfield, completion = "accept", options) {
   mathfield.switchMode("math");
   return true;
 }
-
-// src/common/shared-element.ts
 function getSharedElement(id) {
   let result = document.getElementById(id);
   if (result) {
@@ -25709,8 +25507,6 @@ function releaseSharedElement(id) {
   if (refcount <= 1) element.remove();
   else element.dataset.refcount = Number(refcount - 1).toString();
 }
-
-// src/editor/suggestion-popover.ts
 function escapeHtmlAttr(s) {
   return s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
@@ -25836,8 +25632,6 @@ function disposeSuggestionPopover() {
   releaseStylesheet("suggestion-popover");
   releaseStylesheet("core");
 }
-
-// src/common/script-url.ts
 function getFileUrl() {
   const stackTraceFrames = String(new Error().stack).replace(/^Error.*\n/, "").split("\n");
   if (stackTraceFrames.length === 0) {
@@ -25896,8 +25690,6 @@ async function resolveUrl(url) {
   }
   return new URL(url, gResolvedScriptUrl ?? gScriptUrl).href;
 }
-
-// src/core/fonts.ts
 function makeFontFace(name, source, descriptors = {}) {
   return new FontFace(
     name,
@@ -26005,8 +25797,6 @@ async function loadFonts() {
     gFontsState = "error";
   }
 }
-
-// src/common/hash-code.ts
 function hashCode(str, seed = 0) {
   let h1 = 3735928559 ^ seed;
   let h2 = 1103547991 ^ seed;
@@ -26021,8 +25811,6 @@ function hashCode(str, seed = 0) {
   h2 ^= Math.imul(h1 ^ h1 >>> 13, 3266489909);
   return 4294967296 * (2097151 & h2) + (h1 >>> 0);
 }
-
-// src/editor-mathfield/render.ts
 function requestUpdate(mathfield, options) {
   if (!mathfield || mathfield.dirty || !mathfield.field) return;
   mathfield.resizeObserver.unobserve(mathfield.field);
@@ -26108,7 +25896,7 @@ function contentMarkup(mathfield, renderOptions) {
 }
 function render(mathfield, renderOptions) {
   if (!isValidMathfield(mathfield)) return;
-  renderOptions ??= {};
+  renderOptions ?? (renderOptions = {});
   const keyboardToggle = mathfield.element.querySelector(
     "[part=virtual-keyboard-toggle]"
   );
@@ -26266,8 +26054,6 @@ function reparseAllMathfields() {
   for (const mathfield of document.querySelectorAll(".ML__mathfield"))
     if ("_mathfield" in mathfield) reparse(mathfield._mathfield);
 }
-
-// src/editor/commands.ts
 var HAPTIC_FEEDBACK_DURATION = 3;
 var COMMANDS;
 function register2(commands, options) {
@@ -26433,8 +26219,6 @@ function parseCommand(command) {
   const selector = command.replace(/-\w/g, (m) => m[1].toUpperCase());
   return selector;
 }
-
-// src/virtual-keyboard/proxy.ts
 var VIRTUAL_KEYBOARD_MESSAGE = "mathlive#virtual-keyboard-message";
 function isVirtualKeyboardMessage(evt) {
   if (evt.type !== "message") return false;
@@ -26597,8 +26381,6 @@ var VirtualKeyboardProxy = class _VirtualKeyboardProxy {
     );
   }
 };
-
-// src/virtual-keyboard/data.ts
 var LAYOUTS = {
   "numeric": {
     label: "123",
@@ -27368,8 +27150,6 @@ var LAYOUTS = {
     ]
   }
 };
-
-// src/virtual-keyboard/variants.ts
 var VARIANTS2 = {
   // '0-extended': [
   //   '\\emptyset',
@@ -27666,8 +27446,6 @@ function getVariants(id) {
   if (!VARIANTS2[id]) VARIANTS2[id] = makeVariants(id) ?? [];
   return VARIANTS2[id];
 }
-
-// src/virtual-keyboard/utils.ts
 function jsonToCssProps(json) {
   if (typeof json === "string") return json;
   return Object.entries(json).map(([k, v]) => `${k}:${v} !important`).join(";");
@@ -27729,7 +27507,7 @@ function normalizeLayer(layer) {
     result.fixedRows = result.fixedRows.map(
       (row) => row.map((x) => normalizeKeycap(x))
     );
-  result.id ??= "ML__layer_" + Date.now().toString(36).slice(-2) + Math.floor(Math.random() * 1e5).toString(36);
+  result.id ?? (result.id = "ML__layer_" + Date.now().toString(36).slice(-2) + Math.floor(Math.random() * 1e5).toString(36));
   return [result];
 }
 function alphabeticLayout() {
@@ -28705,18 +28483,11 @@ function parentKeycap(el) {
 function isShiftKey(k) {
   return !!k.class && /(^|\s)shift($|\s)/.test(k.class);
 }
-
-// src/virtual-keyboard/virtual-keyboard.ts
 var VirtualKeyboard = class _VirtualKeyboard {
   constructor() {
     this.originalContainerBottomPadding = null;
     this.keycapRegistry = {};
     this.latentLayer = "";
-    /**
-     * `0`: not pressed
-     * `1`: Shift is locked for next char only
-     * `2`: Shift is locked for all characters
-     */
     this._shiftPressCount = 0;
     this.isSandbox = false;
     this._style = {};
@@ -29341,8 +29112,6 @@ function focusedMathfield() {
   }
   return mf;
 }
-
-// src/virtual-keyboard/global.ts
 if (isBrowser() && !("mathVirtualKeyboard" in window)) {
   if (window === window["top"]) {
     mountMathVirtualKeyboard();
@@ -29362,8 +29131,6 @@ function mountMathVirtualKeyboard() {
   }
   return kbd;
 }
-
-// src/editor-mathfield/options.ts
 function update(updates) {
   const result = {};
   for (const key of Object.keys(updates)) {
@@ -29504,8 +29271,6 @@ function effectiveMode(options) {
   if (options.defaultMode === "inline-math") return "math";
   return options.defaultMode;
 }
-
-// src/editor-model/composition.ts
 function updateComposition(model, s) {
   const cursor = model.at(model.position);
   if (cursor.type === "composition") {
@@ -29526,8 +29291,6 @@ function removeComposition(model) {
     model.position -= 1;
   }
 }
-
-// src/editor-model/array.ts
 function cellSiblings(model) {
   let atom = model.at(model.position);
   while (atom && !isCellBranch(atom.parentBranch)) atom = atom.parent;
@@ -29816,17 +29579,11 @@ register2(
 function placeholderCell() {
   return [new PlaceholderAtom()];
 }
-
-// src/editor/undo.ts
-var UndoManager = class _UndoManager {
+var UndoManager = (_c = class {
   constructor(model) {
     this.recording = false;
     this.model = model;
     this.reset();
-  }
-  static {
-    // Maximum number of undo/redo states
-    this.maximumDepth = 1e3;
   }
   reset() {
     this.stack = [];
@@ -29886,16 +29643,14 @@ var UndoManager = class _UndoManager {
     this.stack.splice(this.index + 1, this.stack.length - this.index - 1);
     this.stack.push(this.model.getState());
     this.index += 1;
-    if (this.stack.length > _UndoManager.maximumDepth) {
+    if (this.stack.length > _c.maximumDepth) {
       this.stack.shift();
       this.index -= 1;
     }
     this.lastOp = op ?? "";
     return true;
   }
-};
-
-// src/editor-model/delete.ts
+}, _c.maximumDepth = 1e3, _c);
 function onDelete(model, direction, atom, branch) {
   const parent = atom.parent;
   if (isCellBranch(branch) && atom instanceof ArrayAtom && atom.isMultiline) {
@@ -30357,8 +30112,6 @@ function deleteRow(model, atom, row, direction) {
   }
   return true;
 }
-
-// src/editor-model/commands.ts
 function wordBoundaryOffset(model, offset, direction) {
   if (model.at(offset).mode !== "text") return offset;
   const dir = direction === "backward" ? -1 : 1;
@@ -30722,8 +30475,6 @@ function moveDownward(model, options) {
   } else return handleDeadEnd();
   return true;
 }
-
-// src/editor-model/commands-move.ts
 function moveAfterParent(model) {
   const previousPosition = model.position;
   const parent = model.at(previousPosition).parent;
@@ -31186,8 +30937,6 @@ function findSibling(model, atom, pred, dir) {
   while (result && !pred(result)) result = result.leftSibling;
   return result;
 }
-
-// src/editor-mathfield/smartmode.ts
 function convertLastAtomsToText(model, count, until) {
   if (typeof count === "function") {
     until = count;
@@ -31363,8 +31112,6 @@ function smartMode(mathfield, keystroke, evt) {
   }
   return false;
 }
-
-// src/editor-mathfield/keystroke-caption.ts
 function showKeystroke(mathfield, keystroke) {
   if (!mathfield.isSelectionEditable || !mathfield.keystrokeCaptionVisible)
     return;
@@ -31406,8 +31153,6 @@ function disposeKeystrokeCaption() {
   releaseStylesheet("core");
   releaseStylesheet("keystroke-caption");
 }
-
-// src/editor-mathfield/keyboard-input.ts
 function onKeystroke(mathfield, evt) {
   const { model } = mathfield;
   const keystroke = keyboardEventToString(evt);
@@ -31732,7 +31477,7 @@ function onInput(mathfield, text, options) {
     model.announce("plonk");
     return;
   }
-  options ??= {};
+  options ?? (options = {});
   if (options.focus) mathfield.focus();
   if (options.feedback) globalThis.MathfieldElement.playSound("keypress");
   if (typeof options.mode === "string") {
@@ -32158,8 +31903,6 @@ function isValidOpen(open, close) {
   }
   return LEFT_DELIM[close] === open;
 }
-
-// src/editor-mathfield/commands.ts
 register2({
   scrollIntoView: (mathfield) => {
     mathfield.scrollIntoView();
@@ -32332,8 +32075,6 @@ register2(
     changeSelection: true
   }
 );
-
-// src/editor-model/commands-select.ts
 function selectGroup(model) {
   let [start, end] = range(model.selection);
   start = boundary(model, start, "backward");
@@ -32478,8 +32219,6 @@ register2(
   },
   { target: "model", changeSelection: true }
 );
-
-// src/editor-mathfield/pointer-input.ts
 var gLastTap = null;
 var gTapCount = 0;
 var PointerTracker = class _PointerTracker {
@@ -32823,8 +32562,6 @@ function offsetFromPoint(mathfield, x, y, options) {
   }
   return result;
 }
-
-// src/editor-mathfield/mode-editor-math.ts
 var MathModeEditor = class extends ModeEditor {
   constructor() {
     super("math");
@@ -33256,8 +32993,6 @@ function isImplicitArg(atom) {
   return false;
 }
 new MathModeEditor();
-
-// src/editor-mathfield/mode-editor-text.ts
 var TextModeEditor = class extends ModeEditor {
   constructor() {
     super("text");
@@ -33379,8 +33114,6 @@ function escapeTextModeCharacters(s) {
   return s;
 }
 new TextModeEditor();
-
-// src/virtual-keyboard/mathfield-proxy.ts
 function makeProxy(mf) {
   return {
     value: mf.model.getValue(),
@@ -33402,8 +33135,6 @@ function commonStyle(model) {
   }
   return style;
 }
-
-// src/editor/environment-popover.ts
 var padding = 4;
 var radius = 20;
 var paddedWidth = 2 * (radius + padding);
@@ -33677,14 +33408,10 @@ function normalizeCasesName(environment) {
     return "cases";
   return environment;
 }
-
-// src/ui/i18n/utils.ts
 function getComputedDir(element) {
   const dir = getComputedStyle(element).direction;
   return dir === "ltr" || dir === "rtl" ? dir : "ltr";
 }
-
-// src/ui/geometry/utils.ts
 function getEdge(bounds, position, direction) {
   if (position === "left" || position === "leading" && direction === "ltr" || position === "trailing" && direction === "rtl")
     return bounds.left;
@@ -33778,8 +33505,6 @@ function fitInViewport(element, options) {
 function distance2(p1, p2) {
   return Math.hypot(p2.x - p1.x, p2.y - p1.y);
 }
-
-// src/public/ui-menu-types.ts
 function isSubmenu(item) {
   return "submenu" in item;
 }
@@ -33792,8 +33517,6 @@ function isDivider(item) {
 function isHeading(item) {
   return "type" in item && item.type === "heading";
 }
-
-// src/ui/icons/icons.ts
 var ICON_CATALOG = {};
 function icon(name) {
   let icon2 = ICON_CATALOG[name];
@@ -33826,13 +33549,10 @@ function icon(name) {
   }
   return void 0;
 }
-
-// src/ui/menu/menu-item.ts
 var BLINK_SPEED = 80;
 var _MenuItemState = class {
   constructor(declaration, parentMenu) {
     this._className = "";
-    /** The DOM element the menu item is rendered as */
     this._element = null;
     this.parentMenu = parentMenu;
     this._declaration = declaration;
@@ -34142,18 +33862,13 @@ function speed(dx, dy, dt) {
 function dynamicValue(value, modifiers) {
   if (value === void 0 || typeof value !== "function")
     return value;
-  modifiers ??= { alt: false, control: false, shift: false, meta: false };
+  modifiers ?? (modifiers = { alt: false, control: false, shift: false, meta: false });
   return value(modifiers);
 }
-
-// src/ui/menu/menu-list.ts
 var _MenuListState = class __MenuListState {
   constructor(items, options) {
-    /** @private */
     this._element = null;
-    /** @private */
     this._activeMenuItem = null;
-    /** @private */
     this._dirty = true;
     this.parentMenu = options?.parentMenu ?? null;
     this._submenuClass = options?.submenuClass;
@@ -34477,25 +34192,16 @@ function enableFocusEvents() {
   document.removeEventListener("focus", handleFocusEvent, true);
   document.removeEventListener("blur", handleFocusEvent, true);
 }
-
-// src/ui/menu/menu.ts
-var Menu = class _Menu extends _MenuListState {
+var Menu = (_d = class extends _MenuListState {
   /**
    * The host is the element that the events will be dispatched from
    *
    */
   constructor(menuItems, options) {
     super(menuItems);
-    /**
-     * - 'closed': the menu is not visible
-     * - 'open': the menu is visible as long as the mouse button is pressed
-     * - 'modal': the menu is visible until dismissed, even with
-     *   the mouse button released
-     */
     this.state = "closed";
     this.typingBufferResetTimer = 0;
     this.hysteresisTimer = 0;
-    /** @private */
     this._updating = false;
     this._host = options?.host ?? null;
     this.isDynamic = menuItems.some(isDynamic);
@@ -34507,15 +34213,6 @@ var Menu = class _Menu extends _MenuListState {
     };
     this.typingBuffer = "";
     this.state = "closed";
-  }
-  static {
-    /**
-     * Delay (in milliseconds) before displaying a submenu.
-     *
-     * Prevents distracting flashing of submenus when moving quickly
-     * through the options in a menu.
-     */
-    this.SUBMENU_DELAY = 120;
   }
   get modifiers() {
     return this._modifiers;
@@ -34731,7 +34428,7 @@ var Menu = class _Menu extends _MenuListState {
   }
   scheduleOperation(fn) {
     this.cancelDelayedOperation();
-    const delay = _Menu.SUBMENU_DELAY;
+    const delay = _d.SUBMENU_DELAY;
     if (delay <= 0) {
       fn();
       return;
@@ -34747,7 +34444,7 @@ var Menu = class _Menu extends _MenuListState {
       this.hysteresisTimer = 0;
     }
   }
-};
+}, _d.SUBMENU_DELAY = 120, _d);
 function isDynamic(item) {
   if (isDivider(item)) return false;
   if (typeof item.label === "function" || typeof item.ariaLabel === "function" || typeof item.tooltip === "function")
@@ -34758,18 +34455,9 @@ function isDynamic(item) {
   if (isSubmenu(item)) return item.submenu.some(isDynamic);
   return false;
 }
-
-// src/ui/events/longpress.ts
-var LongPress = class {
-  static {
-    this.DELAY = 300;
-  }
-  static {
-    // Amount of time before showing the context menu, in ms
-    this.MAX_DISTANCE = 10;
-  }
+var LongPress = (_e = class {
   // Maximum distance between the start and end of the gesture, in pixels
-};
+}, _e.DELAY = 300, _e.MAX_DISTANCE = 10, _e);
 function onLongPress(triggerEvent) {
   return new Promise((resolve, _reject) => {
     const startPoint = eventLocation(triggerEvent);
@@ -34799,8 +34487,6 @@ function onLongPress(triggerEvent) {
     }
   });
 }
-
-// src/ui/menu/context-menu.ts
 async function onContextMenu(event, target, menu) {
   if (event.defaultPrevented) return false;
   if (event.type === "contextmenu") {
@@ -34851,8 +34537,6 @@ async function onContextMenu(event, target, menu) {
 function acceptContextMenu(host) {
   return host.dispatchEvent(new Event("contextmenu", { cancelable: true }));
 }
-
-// src/formats/atom-to-math-ml.ts
 var APPLY_FUNCTION = "<mo>&#x2061;</mo>";
 var INVISIBLE_TIMES = "<mo>&#8290;</mo>";
 function xmlEscape(string) {
@@ -35199,7 +34883,7 @@ function scanOperator(stream, final, options) {
   return result;
 }
 function toMathML(input, options, initial, final) {
-  options ??= {};
+  options ?? (options = {});
   const result = {
     atoms: [],
     index: initial ?? 0,
@@ -35665,8 +35349,6 @@ function atomToMathML(atom, options) {
   }
   return result;
 }
-
-// src/formats/atom-to-speakable-text.ts
 var PRONUNCIATION = {
   "\\alpha": "alpha ",
   "\\mu": "mew ",
@@ -36193,8 +35875,6 @@ function atomToSpeakableText(atoms) {
   }
   return result;
 }
-
-// src/formats/atom-to-ascii-math.ts
 var IDENTIFIERS = {
   "\\ne": "\u2260",
   "\\neq": "\u2260",
@@ -36572,8 +36252,6 @@ function asciiStyle(body, style) {
   if (style.color) return `color({${style.color}})(${result})`;
   return result;
 }
-
-// src/public/mathlive-ssr.ts
 function convertLatexToMarkup(text, options) {
   const from = {
     ...getDefaultContext(),
@@ -36662,8 +36340,6 @@ function convertLatexToAsciiMath(latex, parseMode = "math") {
 function convertAsciiMathToLatex(ascii) {
   return parseMathString(ascii, { format: "ascii-math" })[1];
 }
-
-// src/ui/colors/utils.ts
 function asRgb(color) {
   if (typeof color === "string") {
     const parsed = parseHex2(color);
@@ -36781,8 +36457,6 @@ function oklabToRgb(color) {
 function oklchToRgb(_) {
   return oklabToRgb(oklchToOklab(_));
 }
-
-// src/ui/colors/contrast.ts
 function apca(bgColor, fgColor) {
   const bgRgb = asRgb(bgColor);
   const fgRgb = asRgb(fgColor);
@@ -36828,14 +36502,12 @@ function apca(bgColor, fgColor) {
   return Sapc * 100;
 }
 function contrast(bgColor, dark, light) {
-  light ??= "#fff";
-  dark ??= "#000";
+  light ?? (light = "#fff");
+  dark ?? (dark = "#000");
   const lightContrast = apca(bgColor, light);
   const darkContrast = apca(bgColor, dark);
   return Math.abs(lightContrast) > Math.abs(darkContrast) ? light : dark;
 }
-
-// src/ui/colors/css.ts
 function asHexColor(_) {
   const rgb = asRgb(_);
   let hexString = ((1 << 24) + (clampByte2(rgb.r) << 16) + (clampByte2(rgb.g) << 8) + clampByte2(rgb.b)).toString(16).slice(1);
@@ -36846,8 +36518,6 @@ function asHexColor(_) {
   }
   return "#" + hexString;
 }
-
-// src/editor/default-menu.ts
 function getSelectionPlainString(mf) {
   const atoms = getSelectionAtoms(mf);
   let result = "";
@@ -37649,8 +37319,6 @@ function insertMenu(mf) {
 function insertLabel(id) {
   return `<span class='ML__insert-template'> ${convertLatexToMarkup(localize(`menu.insert.${id}-template`))}</span><span class="ML__insert-label">${localize(`menu.insert.${id}`)}</span>`;
 }
-
-// src/formats/atom-to-typst.ts
 var IDENTIFIERS2 = {
   "\\ne": "!=",
   "\\neq": "!=",
@@ -38079,8 +37747,6 @@ function typstStyle(body, style) {
   if (style.variantStyle === "bold") result = `bold(${result})`;
   return result;
 }
-
-// src/editor/a11y.ts
 function speakableText(arg1, arg2) {
   if (typeof arg1 === "string") return arg1 + atomToSpeakableText(arg2);
   return atomToSpeakableText(arg1);
@@ -38196,8 +37862,6 @@ function getNextAtomAsSpokenText(model) {
   } else result += speakableText(cursor);
   return result;
 }
-
-// src/editor-model/model-private.ts
 var _Model = class {
   constructor(target, mode, root) {
     this.mathfield = target;
@@ -38470,7 +38134,7 @@ var _Model = class {
     return result;
   }
   deleteAtoms(range2) {
-    range2 ??= [0, -1];
+    range2 ?? (range2 = [0, -1]);
     this.extractAtoms(range2);
     if (range2[0] === 0 && range2[1] === -1 && this.root instanceof ArrayAtom) {
       while (this.root.rowCount > 1) this.root.removeRow(1);
@@ -38528,7 +38192,7 @@ var _Model = class {
       ranges = [this.normalizeRange([0, -1])];
       format = arg1;
     }
-    format ??= "latex";
+    format ?? (format = "latex");
     if (format === "math-json") {
       if (!globalThis.MathfieldElement.computeEngine) {
         if (!window[Symbol.for("io.cortexjs.compute-engine")]) {
@@ -38810,8 +38474,6 @@ function lastNonFirstChild(atom) {
     if (children[i].type !== "first") return children[i];
   return void 0;
 }
-
-// src/editor-model/commands-delete.ts
 register2(
   {
     deleteAll: (model) => model.contentWillChange({ inputType: "deleteContent" }) && deleteRange(model, [0, -1], "deleteContent"),
@@ -38859,8 +38521,6 @@ register2(
     changeSelection: true
   }
 );
-
-// src/editor-mathfield/mathfield-private.ts
 var DEFAULT_KEYBOARD_TOGGLE_GLYPH = `<svg xmlns="http://www.w3.org/2000/svg" style="width: 21px;"  viewBox="0 0 576 512" role="img" aria-label="${localize(
   "tooltip.toggle virtual keyboard"
 )}"><path d="M528 64H48C21.49 64 0 85.49 0 112v288c0 26.51 21.49 48 48 48h480c26.51 0 48-21.49 48-48V112c0-26.51-21.49-48-48-48zm16 336c0 8.823-7.177 16-16 16H48c-8.823 0-16-7.177-16-16V112c0-8.823 7.177-16 16-16h480c8.823 0 16 7.177 16 16v288zM168 268v-24c0-6.627-5.373-12-12-12h-24c-6.627 0-12 5.373-12 12v24c0 6.627 5.373 12 12 12h24c6.627 0 12-5.373 12-12zm96 0v-24c0-6.627-5.373-12-12-12h-24c-6.627 0-12 5.373-12 12v24c0 6.627 5.373 12 12 12h24c6.627 0 12-5.373 12-12zm96 0v-24c0-6.627-5.373-12-12-12h-24c-6.627 0-12 5.373-12 12v24c0 6.627 5.373 12 12 12h24c6.627 0 12-5.373 12-12zm96 0v-24c0-6.627-5.373-12-12-12h-24c-6.627 0-12 5.373-12 12v24c0 6.627 5.373 12 12 12h24c6.627 0 12-5.373 12-12zm-336 80v-24c0-6.627-5.373-12-12-12H84c-6.627 0-12 5.373-12 12v24c0 6.627 5.373 12 12 12h24c6.627 0 12-5.373 12-12zm384 0v-24c0-6.627-5.373-12-12-12h-24c-6.627 0-12 5.373-12 12v24c0 6.627 5.373 12 12 12h24c6.627 0 12-5.373 12-12zM120 188v-24c0-6.627-5.373-12-12-12H84c-6.627 0-12 5.373-12 12v24c0 6.627 5.373 12 12 12h24c6.627 0 12-5.373 12-12zm96 0v-24c0-6.627-5.373-12-12-12h-24c-6.627 0-12 5.373-12 12v24c0 6.627 5.373 12 12 12h24c6.627 0 12-5.373 12-12zm96 0v-24c0-6.627-5.373-12-12-12h-24c-6.627 0-12 5.373-12 12v24c0 6.627 5.373 12 12 12h24c6.627 0 12-5.373 12-12zm96 0v-24c0-6.627-5.373-12-12-12h-24c-6.627 0-12 5.373-12 12v24c0 6.627 5.373 12 12 12h24c6.627 0 12-5.373 12-12zm96 0v-24c0-6.627-5.373-12-12-12h-24c-6.627 0-12 5.373-12 12v24c0 6.627 5.373 12 12 12h24c6.627 0 12-5.373 12-12zm-96 152v-8c0-6.627-5.373-12-12-12H180c-6.627 0-12 5.373-12 12v8c0 6.627 5.373 12 12 12h216c6.627 0 12-5.373 12-12z"/></svg>`;
@@ -38884,7 +38544,6 @@ var _Mathfield = class __Mathfield {
   constructor(element, options) {
     this.focusBlurInProgress = false;
     this.programmaticFocusInProgress = false;
-    /** When true, the mathfield is listening to the virtual keyboard */
     this.connectedToVirtualKeyboard = false;
     this.options = {
       ...getDefault(),
@@ -39216,7 +38875,7 @@ If you are using Vue, this may be because you are using the runtime-only build o
     return keybindings;
   }
   get menu() {
-    this._menu ??= new Menu(getDefaultMenuItems(this), { host: this.host });
+    this._menu ?? (this._menu = new Menu(getDefaultMenuItems(this), { host: this.host }));
     return this._menu;
   }
   set menuItems(menuItems) {
@@ -39383,7 +39042,7 @@ If you are using Vue, this may be because you are using the runtime-only build o
     disposeEnvironmentPopover();
   }
   flushInlineShortcutBuffer(options) {
-    options ??= { defer: false };
+    options ?? (options = { defer: false });
     if (!options.defer) {
       this.inlineShortcutBuffer.length = 0;
       clearTimeout(this.inlineShortcutBufferFlushTimer);
@@ -40109,8 +39768,6 @@ If you are using Vue, this may be because you are using the runtime-only build o
     };
   }
 };
-
-// src/editor/speech.ts
 register2(
   {
     speak: (mathfield, scope, options) => {
@@ -40260,8 +39917,6 @@ function defaultSpeakHook(text) {
     );
   }
 }
-
-// src/editor/speech-read-aloud.ts
 function removeHighlight(element) {
   if (!element) return;
   element.classList.remove("ML__highlight");
@@ -40399,8 +40054,6 @@ function defaultReadAloudHook(element, text) {
     });
   });
 }
-
-// src/public/mathfield-element.ts
 if (!isBrowser()) {
   console.error(
     `MathLive {{SDK_VERSION}}: this version of the MathLive library is for use in the browser. A subset of the API is available on the server side in the "mathlive-ssr" library. If using server side rendering (with React for example) you may want to do a dynamic import of the MathLive library inside a \`useEffect()\` call.`
@@ -40459,7 +40112,7 @@ var DEPRECATED_OPTIONS = {
   decimalSeparator: "MathfieldElement.decimalSeparator = ...",
   fractionNavigationOrder: "MathfieldElement.fractionNavigationOrder = ..."
 };
-var MathfieldElement = class _MathfieldElement extends HTMLElement {
+var MathfieldElement = (_f = class extends HTMLElement {
   /**
        * To create programmatically a new mathfield use:
        *
@@ -40481,7 +40134,6 @@ var MathfieldElement = class _MathfieldElement extends HTMLElement {
       */
   constructor(options) {
     super();
-    /** @internal */
     this._observer = null;
     if (options) {
       const warnings = [];
@@ -40542,9 +40194,6 @@ var MathfieldElement = class _MathfieldElement extends HTMLElement {
       this.shadowRoot.innerHTML = "<style>" + getStylesheetContent("core") + getStylesheetContent("mathfield") + getStylesheetContent("mathfield-element") + getStylesheetContent("ui") + getStylesheetContent("menu") + '</style><span></span><slot style="display:none"></slot>';
     }
     if (options) this._setOptions(options);
-  }
-  static {
-    this.version = "{{SDK_VERSION}}";
   }
   /** @internal */
   static get formAssociated() {
@@ -40639,17 +40288,6 @@ var MathfieldElement = class _MathfieldElement extends HTMLElement {
       reloadFonts();
     }
   }
-  static {
-    this.openUrl = (href) => {
-      if (!href) return;
-      const url = new URL(href);
-      if (!["http:", "https:", "file:"].includes(url.protocol.toLowerCase())) {
-        _MathfieldElement.playSound("plonk");
-        return;
-      }
-      window.open(url, "_blank");
-    };
-  }
   /** @internal */
   get fontsDirectory() {
     throw new Error("Use MathfieldElement.fontsDirectory instead");
@@ -40657,10 +40295,6 @@ var MathfieldElement = class _MathfieldElement extends HTMLElement {
   /** @internal */
   set fontsDirectory(_value) {
     throw new Error("Use MathfieldElement.fontsDirectory instead");
-  }
-  static {
-    /** @internal */
-    this._fontsDirectory = "./fonts/";
   }
   /**
    * A URL fragment pointing to the directory containing the optional
@@ -40685,18 +40319,6 @@ var MathfieldElement = class _MathfieldElement extends HTMLElement {
   /** @internal */
   set soundsDirectory(_value) {
     throw new Error("Use MathfieldElement.soundsDirectory instead");
-  }
-  static {
-    /** @internal */
-    this._soundsDirectory = "./sounds";
-  }
-  static {
-    /**
-     * When a key on the virtual keyboard is pressed, produce a short haptic
-     * feedback, if the device supports it.
-     * @category Virtual Keyboard
-     */
-    this.keypressVibration = true;
   }
   /**
    * When a key on the virtual keyboard is pressed, produce a short audio
@@ -40748,19 +40370,6 @@ var MathfieldElement = class _MathfieldElement extends HTMLElement {
       };
     }
   }
-  static {
-    /** @internal */
-    this._keypressSound = {
-      spacebar: "keypress-spacebar.wav",
-      return: "keypress-return.wav",
-      delete: "keypress-delete.wav",
-      default: "keypress-standard.wav"
-    };
-  }
-  static {
-    /** @ignore */
-    this._plonkSound = "plonk.wav";
-  }
   /**
    * Sound played to provide feedback when a command has no effect, for example
    * when pressing the spacebar at the root level.
@@ -40779,27 +40388,10 @@ var MathfieldElement = class _MathfieldElement extends HTMLElement {
     this.audioBuffers = {};
     this._plonkSound = value;
   }
-  static {
-    /** @internal */
-    this.audioBuffers = {};
-  }
   /** @internal */
   static get audioContext() {
     if (!this._audioContext) this._audioContext = new AudioContext();
     return this._audioContext;
-  }
-  static {
-    /**
-     * Support for [Trusted Type](https://www.w3.org/TR/trusted-types/).
-     *
-     * This optional function will be called before a string of HTML is
-     * injected in the DOM, allowing that string to be sanitized
-     * according to a policy defined by the host.
-     *
-     * Consider using this option if you are displaying untrusted content. Read more about [Security Considerations](/mathfield/guides/security/)
-     *
-     */
-    this.createHTML = (x) => x;
   }
   // @todo https://github.com/microsoft/TypeScript/issues/30024
   /**
@@ -40836,10 +40428,6 @@ var MathfieldElement = class _MathfieldElement extends HTMLElement {
   static set speechEngineRate(value) {
     this._speechEngineRate = value;
   }
-  static {
-    /** @internal */
-    this._speechEngineRate = "100%";
-  }
   /**
    * Indicates the voice to use with the speech engine.
    *
@@ -40854,10 +40442,6 @@ var MathfieldElement = class _MathfieldElement extends HTMLElement {
   static set speechEngineVoice(value) {
     this._speechEngineVoice = value;
   }
-  static {
-    /** @internal */
-    this._speechEngineVoice = "Joanna";
-  }
   /**
    * The markup syntax to use for the output of conversion to spoken text.
    *
@@ -40871,10 +40455,6 @@ var MathfieldElement = class _MathfieldElement extends HTMLElement {
   }
   static set textToSpeechMarkup(value) {
     this._textToSpeechMarkup = value;
-  }
-  static {
-    /** @internal */
-    this._textToSpeechMarkup = "";
   }
   /**
    * Specify which set of text to speech rules to use.
@@ -40898,10 +40478,6 @@ var MathfieldElement = class _MathfieldElement extends HTMLElement {
   static set textToSpeechRules(value) {
     this._textToSpeechRules = value;
   }
-  static {
-    /** @internal */
-    this._textToSpeechRules = "mathlive";
-  }
   /**
    * A set of key/value pairs that can be used to configure the speech rule
    * engine.
@@ -40917,18 +40493,6 @@ var MathfieldElement = class _MathfieldElement extends HTMLElement {
   }
   static set textToSpeechRulesOptions(value) {
     this._textToSpeechRulesOptions = value;
-  }
-  static {
-    /** @internal */
-    this._textToSpeechRulesOptions = {};
-  }
-  static {
-    /** @category Speech */
-    this.speakHook = defaultSpeakHook;
-  }
-  static {
-    /** @category Speech */
-    this.readAloudHook = defaultReadAloudHook;
   }
   /**
    * The locale (language + region) to use for string localization.
@@ -40986,19 +40550,6 @@ var MathfieldElement = class _MathfieldElement extends HTMLElement {
   set strings(_val) {
     throw new Error("Use MathfieldElement.strings instead");
   }
-  static {
-    /**
-     * When switching from a tab to one that contains a mathfield that was
-     * previously focused, restore the focus to the mathfield.
-     *
-     * This is behavior consistent with `<textarea>`, however it can be
-     * disabled if it is not desired.
-     *
-     * **Default**: `true`
-     * @category Customization
-     */
-    this.restoreFocusWhenDocumentFocused = true;
-  }
   /**
    * The symbol used to separate the integer part from the fractional part of a
    * number.
@@ -41034,10 +40585,6 @@ var MathfieldElement = class _MathfieldElement extends HTMLElement {
   set decimalSeparator(_val) {
     throw new Error("Use MathfieldElement.decimalSeparator instead");
   }
-  static {
-    /** @internal */
-    this._decimalSeparator = ".";
-  }
   /** The template used to format numbers in scientific notation.
    * The template should include the placeholders `#1` and `#2`, which will
    * be replaced by the significand and exponent, respectively.
@@ -41057,10 +40604,6 @@ var MathfieldElement = class _MathfieldElement extends HTMLElement {
   }
   static get scientificNotationTemplate() {
     return this._scientificNotationTemplate;
-  }
-  static {
-    /** @internal */
-    this._scientificNotationTemplate = "#1\\times10^{#2}";
   }
   /**
    * When using the keyboard to navigate a fraction, the order in which the
@@ -41117,13 +40660,6 @@ var MathfieldElement = class _MathfieldElement extends HTMLElement {
   /** @internal */
   set computeEngine(_val) {
     throw new Error("Use MathfieldElement.computeEngine instead");
-  }
-  static {
-    /** @internal */
-    this._isFunction = (command) => {
-      const ce = globalThis.MathfieldElement.computeEngine;
-      return ce?.parse(command).domain?.isFunction ?? false;
-    };
   }
   static get isFunction() {
     if (typeof this._isFunction !== "function") return () => false;
@@ -41216,7 +40752,7 @@ var MathfieldElement = class _MathfieldElement extends HTMLElement {
             })
           );
           const offset = this.getOffsetFromPoint(evt.clientX, evt.clientY);
-          if (offset >= 0) _MathfieldElement.openUrl(getHref(mf, offset));
+          if (offset >= 0) _f.openUrl(getHref(mf, offset));
           if (evt.pointerType === "touch" && this.selectionIsCollapsed)
             this.position = offset;
         }
@@ -41304,7 +40840,7 @@ var MathfieldElement = class _MathfieldElement extends HTMLElement {
   }
   set expression(mathJson) {
     if (!this._mathfield) return;
-    const latex = _MathfieldElement.computeEngine?.box(mathJson).latex ?? null;
+    const latex = _f.computeEngine?.box(mathJson).latex ?? null;
     if (latex !== null) this._mathfield.setValue(latex);
     if (!window[Symbol.for("io.cortexjs.compute-engine")]) {
       console.error(
@@ -41359,14 +40895,14 @@ var MathfieldElement = class _MathfieldElement extends HTMLElement {
   reflectAttributes() {
     const defaultOptions = getDefault();
     const options = this._getOptions();
-    Object.keys(_MathfieldElement.optionsAttributes).forEach((x) => {
+    Object.keys(_f.optionsAttributes).forEach((x) => {
       const prop = x === "placeholder" ? "contentPlaceholder" : toCamelCase(x);
-      if (_MathfieldElement.optionsAttributes[x] === "on/off") {
+      if (_f.optionsAttributes[x] === "on/off") {
         if (defaultOptions[prop] !== options[prop])
           this.setAttribute(x, options[prop] ? "on" : "off");
         else this.removeAttribute(x);
       } else if (defaultOptions[prop] !== options[prop]) {
-        if (_MathfieldElement.optionsAttributes[x] === "boolean") {
+        if (_f.optionsAttributes[x] === "boolean") {
           if (options[prop]) {
             this.setAttribute(x, "");
           } else {
@@ -41490,7 +41026,7 @@ var MathfieldElement = class _MathfieldElement extends HTMLElement {
     if (this._mathfield && value !== void 0) {
       const currentValue = this._mathfield.model.getValue();
       if (currentValue === value) return;
-      options ??= { silenceNotifications: true, mode: "math" };
+      options ?? (options = { silenceNotifications: true, mode: "math" });
       this._mathfield.setValue(value, options);
       return;
     }
@@ -41716,7 +41252,7 @@ var MathfieldElement = class _MathfieldElement extends HTMLElement {
     if (!gDeferredState.has(this)) {
       this.upgradeProperty("disabled");
       this.upgradeProperty("readonly");
-      for (const attr of Object.keys(_MathfieldElement.optionsAttributes))
+      for (const attr of Object.keys(_f.optionsAttributes))
         this.upgradeProperty(toCamelCase(attr));
     }
     if (!this._mathfield?.model) {
@@ -41770,7 +41306,7 @@ var MathfieldElement = class _MathfieldElement extends HTMLElement {
     );
     const options = get(
       this._mathfield.options,
-      Object.keys(_MathfieldElement.optionsAttributes).map((x) => toCamelCase(x))
+      Object.keys(_f.optionsAttributes).map((x) => toCamelCase(x))
     );
     gDeferredState.set(this, {
       value: this._mathfield.getValue(),
@@ -42473,7 +42009,23 @@ var MathfieldElement = class _MathfieldElement extends HTMLElement {
   get lastOffset() {
     return this._mathfield?.model.lastOffset ?? -1;
   }
-};
+}, _f.version = "{{SDK_VERSION}}", _f.openUrl = (href) => {
+  if (!href) return;
+  const url = new URL(href);
+  if (!["http:", "https:", "file:"].includes(url.protocol.toLowerCase())) {
+    _f.playSound("plonk");
+    return;
+  }
+  window.open(url, "_blank");
+}, _f._fontsDirectory = "./fonts/", _f._soundsDirectory = "./sounds", _f.keypressVibration = true, _f._keypressSound = {
+  spacebar: "keypress-spacebar.wav",
+  return: "keypress-return.wav",
+  delete: "keypress-delete.wav",
+  default: "keypress-standard.wav"
+}, _f._plonkSound = "plonk.wav", _f.audioBuffers = {}, _f.createHTML = (x) => x, _f._speechEngineRate = "100%", _f._speechEngineVoice = "Joanna", _f._textToSpeechMarkup = "", _f._textToSpeechRules = "mathlive", _f._textToSpeechRulesOptions = {}, _f.speakHook = defaultSpeakHook, _f.readAloudHook = defaultReadAloudHook, _f.restoreFocusWhenDocumentFocused = true, _f._decimalSeparator = ".", _f._scientificNotationTemplate = "#1\\times10^{#2}", _f._isFunction = (command) => {
+  const ce = globalThis.MathfieldElement.computeEngine;
+  return ce?.parse(command).domain?.isFunction ?? false;
+}, _f);
 function toCamelCase(s) {
   return s.replace(/[^a-zA-Z\d]+(.)/g, (_m, c) => c.toUpperCase());
 }
@@ -42506,14 +42058,12 @@ function isElementInternalsSupported() {
 }
 var mathfield_element_default = MathfieldElement;
 if (isBrowser() && !window.customElements?.get("math-field")) {
-  window[Symbol.for("io.cortexjs.mathlive")] ??= {};
+  window[_g = Symbol.for("io.cortexjs.mathlive")] ?? (window[_g] = {});
   const global = window[Symbol.for("io.cortexjs.mathlive")];
   global.version = "{{SDK_VERSION}}";
   globalThis.MathfieldElement = MathfieldElement;
   window.customElements?.define("math-field", MathfieldElement);
 }
-
-// src/public/math-static-elements.ts
 var fontsLoaded = false;
 var fontLoadPromise = null;
 function ensureFontsLoaded() {
@@ -42808,8 +42358,6 @@ function registerStaticElements() {
     window.customElements?.define("math-div", MathDivElement);
 }
 registerStaticElements();
-
-// src/addons/static-render.ts
 function findEndOfMath(delimiter, text, startIndex) {
   let index = startIndex;
   let braceLevel = 0;
@@ -43157,8 +42705,6 @@ function replaceWithMath(el, latex, style, options) {
     el
   );
 }
-
-// src/virtual-keyboard/commands.ts
 function switchKeyboardLayer(mathfield, layerName) {
   const keyboard = VirtualKeyboard.singleton;
   if (!keyboard) return false;
@@ -43190,10 +42736,9 @@ register2(
   },
   { target: "virtual-keyboard" }
 );
-
-// src/mathlive.ts
 function globalMathLive() {
-  globalThis[Symbol.for("io.cortexjs.mathlive")] ??= {};
+  var _a2;
+  globalThis[_a2 = Symbol.for("io.cortexjs.mathlive")] ?? (globalThis[_a2] = {});
   return globalThis[Symbol.for("io.cortexjs.mathlive")];
 }
 function renderMathInDocument(options) {
@@ -43224,10 +42769,10 @@ function renderMathInElement(element, options) {
   const el = getElement(element);
   if (!el) return;
   const optionsPrivate = options ?? {};
-  optionsPrivate.renderToMarkup ??= convertLatexToMarkup;
-  optionsPrivate.renderToMathML ??= convertLatexToMathMl;
-  optionsPrivate.renderToSpeakableText ??= convertLatexToSpeakableText;
-  optionsPrivate.serializeToLatex ??= convertMathJsonToLatex;
+  optionsPrivate.renderToMarkup ?? (optionsPrivate.renderToMarkup = convertLatexToMarkup);
+  optionsPrivate.renderToMathML ?? (optionsPrivate.renderToMathML = convertLatexToMathMl);
+  optionsPrivate.renderToSpeakableText ?? (optionsPrivate.renderToSpeakableText = convertLatexToSpeakableText);
+  optionsPrivate.serializeToLatex ?? (optionsPrivate.serializeToLatex = convertMathJsonToLatex);
   _renderMathInElement(el, optionsPrivate);
 }
 var version = {
@@ -43253,4 +42798,3 @@ export {
   validateLatex2 as validateLatex,
   version
 };
-//# sourceMappingURL=mathlive.mjs.map
