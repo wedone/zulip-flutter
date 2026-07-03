@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart' show defaultTargetPlatform;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 
@@ -106,6 +107,9 @@ class _MathLivePanelState extends State<MathLivePanel> {
     final AndroidWebViewController android =
         c.platform as AndroidWebViewController;
     try {
+      await android.setAllowFileAccess(true);
+    } catch (_) {}
+    try {
       await android.setMediaPlaybackRequiresUserGesture(false);
     } catch (_) {}
   }
@@ -115,7 +119,16 @@ class _MathLivePanelState extends State<MathLivePanel> {
     final WebViewController? c = _controller;
     if (!mounted || c == null) return;
     try {
-      await c.loadFlutterAsset('assets/mathlive/mathlive_editor.html');
+      final String html =
+          await rootBundle.loadString('assets/mathlive/mathlive_editor.html');
+      final String js =
+          await rootBundle.loadString('assets/mathlive/mathlive.mjs');
+      final String patched =
+          html.replaceFirst("import './mathlive.mjs';", js);
+      await c.loadHtmlString(
+        patched,
+        baseUrl: 'file:///android_asset/flutter_assets/assets/mathlive/',
+      );
     } catch (_) {
       if (mounted) {
         setState(() {
