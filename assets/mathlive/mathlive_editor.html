@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>MathLive 编辑器</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      font-family: system-ui, sans-serif;
+      background: transparent;
+    }
+
+    /* 编辑器区域撑满剩余空间，math-field 靠下对齐 */
+    .editor-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: center;
+      /* padding: 0 16px; */
+    }
+
+    math-field {
+      font-size: 22px;
+      width: 100%;
+      /* max-width: 600px; */
+      border: none;
+      /* 去掉组件默认边框 */
+      outline: none;
+      /* 去掉浏览器默认聚焦轮廓 */
+      /* border: 1px solid #ccc; */
+      border-bottom: none;
+      /* border-radius: 8px 8px 0 0; */
+      padding: 8px 12px;
+      /* 内边距，顺序： 上下、左右 */
+      background: transparent;
+    }
+
+    /* 隐藏 math-field 菜单切换按钮 */
+    math-field::part(menu-toggle) {
+      display: none;
+    }
+
+    math-field::part(virtual-keyboard-toggle) {
+      display: none;
+    }
+
+    /* 虚拟键盘顶部与 math-field 底部无缝连接 */
+    body>.ML__keyboard.is-visible>.MLK__backdrop {
+      box-shadow: none;
+      border-top: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="editor-area">
+    <math-field id="mf"></math-field>
+  </div>
+
+  <script type="module">
+    import './mathlive.mjs';
+
+    const mf = document.getElementById('mf');
+
+    // 永远显示虚拟键盘
+    mf.mathVirtualKeyboardPolicy = 'manual';
+    mathVirtualKeyboard.show();
+
+    mathVirtualKeyboard.layouts = [
+      {
+        label: '常用',
+        layers: [
+          {
+            rows: [
+              // 第一行
+              [
+                {
+                  latex: '0',
+                  variants: [
+                    '∞',
+                    '\\propto',
+                    { latex: '×10}^{#0}', class: 'small' },
+                  ],
+                  shift: '\\infty'
+                },
+                { label: '[1]', variants: ['\\frac{1}{#@}', '{#@}^{-1}', '{#@}_1'] },
+                { label: '[2]', variants: ['\\frac{1}{2}', '{#@}_2', '{#@}^2', '\\sqrt{2}'] },
+                '[3]',
+                '[4]',
+                { class: 'separator', width: 0.5 },
+                { label: "A", variants: ["a", "α"], shift: "α" },
+                { label: "B", variants: ["b", "β"], shift: "β" },
+                { label: "C", variants: ["c", "θ"], shift: "θ" },
+                { label: "D", variants: ["d", "λ"], shift: "λ" },
+                { label: "E", variants: ["e", "μ"], shift: "μ" }
+              ],
+              // { class: 'small', latex: '\\frac{#@}{#?}' }, '\\varnothing', '\\infty', '\\in', '\\notin'],
+              // 第二行
+              [
+                '[5]',
+                '[6]',
+                '[7]',
+                '[8]',
+                '[9]',
+                { class: 'separator', width: 0.5 },
+                { label: "F", variants: ["f", "σ"], shift: "σ" },
+                { label: "G", variants: ["g", "π"], shift: "π" },
+                { label: "H", variants: ["h", "ω"], shift: "ω" },
+                { label: "I", variants: ["i", "γ"], shift: "γ" },
+                { label: "J", variants: ["j", "δ"], shift: "δ" }
+                // '(#@)', '[)]', '\\lt', '\\le', '\\hat{=}'
+              ],
+              // 第三行
+              [
+                '[.]',
+                '[(]',
+                '[)]',
+                { label: "<", variants: ["\\le", '≪'] },
+                { label: ">", variants: ["\\ge", '≫ '] },
+                { class: 'separator', width: 0.5 },
+                { label: "K", variants: ["k", "Δ", '\\nabla'], shift: "Δ" },
+                { label: "L", variants: ["l", "ρ",], shift: "ρ" },
+                { label: "M", variants: ["m", "\\min", "\\max", "ϕ",], shift: "ϕ" },
+                { label: "N", variants: ["n", "Σ"], shift: "Σ" },
+                { label: "O", variants: ["o", "ε"], shift: "ε" }
+                // '[', ']', '\\gt', '\\ne', '\\ge'
+              ],
+              // 第四行
+              [
+                { latex: '{#@}^{\\prime}', variants: ['{#@}^{\\doubleprime}', '{#@}°'] },
+                { class: 'small', latex: '\\frac{#@}{#?}', variants: [{ latex: "\\frac{#?}{#@}", class: 'small' }] },
+                { latex: '{#@}^{\\placeholder{@0}}', variants: ['{#@}_{\\placeholder{@0}}', '{#@}_{\\placeholder{@?}}^{\\placeholder{@?}}'] },
+                { latex: '\\sqrt{#0}', variants: ['\\sqrt{#@}'] },
+                { latex: '\\overrightarrow{#0}', variants: ['\\vec{#0}'] },
+                { class: 'separator', width: 0.5 },
+                { label: "P", variants: ["p", "η"], shift: "η" },
+                { label: "Q", variants: ["q", "ξ"], shift: "ξ" },
+                { label: "R", variants: ["r", "τ", '\\mathbb{R}'], shift: "τ" },
+                { latex: "S", variants: ["s", "S_{\\placeholder{@0}}", "Ω"], shift: "Ω" },
+                { label: "T", variants: ["t"], shift: "" },
+              ],
+              // 第五行
+              [
+
+                { latex: '|{#0}|', variants: ['||{#0}||'] },
+                { latex: '\\perp', variants: ['∥', '\\not\\perp'], shift: '∥' },
+                { label: '∠', variants: ['∡', '∢'] },
+                { latex: "\\triangle", insert: "△", variants: [{ label: '▱', insert: '\\text{平行四边形}' }, { label: '□', insert: '\\text{正方形}' }, { label: '圆', insert: '\\text{圆}' }, { label: '⊙', insert: '\\text{圆点}' }] },
+                { latex: '\\because', insert: '\\text{因为}', variants: [{ latex: '\\therefore', insert: '\\text{所以}' }] },
+                { class: 'separator', width: 0.5 },
+                { label: "U", variants: ["u"], shift: "" },
+                { label: "V", variants: ["v"], shift: "" },
+                { latex: "x", variants: ["X"], shift: "" },
+                { latex: "y", variants: ["Y"], shift: "" },
+                { latex: "z", variants: ["Z"], shift: "" }
+              ],
+              // 第六行
+              [
+                { latex: '∈', variants: ['⊆', '⊂', '\\notin'], shift: '⊆' },
+                { latex: '∋', variants: ['⊇', '⊃'], shift: '⊇' },
+                { latex: '∪', variants: ['∩', '∅'], shift: '∩' },
+                { latex: '⇒', variants: ['→', '⟺'], shift: '→' },
+                { latex: '⇐', variants: ['←', '⇔'], shift: '←' },
+                { class: 'separator', width: 0.5 },
+                { latex: "\\sin", variants: [{ latex: '\\sin^{-1}', class: 'small' }, '\\arcsin'], shift: '\\sin^{-1}' },
+                { latex: "\\cos", variants: [{ latex: '\\cos^{-1}', class: 'small' }, '\\arccos'], shift: '\\cos^{-1}' },
+                { latex: "\\tan", variants: [{ latex: '\\tan^{-1}', class: 'small' }, '\\arctan'], shift: '\\tan^{-1}' },
+                { latex: "\\log", variants: ['\\ln', '\\lg'], shift: '\\ln' },
+                { latex: '\\max', variants: ['\\min', "\\lim"], shift: '\\min' },
+              ],
+            ],
+            fixedRows: [
+              ['[+]', '[-]', '[*]', '[/]',
+                { label: '=', variants: ['≠', '∼', '≈', '≅', '≡'], shift: '≈' },
+                { class: 'separator', width: 0.5 },
+                { label: '[shift]', width: 1 },
+                { label: '[backspace]', width: 1 },
+                // { class: 'action', label: '[backspace]', "command": 'backspace', variants: '[deleteAll]', width: 1 },
+                '[left]',
+                '[right]',
+                // ★ [插入]按键：替换原 [return]，默认行内，Shift 行间
+                {
+                  label: '[return]',
+                  class: 'action',
+                  width: 1,
+                  command: () => mlDoInsert('inline'),
+                  shift: {
+                    label: '↩️',
+                    class: 'action',
+                    command: () => mlDoInsert('block'),
+                  },
+                }],
+            ],
+          },
+        ],
+      },
+      'numeric',
+      'symbols',
+      'alphabetic',
+      'greek'
+      // {
+      //   label: '符号',
+      //   layers: [
+      //     {
+      //       rows: [
+      //         [
+      //           { latex: '\\cup', variants: ['\\cap'], shift: '\\cap' },
+      //           '\\wedge', '\\vee', '\\oplus', '\\otimes', '\\ominus', '\\oslash'],
+      //         ['\\subseteq', '\\supseteq', '\\subset', '\\supset', '\\in', '\\notin', '\\ni', '\\emptyset'],
+      //         ['\\rightarrow', '\\leftarrow', '\\Rightarrow', '\\Leftarrow', '\\mapsto', '\\longmapsto', '\\implies', '\\iff'],
+      //         ['\\approx', '\\simeq', '\\cong', '\\equiv', '\\propto', '\\sim', '\\models', '\\dashv'],
+      //         ['\\forall', '\\exists', '\\nexists', '\\neg', '\\top', '\\bot', '\\vdash', '\\vDash'],
+      //       ],
+      //       fixedRows: [
+      //         ['[left]', '[right]', '[backspace]', { class: 'separator', width: 0.5 },
+      //           '[-]', '[+]', '[=]', '[.]',
+      //           { label: '[action]', width: 1.5 }],
+      //       ],
+      //     },
+      //   ],
+      // },
+      // {
+      //   label: '希腊',
+      //   layers: [
+      //     {
+      //       rows: [
+      //         ['\\alpha', '\\beta', '\\gamma', '\\delta', '\\epsilon', '\\zeta', '\\eta', '\\theta'],
+      //         ['\\iota', '\\kappa', '\\lambda', '\\mu', '\\nu', '\\xi', '\\omicron', '\\pi'],
+      //         ['\\rho', '\\sigma', '\\tau', '\\upsilon', '\\phi', '\\chi', '\\psi', '\\omega'],
+      //         ['\\Gamma', '\\Delta', '\\Theta', '\\Lambda', '\\Xi', '\\Pi', '\\Sigma', '\\Phi'],
+      //         ['\\Psi', '\\Omega', '\\varpi', '\\varrho', '\\varsigma', '\\varphi', '\\aleph', '\\hbar'],
+      //       ],
+      //       fixedRows: [
+      //         ['[left]', '[right]', '[backspace]', { class: 'separator', width: 0.5 },
+      //           '[-]', '[+]', '[=]', '[.]',
+      //           { label: '[action]', width: 1.5 }],
+      //       ],
+      //     },
+      //   ],
+      // },
+    ];
+
+    // 插入公式到 Flutter 端
+    // type: 'inline' = 行内公式，'block' = 行间公式
+    function mlDoInsert(type) {
+      const latex = mf.getValue('latex');
+      if (!latex) return; // 空公式不插入
+      try {
+        InsertChannel.postMessage(JSON.stringify({ type: type, latex: latex }));
+        mf.setValue('');
+      } catch (e) {
+        console.error('Insert failed:', e);
+      }
+    }
+
+    // 切换暗色/亮色主题，Flutter 端可通过 runJavaScript('mlSetTheme(true/false)') 调用
+    function mlSetTheme(isDark) {
+      document.body.classList.toggle('dark', isDark);
+      if (isDark) {
+        document.body.style.background = '#141922';
+        document.body.style.color = '#E2E8F0';
+      } else {
+        document.body.style.background = '#ffffff';
+        document.body.style.color = '#0F172A';
+      }
+    }
+
+    // 将需要被 Flutter runJavaScript 调用的函数挂到全局作用域
+    // （module 作用域内的函数默认不可从全局访问）
+    window.mlSetTheme = mlSetTheme;
+    window.mlDoInsert = mlDoInsert;
+  </script>
+
+</body>
+
+</html>

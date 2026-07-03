@@ -66,6 +66,8 @@ dependencies:
   url_launcher: ^6.1.11
   url_launcher_android: ">=6.1.0"
   video_player: ^2.10.0
+  webview_flutter: ^4.10.0
+  webview_flutter_android: ^4.3.2
   wakelock_plus: ^1.2.8
   zulip_plugin:
     path: ./packages/zulip_plugin
@@ -128,6 +130,8 @@ flutter:
     - assets/Pygments/LICENSE.txt
     - assets/Source_Code_Pro/LICENSE.md
     - assets/Source_Sans_3/LICENSE.md
+    - assets/mathlive/
+    - assets/mathlive/fonts/
 
   fonts:
     # Google's emoji font. (Web uses these emoji for the "Google" emojiset.)
