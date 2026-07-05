@@ -52,6 +52,9 @@ dependencies:
   http_parser: ^4.0.2
   image_picker: ^1.0.0
   json_annotation: ^4.9.0
+  # mathlive_studio: ^0.1.2
+  mathlive_studio:
+    path: ../mathlive_editor_package/flutter_mathlive_mixed
   mime: ^2.0.0
   package_info_plus: ^9.0.0
   path: ^1.8.3

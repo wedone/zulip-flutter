@@ -6,6 +6,7 @@ import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
+import 'package:mathlive_studio/mathlive_studio.dart';
 import 'package:mime/mime.dart';
 import 'package:path/path.dart' as path;
 
@@ -1489,10 +1490,16 @@ abstract class _ComposeBoxBody extends StatelessWidget {
           borderRadius: BorderRadius.all(Radius.circular(4)))));
 
     final composeButtonsEnabled = getComposeButtonsEnabled(context);
-    final composeButtons = [
+    final inherited = ComposeBoxInheritedWidget.of(context);
+    final composeButtons = <Widget>[
       _AttachFileButton(controller: controller, enabled: composeButtonsEnabled),
       _AttachMediaButton(controller: controller, enabled: composeButtonsEnabled),
       _AttachFromCameraButton(controller: controller, enabled: composeButtonsEnabled),
+      IconButton(
+        icon: const Icon(Icons.keyboard),
+        isSelected: inherited.mathKeyboardVisible,
+        onPressed: inherited.toggleMathKeyboard,
+      ),
     ];
 
     final topicInput = buildTopicInput();
@@ -1517,7 +1524,13 @@ abstract class _ComposeBoxBody extends StatelessWidget {
               children: [
                 Row(children: composeButtons),
                 ?sendButton,
-              ]))),
+              ])),
+        ),
+        if (inherited.mathKeyboardVisible)
+          MathLiveEmbeddedEditor(
+            isDark: Theme.of(context).brightness == Brightness.dark,
+            onLatexChanged: inherited.onLatexChanged,
+          ),
       ]));
   }
 }
@@ -2025,6 +2038,15 @@ class ComposeBox extends StatefulWidget {
 abstract class ComposeBoxState extends State<ComposeBox> {
   ComposeBoxController get controller;
 
+  /// 是否显示 MathLive 数学公式编辑面板。
+  bool get mathKeyboardVisible;
+
+  /// 切换 MathLive 数学公式编辑面板显示状态。
+  void toggleMathKeyboard();
+
+  /// MathLive 编辑器 LaTeX 内容变化的回调。
+  void onLatexChanged(String latex);
+
   /// Fills the compose box with the content of an [OutboxMessage]
   /// for a failed [sendMessage] request.
   ///
@@ -2055,6 +2077,51 @@ abstract class ComposeBoxState extends State<ComposeBox> {
 class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateMixin<ComposeBox> implements ComposeBoxState {
   @override ComposeBoxController get controller => _controller!;
   ComposeBoxController? _controller;
+
+  bool _mathKeyboardVisible = false;
+  String _latestLatex = '';
+
+  @override
+  bool get mathKeyboardVisible => _mathKeyboardVisible;
+
+  @override
+  void toggleMathKeyboard() {
+    if (_mathKeyboardVisible) {
+      // 关闭时，如果有公式内容则插入到内容输入框
+      if (_latestLatex.trim().isNotEmpty) {
+        _insertFormula(_latestLatex);
+      }
+      _latestLatex = '';
+    } else {
+      // 打开时收起系统键盘，避免与 MathLive 面板同时出现
+      FocusScope.of(context).unfocus();
+      SystemChannels.textInput.invokeMethod('TextInput.hide');
+    }
+    setState(() {
+      _mathKeyboardVisible = !_mathKeyboardVisible;
+    });
+  }
+
+  void _insertFormula(String latex) {
+    final controller = this.controller;
+    final i = controller.content.insertionIndex();
+    controller.content.value = controller.content.value.replaced(i, '\$\$$latex\$\$');
+  }
+
+  @override
+  void onLatexChanged(String latex) {
+    _latestLatex = latex;
+  }
+
+  /// 当内容输入框获得焦点时，关闭数学公式面板（不插入空公式）。
+  void _onContentFocusChanged() {
+    if (controller.contentFocusNode.hasFocus && _mathKeyboardVisible) {
+      setState(() {
+        _mathKeyboardVisible = false;
+        _latestLatex = '';
+      });
+    }
+  }
 
   @override
   void restoreMessageNotSent(int localMessageId) async {
@@ -2223,6 +2290,7 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
   }
 
   void _setNewController(PerAccountStore store) {
+    _controller?.contentFocusNode.removeListener(_onContentFocusChanged);
     _controller?.dispose(); // `?.` because this might be the first call
     switch (widget.narrow) {
       case ChannelNarrow():
@@ -2236,10 +2304,12 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
       case KeywordSearchNarrow():
         assert(false);
     }
+    _controller?.contentFocusNode.addListener(_onContentFocusChanged);
   }
 
   @override
   void dispose() {
+    controller.contentFocusNode.removeListener(_onContentFocusChanged);
     controller.dispose();
     super.dispose();
   }
@@ -2379,20 +2449,36 @@ class ComposeBoxInheritedWidget extends InheritedWidget {
       awaitingRawMessageContentForEdit:
         controller is EditMessageComposeBoxController
         && controller.originalRawContent == null,
+      mathKeyboardVisible: state.mathKeyboardVisible,
+      toggleMathKeyboard: state.toggleMathKeyboard,
+      onLatexChanged: state.onLatexChanged,
       child: child,
     );
   }
 
   const ComposeBoxInheritedWidget._({
     required this.awaitingRawMessageContentForEdit,
+    required this.mathKeyboardVisible,
+    required this.toggleMathKeyboard,
+    required this.onLatexChanged,
     required super.child,
   });
 
   final bool awaitingRawMessageContentForEdit;
 
+  /// 是否显示 MathLive 数学公式编辑面板。
+  final bool mathKeyboardVisible;
+
+  /// 切换 MathLive 数学公式编辑面板显示状态的回调。
+  final VoidCallback toggleMathKeyboard;
+
+  /// MathLive 编辑器 LaTeX 内容变化的回调。
+  final ValueChanged<String> onLatexChanged;
+
   @override
   bool updateShouldNotify(covariant ComposeBoxInheritedWidget oldWidget) =>
-    awaitingRawMessageContentForEdit != oldWidget.awaitingRawMessageContentForEdit;
+    awaitingRawMessageContentForEdit != oldWidget.awaitingRawMessageContentForEdit
+    || mathKeyboardVisible != oldWidget.mathKeyboardVisible;
 
   static ComposeBoxInheritedWidget of(BuildContext context) {
     final widget = context.dependOnInheritedWidgetOfExactType<ComposeBoxInheritedWidget>();
