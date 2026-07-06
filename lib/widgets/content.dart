@@ -1152,10 +1152,18 @@ class _InlineContentBuilder {
         return WidgetSpan(
             alignment: PlaceholderAlignment.baseline,
             baseline: TextBaseline.alphabetic,
-            child: MathWidget(
-              texSource: node.texSource,
-              displayMode: false,
-              ambientTextStyle: _resolveStyleStack(),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: MediaQuery.sizeOf(_context!).width * 0.85,
+              ),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: MathWidget(
+                  texSource: node.texSource,
+                  displayMode: false,
+                  ambientTextStyle: _resolveStyleStack(),
+                ),
+              ),
             ));
 
       case GlobalTimeNode():

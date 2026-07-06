@@ -307,7 +307,7 @@
       mathVirtualKeyboard.layouts = [
         {
           label: '常用',
-          layers: [            
+          layers: [
           {
             rows: [
               // 第一行
@@ -353,8 +353,8 @@
                 '[.]',
                 '[(]',
                 '[)]',
-                { label: "<", variants: ["\\le", '≪'] },
-                { label: ">", variants: ["\\ge", '≫ '] },
+                { label: "<", latex: '\\lt', variants: ["\\le", '≪'] },
+                { label: ">", latex: '\\gt', variants: ["\\ge", '≫'] },
                 { class: 'separator', width: 0.5 },
                 { label: "K", variants: ["k", "Δ", '\\nabla'], shift: "Δ" },
                 { label: "L", variants: ["l", "ρ",], shift: "ρ" },
@@ -381,9 +381,9 @@
               [
 
                 { latex: '|{#0}|', variants: ['||{#0}||'] },
-                { latex: '\\perp', variants: ['∥', '\\not\\perp'], shift: '∥' },
+                { label: '⊥', variants: ['∥',{latex:'\\not\\perp'}], shift: '∥' },
                 { label: '∠', variants: ['∡', '∢'] },
-                { latex: "\\triangle", insert: "△", variants: [{ label: '▱', insert: '\\text{平行四边形}' }, { label: '□', insert: '\\text{正方形}' }, { label: '圆', insert: '\\text{圆}' }, { label: '⊙', insert: '\\text{圆点}' }] },
+                { label: "△",  variants: [{ label: '▱', insert: '\\text{平行四边形}' }, { label: '□', insert: '\\text{正方形}' }, { label: '圆', insert: '\\text{圆}' }, { label: '⊙', insert: '\\text{圆点}' }] },
                 { latex: '\\because', insert: '\\text{因为}', variants: [{ latex: '\\therefore', insert: '\\text{所以}' }] },
                 { class: 'separator', width: 0.5 },
                 { label: "U", variants: ["u"], shift: "" },
@@ -403,19 +403,19 @@
                 { latex: "\\sin", variants: [{ latex: '\\sin^{-1}', class: 'small' }, '\\arcsin'], shift: '\\sin^{-1}' },
                 { latex: "\\cos", variants: [{ latex: '\\cos^{-1}', class: 'small' }, '\\arccos'], shift: '\\cos^{-1}' },
                 { latex: "\\tan", variants: [{ latex: '\\tan^{-1}', class: 'small' }, '\\arctan'], shift: '\\tan^{-1}' },
-                { latex: "\\log", variants: ['\\ln', '\\lg'], shift: '\\ln' },
                 { latex: '\\max', variants: ['\\min', "\\lim"], shift: '\\min' },
+                { latex: "\\log", variants: ['\\ln', '\\lg'], shift: '\\ln' },
               ],
             ],
             fixedRows: [
               ['[+]', '[-]', '[*]', '[/]',
                 { label: '=', variants: ['≠', '∼', '≈', '≅', '≡'], shift: '≈' },
-                { class: 'separator', width: 0.5 },
+                // { class: 'separator', width: 0.5 },
                 { label: '[shift]', width: 1 },
                 { label: '[backspace]', width: 1 },
                 // { class: 'action', label: '[backspace]', "command": 'backspace', variants: '[deleteAll]', width: 1 },
                 { label: '[left]', width: 1 },
-                { label: '[right]', width: 1 },
+                { label: '[right]', width: 1.5 },
                 // ★ [插入]按键：替换原 [return]，默认行内（$...$），Shift 行间（$$...$$）
                 {
                   label: '[return]',
