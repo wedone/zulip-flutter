@@ -16,8 +16,10 @@ import '../api/route/messages.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/binding.dart';
 import '../model/compose.dart';
+import '../model/latex_converter.dart';
 import '../model/message.dart';
 import '../model/narrow.dart';
+import '../model/settings.dart';
 import '../model/store.dart';
 import 'actions.dart';
 import 'autocomplete.dart';
@@ -1336,7 +1338,12 @@ class _SendButtonState extends State<_SendButton> {
     }
 
     final destination = widget.getDestination();
-    final content = controller.content.textNormalized;
+    var content = controller.content.textNormalized;
+    // 发送前自动将 LaTeX 界定符转换为 Zulip 格式
+    final globalSettings = GlobalStoreWidget.settingsOf(context);
+    if (globalSettings.getBool(BoolGlobalSetting.autoConvertLatexDelimiters)) {
+      content = convertLatexDelimitersToZulip(content);
+    }
 
     controller.content.clear();
 
