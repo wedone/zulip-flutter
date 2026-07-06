@@ -1530,6 +1530,7 @@ abstract class _ComposeBoxBody extends StatelessWidget {
           MathLiveEmbeddedEditor(
             isDark: Theme.of(context).brightness == Brightness.dark,
             onLatexChanged: inherited.onLatexChanged,
+            onInsertFormula: inherited.onInsertFormula,
           ),
       ]));
   }
@@ -2047,6 +2048,12 @@ abstract class ComposeBoxState extends State<ComposeBox> {
   /// MathLive 编辑器 LaTeX 内容变化的回调。
   void onLatexChanged(String latex);
 
+  /// 当用户通过自定义 command 请求插入公式时回调。
+  ///
+  /// [latex] 为 MathLive 编辑器中的 LaTeX 内容，
+  /// [mode] 为 'inline'（行内，$...$）或 'block'（行间，$$...$$）。
+  void onInsertFormula(String latex, String mode);
+
   /// Fills the compose box with the content of an [OutboxMessage]
   /// for a failed [sendMessage] request.
   ///
@@ -2102,15 +2109,27 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
     });
   }
 
-  void _insertFormula(String latex) {
+  void _insertFormula(String latex, {String mode = 'block'}) {
     final controller = this.controller;
     final i = controller.content.insertionIndex();
-    controller.content.value = controller.content.value.replaced(i, '\$\$$latex\$\$');
+    // 前后加空格，避免界定符紧接文本导致 Zulip 不渲染
+    final wrapped = mode == 'inline'
+        ? ' \$$latex\$ '
+        : ' \$\$$latex\$\$ ';
+    controller.content.value = controller.content.value.replaced(i, wrapped);
   }
 
   @override
   void onLatexChanged(String latex) {
     _latestLatex = latex;
+  }
+
+  @override
+  void onInsertFormula(String latex, String mode) {
+    if (latex.trim().isNotEmpty) {
+      _insertFormula(latex, mode: mode);
+    }
+    _latestLatex = '';
   }
 
   /// 当内容输入框获得焦点时，关闭数学公式面板（不插入空公式）。
@@ -2452,6 +2471,7 @@ class ComposeBoxInheritedWidget extends InheritedWidget {
       mathKeyboardVisible: state.mathKeyboardVisible,
       toggleMathKeyboard: state.toggleMathKeyboard,
       onLatexChanged: state.onLatexChanged,
+      onInsertFormula: state.onInsertFormula,
       child: child,
     );
   }
@@ -2461,6 +2481,7 @@ class ComposeBoxInheritedWidget extends InheritedWidget {
     required this.mathKeyboardVisible,
     required this.toggleMathKeyboard,
     required this.onLatexChanged,
+    required this.onInsertFormula,
     required super.child,
   });
 
@@ -2474,6 +2495,9 @@ class ComposeBoxInheritedWidget extends InheritedWidget {
 
   /// MathLive 编辑器 LaTeX 内容变化的回调。
   final ValueChanged<String> onLatexChanged;
+
+  /// 当用户通过自定义 command 请求插入公式时回调。
+  final void Function(String latex, String mode) onInsertFormula;
 
   @override
   bool updateShouldNotify(covariant ComposeBoxInheritedWidget oldWidget) =>
