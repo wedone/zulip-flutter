@@ -2116,15 +2116,16 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
     });
   }
 
-  void _insertFormula(String latex, {String mode = 'block'}) {
-    final controller = this.controller;
-    final i = controller.content.insertionIndex();
-    // 前后加空格，避免界定符紧接文本导致 Zulip 不渲染
-    final wrapped = mode == 'inline'
-        ? ' \$$latex\$ '
-        : ' \$\$$latex\$\$ ';
-    controller.content.value = controller.content.value.replaced(i, wrapped);
-  }
+void _insertFormula(String latex, {String mode = 'block'}) {
+  final controller = this.controller;
+  final i = controller.content.insertionIndex();
+  // 行内公式：前后加空格，避免界定符紧接文本导致 Zulip 不渲染
+  // 行间公式：界定符前后加换行，使 latex_converter 的 Rule 2 能检测到换行并转换为 ```math 块
+  final wrapped = mode == 'inline'
+      ? ' \$$latex\$ '
+      : '\n\$\$\n$latex\n\$\$\n';
+  controller.content.value = controller.content.value.replaced(i, wrapped);
+}
 
   @override
   void onLatexChanged(String latex) {
