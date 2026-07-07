@@ -17,6 +17,15 @@
       -webkit-tap-highlight-color: transparent;
       background: #ffffff;
       box-sizing: border-box;
+      /* ★ 阻止 MathLive adjustBoundingRect() 和 show() 设置 body.style.paddingBottom。
+       * 这两个方法会将 paddingBottom 设为键盘高度（如 302px），
+       * 与 box-sizing:border-box + height:100% 叠加后压缩内容区域。
+       * 当 Flutter 根据 mlMixedNotifyHostChromeHeight 的报告缩小 WebView 时，
+       * paddingBottom 可能还是旧值（时序竞态），导致内容区域变为负数，
+       * math-field 高度变为 0 而消失。
+       * WebView 高度已由 Flutter 通过 FlutterEditorHeight 完全控制，
+       * 不需要 MathLive 的 body padding 来为键盘留空间。 */
+      padding-bottom: 0 !important;
     }
     body {
       display: flex;
@@ -25,6 +34,7 @@
     .mathlive-mixed-root {
       margin: 0;
       width: 100%;
+      flex-shrink: 0; /* ★ 防止 body padding 变化时被 flex 压缩 */
       overscroll-behavior: none;
       touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
@@ -44,6 +54,7 @@
       width: 100%;
       min-height: 60px;
       height: auto;
+      flex-shrink: 0; /* ★ 确保即使 flex 容器被压缩，math-field 也不会缩小 */
       font-size: 20px;
       /* 测试阶段：上下边框显示容器边界 */
       border-top: 1px solid #3b82f6;
@@ -240,21 +251,72 @@
     if (d.cmd === 'setLatex') { mlMixedSetLatex(d.latex); return; }
   });
 
+  /* ★ 同步键盘高度并返回实际可视高度。
+   * 核心问题：切换布局层时 currentLayer setter 只切换 CSS class，不调用 adjustBoundingRect()。
+   *   - plate 内容变了（行数少了），plate.getBoundingClientRect().height 立即变为新值
+   *   - 但 --_keyboard-height 还是旧值（控制 .MLK__backdrop 的 height）
+   *   - 如果直接报告 plate 高度给 Flutter，Flutter 缩小 WebView 后键盘仍占旧高度 → 顶部被裁剪
+   * 解决方案：先调用 adjustBoundingRect() 同步 --_keyboard-height，再读取 backdrop 的实际高度。
+   *
+   * CSS 结构（virtual-keyboard.less）：
+   *   .ML__keyboard { --_keyboard-height: 0; }
+   *   .MLK__backdrop { height: var(--_keyboard-height); }
+   *   .ML__keyboard.is-visible > .MLK__backdrop { transform: translate(0, calc(-1 * var(--_keyboard-height))); }
+   */
+  function mlMixedSyncAndGetKeyboardHeight() {
+    try {
+      /* 1. 调用 adjustBoundingRect 同步 --_keyboard-height 与当前 plate 高度。
+       *    adjustBoundingRect 不是公开 API，但在非 iframe 环境下 mathVirtualKeyboard
+       *    是 VirtualKeyboard 实例，可直接访问。 */
+      if (typeof mathVirtualKeyboard !== 'undefined' && mathVirtualKeyboard.visible &&
+          typeof mathVirtualKeyboard.adjustBoundingRect === 'function') {
+        mathVirtualKeyboard.adjustBoundingRect();
+      }
+    } catch (eAdj) {}
+    /* 2. 不需要清除 body.style.paddingBottom：CSS padding-bottom: 0 !important 已覆盖内联样式。
+     *    adjustBoundingRect 会设置 body.style.paddingBottom = '199px' 等值，
+     *    但 !important 确保计算值为 0。不清除可避免不必要的 MutationObserver 触发
+     *    （设置相同值不会触发 mutation，但清除为 '' 会改变属性值从而触发）。 */
+    /* 3. 读取 .MLK__backdrop 的 offsetHeight（= --_keyboard-height 的实际渲染值）。
+       *    这是键盘的真正可视高度，而不是 plate 内容高度。
+       *    plate 高度在布局切换后立即变化，但 --_keyboard-height 可能还是旧值。
+       *    调用 adjustBoundingRect 后两者同步，读取 backdrop 得到正确高度。 */
+    try {
+      var backdrop = document.querySelector('.ML__keyboard.is-visible > .MLK__backdrop');
+      if (backdrop) {
+        var h = backdrop.offsetHeight || 0;
+        if (h > 0) return h;
+      }
+    } catch (eBd) {}
+    /* 4. 回退：使用 boundingRect.height（plate 高度） */
+    try {
+      if (typeof mathVirtualKeyboard !== 'undefined' && mathVirtualKeyboard.visible) {
+        return mathVirtualKeyboard.boundingRect.height || 0;
+      }
+    } catch (evk) {}
+    return 0;
+  }
+
   function mlMixedNotifyHostChromeHeight() {
     try {
       requestAnimationFrame(function () {
         requestAnimationFrame(function () {
           try {
             var mf = document.getElementById('mf');
-            var mfH = mf ? mf.offsetHeight : 50;
-            var kh = 0;
-            try {
-              if (typeof mathVirtualKeyboard !== 'undefined' && mathVirtualKeyboard.visible) {
-                kh = mathVirtualKeyboard.boundingRect.height || 0;
-              }
-            } catch (evk) {}
+            /* ★ 确保 mfH 至少为 60（math-field 的 min-height），
+             * 防止在某些时序下 offsetHeight 返回 0 导致报告高度仅为键盘高度 */
+            var mfH = mf ? Math.max(mf.offsetHeight, 60) : 50;
+            /* ★ 先同步 --_keyboard-height，再读取键盘实际可视高度（backdrop offsetHeight）。
+             * 避免布局切换后 plate 高度已变但 --_keyboard-height 未更新的时序竞态。 */
+            var kh = mlMixedSyncAndGetKeyboardHeight();
             var h = Math.ceil(mfH + kh);
             if (h < 80) h = 80;
+            /* ★ 如果键盘可见但高度为 0，说明键盘正在重建/重渲染中，
+             * 延迟重试以确保最终报告正确的高度 */
+            if (kh === 0 && typeof mathVirtualKeyboard !== 'undefined' && mathVirtualKeyboard.visible) {
+              setTimeout(mlMixedNotifyHostChromeHeight, 200);
+              setTimeout(mlMixedNotifyHostChromeHeight, 500);
+            }
             /* Report height via JavaScriptChannel (Android/iOS WebView) */
             try {
               if (typeof FlutterEditorHeight !== 'undefined' && FlutterEditorHeight.postMessage) {
@@ -412,10 +474,10 @@
                 { label: '=', variants: ['≠', '∼', '≈', '≅', '≡'], shift: '≈' },
                 // { class: 'separator', width: 0.5 },
                 { label: '[shift]', width: 1 },
+                { label: '[right]', width: 1.5 },
                 { label: '[backspace]', width: 1 },
                 // { class: 'action', label: '[backspace]', "command": 'backspace', variants: '[deleteAll]', width: 1 },
                 { label: '[left]', width: 1 },
-                { label: '[right]', width: 1.5 },
                 // ★ [插入]按键：替换原 [return]，默认行内（$...$），Shift 行间（$$...$$）
                 {
                   label: '[return]',
@@ -440,6 +502,80 @@
     } catch (e) {}
   }
 
+  /* ───── [DOM Hook 修改点 #5b] 独立高度监控 ─────
+   *
+   * 问题背景：
+   *   MathLive 的 geometrychange 事件由 ResizeObserver 触发，该 Observer 在 show()
+   *   时开始观察 .MLK__plate。但 rebuild() 会移除旧 plate 并创建新 plate，却不重新
+   *   observe 新 plate，导致后续布局切换时 geometrychange 不触发。
+   *   结果：Flutter 不知道键盘高度已变化，WebView 高度停留在旧值。
+   *
+   * 解决方案：双保险监控
+   *   1. MutationObserver：监听 body 子树变化，检测键盘 DOM 重建/层切换
+   *   2. 定期轮询：每 300ms 检查一次 boundingRect.height，与上次比较，变化则报告
+   *   3. 同时持续清除 body.style.paddingBottom（adjustBoundingRect 可能在任何
+   *      时机被调用并重新设置它）
+   */
+  var mlMixedLastReportedKh = -1;
+  var mlMixedHeightPollTimer = null;
+  var mlMixedMutationPending = false; /* ★ 防止 MutationObserver 与 adjustBoundingRect 形成无限循环 */
+  function mlMixedStartHeightMonitor() {
+    if (mlMixedHeightPollTimer) return; /* 已启动 */
+    /* 1. MutationObserver：监听键盘 DOM 变化。
+     *    注意：adjustBoundingRect() 会修改 --_keyboard-height 和 body.paddingBottom，
+     *    这会反过来触发 MutationObserver。使用 mlMixedMutationPending 标志防止无限循环。 */
+    try {
+      var observer = new MutationObserver(function (mutations) {
+        if (mlMixedMutationPending) return;
+        var changed = false;
+        for (var i = 0; i < mutations.length; i++) {
+          if (mutations[i].type === 'childList' || mutations[i].type === 'attributes') {
+            changed = true;
+            break;
+          }
+        }
+        if (changed) {
+          mlMixedMutationPending = true;
+          /* DOM 变化后延迟报告，等待浏览器完成布局 */
+          setTimeout(function () {
+            mlMixedMutationPending = false;
+            mlMixedNotifyHostChromeHeight();
+          }, 50);
+          setTimeout(function () {
+            mlMixedMutationPending = false;
+            mlMixedNotifyHostChromeHeight();
+          }, 200);
+        }
+      });
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['class', 'style'],
+      });
+    } catch (eObs) {}
+
+    /* 2. 定期轮询：每 300ms 检查键盘高度变化。
+     *    使用 mlMixedSyncAndGetKeyboardHeight() 读取键盘实际可视高度（backdrop），
+     *    而非 boundingRect.height（plate 高度），避免时序竞态。 */
+    mlMixedHeightPollTimer = setInterval(function () {
+      try {
+        if (typeof mathVirtualKeyboard === 'undefined' || !mathVirtualKeyboard.visible) {
+          if (mlMixedLastReportedKh !== 0) {
+            mlMixedLastReportedKh = 0;
+            mlMixedNotifyHostChromeHeight();
+          }
+          return;
+        }
+        var kh = mlMixedSyncAndGetKeyboardHeight();
+        if (kh !== mlMixedLastReportedKh) {
+          mlMixedLastReportedKh = kh;
+          mlMixedNotifyHostChromeHeight();
+        }
+      } catch (e) {}
+    }, 300);
+  }
+
   /* ───── [DOM Hook 修改点 #5] 键盘生命周期钩子 ─────
    *
    * 通过 MathLive 公开 API 监听键盘的 geometrychange 事件。
@@ -462,9 +598,13 @@
     try {
       mathVirtualKeyboard.show();
     } catch (eShow) {}
+    /* show() 会设置 body.style.paddingBottom，但 CSS padding-bottom: 0 !important 已覆盖，
+     * 不需要手动清除（清除反而会触发 MutationObserver）。 */
     mlMixedEnsureScrollFix();
     try {
       mathVirtualKeyboard.addEventListener('geometrychange', function () {
+        /* adjustBoundingRect 在 geometrychange 之前被调用，已设置 body paddingBottom。
+         * CSS padding-bottom: 0 !important 已覆盖，不需要手动清除。 */
         mlMixedNotifyHostChromeHeight();
         mlMixedFixScrollTouch();
       });
@@ -478,6 +618,10 @@
         });
       }
     } catch (eInput) {}
+    /* ★ 启动独立的高度监控：MutationObserver + 定期轮询。
+     * MathLive 的 geometrychange 可能在某些时序下不触发（如 rebuild 后 ResizeObserver
+     * 未重新观察新 plate），导致布局切换后高度未报告给 Flutter。 */
+    mlMixedStartHeightMonitor();
     mlMixedNotifyHostChromeHeight();
   }
 
