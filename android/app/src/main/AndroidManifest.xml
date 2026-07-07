@@ -4,6 +4,17 @@
        https://developer.android.com/build/manage-manifests#inspect_the_merged_manifest_and_find_conflicts -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
    <uses-permission android:name="android.permission.INTERNET"/>
+   <!-- Android 11+ 包可见性声明：允许 url_launcher 打开 GitHub 链接 -->
+   <queries>
+       <intent>
+           <action android:name="android.intent.action.VIEW" />
+           <data android:scheme="https" android:host="github.com" />
+       </intent>
+       <intent>
+           <action android:name="android.intent.action.VIEW" />
+           <data android:scheme="https" />
+       </intent>
+   </queries>
    <application
         android:label="Zulip"
         android:name="${applicationName}"
