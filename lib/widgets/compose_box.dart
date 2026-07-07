@@ -2100,17 +2100,13 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
 
   @override
   void toggleMathKeyboard() {
-    if (_mathKeyboardVisible) {
-      // 关闭时，如果有公式内容则插入到内容输入框
-      if (_latestLatex.trim().isNotEmpty) {
-        _insertFormula(_latestLatex);
-      }
-      _latestLatex = '';
-    } else {
+    if (!_mathKeyboardVisible) {
       // 打开时收起系统键盘，避免与 MathLive 面板同时出现
       FocusScope.of(context).unfocus();
       SystemChannels.textInput.invokeMethod('TextInput.hide');
     }
+    // 插入功能已移至 mathlive_editor.html 的 [return] 按键（insertInline/insertBlock），
+    // 此处仅负责切换系统键盘与 MathLive 面板的显示状态
     setState(() {
       _mathKeyboardVisible = !_mathKeyboardVisible;
     });
