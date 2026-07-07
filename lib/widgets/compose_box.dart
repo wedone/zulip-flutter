@@ -1406,6 +1406,7 @@ class _ComposeBoxContainer extends StatelessWidget {
   const _ComposeBoxContainer({
     required this.body,
     this.banner,
+    this.keyboard,
   }) : assert(body != null || banner != null);
 
   /// The text inputs, compose-button row, and send button.
@@ -1425,6 +1426,9 @@ class _ComposeBoxContainer extends StatelessWidget {
   /// (A bottom inset may occur if [body] is null.)
   final Widget? banner;
 
+  /// 数学键盘面板，渲染在 SafeArea 之外以占满屏幕宽度。
+  final Widget? keyboard;
+
   Widget _paddedBody() {
     assert(body != null);
     return SafeArea(minimum: const EdgeInsets.symmetric(horizontal: 8),
@@ -1442,9 +1446,13 @@ class _ComposeBoxContainer extends StatelessWidget {
         MediaQuery.removePadding(context: context, removeBottom: true,
           child: banner!),
         _paddedBody(),
+        ?keyboard,
       ],
       (Widget(),     null) => [banner!],
-      (null,     Widget()) => [_paddedBody()],
+      (null,     Widget()) => [
+        _paddedBody(),
+        ?keyboard,
+      ],
       (null,         null) => throw UnimplementedError(), // not allowed, see dartdoc
     };
 
@@ -1533,12 +1541,6 @@ abstract class _ComposeBoxBody extends StatelessWidget {
                 ?sendButton,
               ])),
         ),
-        if (inherited.mathKeyboardVisible)
-          MathLiveEmbeddedEditor(
-            isDark: Theme.of(context).brightness == Brightness.dark,
-            onLatexChanged: inherited.onLatexChanged,
-            onInsertFormula: inherited.onInsertFormula,
-          ),
       ]));
   }
 }
@@ -2455,8 +2457,16 @@ void _insertFormula(String latex, {String mode = 'block'}) {
       }
     }
 
+    final keyboard = mathKeyboardVisible
+      ? MathLiveEmbeddedEditor(
+          isDark: Theme.of(context).brightness == Brightness.dark,
+          onLatexChanged: onLatexChanged,
+          onInsertFormula: onInsertFormula,
+        )
+      : null;
+
     return ComposeBoxInheritedWidget.fromComposeBoxState(this,
-      child: _ComposeBoxContainer(body: body, banner: banner));
+      child: _ComposeBoxContainer(body: body, banner: banner, keyboard: keyboard));
   }
 }
 
