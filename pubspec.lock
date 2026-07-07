@@ -745,7 +745,7 @@ packages:
   mathlive_studio:
     dependency: "direct main"
     description:
-      path: "../mathlive_editor_package/flutter_mathlive_mixed"
+      path: "packages/mathlive_studio"
       relative: true
     source: path
     version: "0.1.2"
