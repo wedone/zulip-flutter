@@ -429,8 +429,8 @@
               // 第四行
               [
                 { latex: '{#@}^{\\prime}', variants: ['{#@}^{\\doubleprime}', '{#@}°'] },
-                { class: 'small', latex: '\\frac{#@}{#?}', variants: [{ latex: "\\frac{#?}{#@}", class: 'small' }] },
-                { latex: '{#@}^{2}}', variants: ['{#@}^{\\placeholder{@0}}', '{#@}_{\\placeholder{@0}}', '{#@}_{\\placeholder{@?}}^{\\placeholder{@?}}'] },
+                { latex: '{#@}^{2}}', variants: ['{#@}^{\\placeholder{@0}}', '{#@}_{\\placeholder{@0}}', '{#@}_{\\placeholder{@?}}^{\\placeholder{@?}}',{latex: '\\binom{#@}{#?}}',class: 'small'}] },
+                { latex: '\\overline{#@}', variants: ['\\hat{\\placeholder{@0}}', '\\dot{\\placeholder{@0}}', '\\tilde{\\placeholder{@0}}']},
                 { latex: '\\sqrt{#0}', variants: ['\\sqrt{#@}'] },
                 { latex: '\\overrightarrow{#0}', variants: ['\\vec{#0}'] },
                 { class: 'separator', width: 0.5 },
