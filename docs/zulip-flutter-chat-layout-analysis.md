@@ -10,7 +10,7 @@
 | 语言 | Dart |
 | 框架版本 | Flutter main channel（非 stable/beta） |
 | 上游仓库 | [zulip/zulip-flutter](https://github.com/zulip/zulip-flutter) |
-| 数学增强 | `flutter_math_fork ^0.7.4`、KaTeX 解析、数学键盘、LaTeX 预览 |
+| 数学增强 | MathLive 虚拟键盘（WebView 嵌入）、KaTeX 解析、LaTeX 界定符自动转换 |
 | 最低服务器 | Zulip Server 7.0（feature level 185） |
 | 版本方案 | `30.0.272-math-vX.Y+Z` |
 
@@ -76,7 +76,8 @@ HomePage (底部导航)
 │  ComposeBox                                 │
 │  ├─ 话题输入框 (仅 ChannelNarrow)            │
 │  ├─ 内容输入框                              │
-│  └─ 操作按钮行: [附件] [图片] [相机] [发送]  │
+│  ├─ 操作按钮行: [附件] [图片] [相机] [⌨️] [发送] │
+│  └─ MathLive 键盘面板 (条件渲染，⌨️ 按钮切换) │
 └─────────────────────────────────────────────┘
 ```
 
@@ -94,6 +95,9 @@ HomePage (底部导航)
 | 消息列表模型 | `lib/model/message_list.dart` |
 | 状态管理 | `lib/model/store.dart` |
 | 消息定义 | `lib/model/message.dart` |
+| MathLive 嵌入编辑器 | `packages/mathlive_studio/lib/src/editor/mathlive_embedded_editor.dart` |
+| MathLive HTML 模板 | `packages/mathlive_studio/assets/mathlive/mathlive_editor.html` |
+| LaTeX 界定符转换 | `lib/model/latex_converter.dart` |
 
 ## 4. 消息列表（MessageList）详细分析
 
@@ -203,25 +207,34 @@ Row
 ```
 _ComposeBoxContainer
   ├── _Banner (可选, 如"未订阅频道"提示)
-  └── SafeArea
-        └── _ComposeBoxBody
-              ├── ConstrainedBox(maxWidth: 760)
-              │     └── Column
-              │           ├── Padding(horizontal: 8)
-              │           │     └── Column
-              │           │           ├── _TopicInput (仅频道模式)
-              │           │           │     ├── TopicAutocomplete
-              │           │           │     └── TextField (20px, wght:600)
-              │           │           └── _ContentInput
-              │           │                 ├── InsetShadowBox (上下渐隐)
-              │           │                 └── TextField (17px, minLines:2)
-              │           │
-              │           └── SizedBox(height: 44) — 按钮行
-              │                 └── Row
-              │                       ├── [_AttachFileButton] [_AttachMediaButton] [_AttachFromCameraButton]
-              │                       └── [_SendButton]
-              │
+  ├── SafeArea
+  │     └── _ComposeBoxBody
+  │           ├── ConstrainedBox(maxWidth: 760)
+  │           │     └── Column
+  │           │           ├── Padding(horizontal: 8)
+  │           │           │     └── Column
+  │           │           │           ├── _TopicInput (仅频道模式)
+  │           │           │           │     ├── TopicAutocomplete
+  │           │           │           │     └── TextField (20px, wght:600)
+  │           │           │           └── _ContentInput
+  │           │           │                 ├── InsetShadowBox (上下渐隐)
+  │           │           │                 └── TextField (17px, minLines:2)
+  │           │           │
+  │           │           └── SizedBox(height: 44) — 按钮行
+  │           │                 └── Row
+  │           │                       ├── [_AttachFileButton] [_AttachMediaButton] [_AttachFromCameraButton]
+  │           │                       ├── [⌨️ 键盘切换按钮] ← 新增：切换 MathLive 面板
+  │           │                       └── [_SendButton]
+  │           │
+  └── MathLiveEmbeddedEditor (条件渲染，⌨️ 按钮切换显示)
+        └── WebView (MathLive 虚拟键盘 + math-field)
 ```
+
+**MathLive 键盘面板说明：**
+- 通过 ⌨️ 按钮切换显示/隐藏，与系统键盘互斥（打开时收起系统键盘）
+- 渲染在 SafeArea 之外，占满屏幕宽度
+- 高度由 WebView 内部 MathLive 动态报告（math-field + 虚拟键盘总高度）
+- 内容输入框获得焦点时自动关闭 MathLive 面板
 
 ### 5.3 内容输入框特性
 
@@ -341,20 +354,97 @@ GlobalStore (全局，跨账户)
 
 | 模块 | 文件 | 功能 |
 |------|------|------|
+| MathLive 嵌入编辑器 | `packages/mathlive_studio/lib/src/editor/mathlive_embedded_editor.dart` | WebView 嵌入 MathLive 虚拟键盘，支持所见即所得公式编辑 |
+| MathLive HTML 模板 | `packages/mathlive_studio/assets/mathlive/mathlive_editor.html` | 自定义键盘布局（6 行常用符号 + fixedRows），高中数学场景优化 |
+| MathLive 混合预览 | `packages/mathlive_studio/lib/src/preview/mathlive_mixed_preview.dart` | 渲染纯文本 + 行内 LaTeX 混合内容 |
+| LaTeX 界定符转换 | `lib/model/latex_converter.dart` | 发送时将标准 `$...$`/`$$...$$`/`\(...\)`/`\[...\]` 转为 Zulip 非标准格式 |
 | KaTeX 解析 | `lib/model/katex.dart` | 从服务器渲染的 KaTeX HTML 提取 TeX 源码（MathML annotation） |
-| LaTeX 转换 | `lib/model/latex_converter.dart` | 发送时将标准 `$...$`/`$$...$$`/`\(...\)`/`\[...\]` 转为 Zulip 非标准格式 |
-| 数学键盘 | `lib/widgets/math_keyboard/` | 6 分类工具栏，含最近符号持久化 (`math_keyboard_history.dart`) |
-| LaTeX 预览 | `lib/model/latex_preview.dart` | 实时预览（300ms 防抖） |
 | 数学组件 | `lib/widgets/math_widget.dart` | 集成 `flutter_math_fork` 的渲染组件 |
 | ZWSP 插入 | — | 绕过服务器 `\B` 正则的零宽空格变通方案 |
 
-### 9.2 渲染管线
+### 9.2 MathLive 集成架构
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ Flutter 层 (compose_box.dart)                                │
+│  ├─ ComposeBoxState                                          │
+│  │   ├─ _mathKeyboardVisible: bool                           │
+│  │   ├─ toggleMathKeyboard() → 切换 MathLive 面板            │
+│  │   └─ onInsertFormula(latex, mode) → 插入公式到输入框      │
+│  │                                                           │
+│  └─ MathLiveEmbeddedEditor                                   │
+│      ├─ onLatexChanged(latex) → 实时同步 LaTeX 内容          │
+│      └─ onInsertFormula(latex, mode) → 接收插入命令          │
+└─────────────────────────────────────────────────────────────┘
+                              ↓ JavaScript Channel
+┌─────────────────────────────────────────────────────────────┐
+│ WebView 层 (mathlive_editor.html)                            │
+│  ├─ <math-field id="mf"> → 公式编辑区域                      │
+│  ├─ mathVirtualKeyboard.layouts = [...] → 自定义键盘布局     │
+│  │   ├─ rows: 6 行常用符号（数字、字母、运算符、几何等）     │
+│  │   └─ fixedRows: 底部固定行（+ - * / = 方向键 退格 插入）  │
+│  │                                                           │
+│  ├─ FlutterLatexSync Channel → 实时同步 LaTeX 到 Flutter     │
+│  ├─ FlutterEditorHeight Channel → 报告键盘高度               │
+│  └─ FlutterLatexInsert Channel → 发送插入公式命令            │
+│      ├─ {mode: 'inline', latex: '...'} → 行内公式            │
+│      └─ {mode: 'block', latex: '...'} → 行间公式             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 9.3 自定义键盘布局
+
+MathLive 键盘布局针对高中数学场景优化，包含 6 行常用符号：
+
+| 行 | 内容 |
+|---|------|
+| 第 1 行 | 0-4, A-E (带希腊字母变体) |
+| 第 2 行 | 5-9, F-J (带希腊字母变体) |
+| 第 3 行 | 小数点, 括号, 比较符号, K-O (带希腊字母变体) |
+| 第 4 行 | 导数符号, 分数, 平方, 开方, 向量, P-T |
+| 第 5 行 | 绝对值, 垂直, 角度, 三角形, 因为/所以, U-z |
+| 第 6 行 | 集合运算, 逻辑箭头, 三角函数, 对数 |
+| fixedRows | + - * / =, shift, 方向键, 退格, 插入 |
+
+**按键特性：**
+- 每个按键支持 `variants`（长按弹出变体面板）
+- 支持 `shift` 属性（右上角显示 shift 时的内容）
+- 支持 `aside` 属性（下方显示小标签说明）
+- 支持 CSS 类：`tex`（TeX 字体）、`ghost`（无边框）、`small`（小字号）、`action`（操作键样式）
+
+### 9.4 公式插入流程
+
+```
+用户在 MathLive 编辑公式
+        ↓
+按下 [return] 按键 (insertInline command)
+        ↓
+mathlive_editor.html 发送 FlutterLatexInsert.postMessage(
+  {mode: 'inline', latex: 'x^2'}
+)
+        ↓
+MathLiveEmbeddedEditor 接收 → onInsertFormula(latex, mode)
+        ↓
+_ComposeBoxState._insertFormula() 包装界定符
+  inline: ' $x^2$ ' (前后加空格)
+  block:  '\n$$\nx^2\n$$\n' (前后加换行)
+        ↓
+插入到内容输入框光标位置
+        ↓
+发送消息时 latex_converter.dart 转换界定符
+  $...$ → $$...$$ (Zulip 行内)
+  $$...$$ → ```math\n...\n``` (Zulip 行间)
+```
+
+### 9.5 渲染管线
 
 ```
 服务器 KaTeX HTML → katex.dart 提取 TeX → math_widget.dart 渲染
                                               ↓
                                     flutter_math_fork (纯 Dart KaTeX)
                                     (无需外部字体依赖)
+
+MathLive 编辑 → math-field 实时渲染 → 用户所见即所得
 ```
 
 ## 10. 性能优化要点
@@ -381,4 +471,4 @@ GlobalStore (全局，跨账户)
 
 ---
 
-*文档生成时间：2026-07-02*
+*文档更新时间：2026-07-14*
