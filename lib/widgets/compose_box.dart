@@ -2097,12 +2097,27 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
   bool _mathKeyboardVisible = false;
   String _latestLatex = '';
 
+  /// 正在编辑的 LaTeX 公式范围（含界定符），为 null 时表示插入模式而非编辑模式。
+  TextRange? _editingLatexRange;
+
+  /// 传给 MathLive 编辑器的初始 LaTeX 内容（编辑已有公式时使用）。
+  String? _initialLatexForEditor;
+
   @override
   bool get mathKeyboardVisible => _mathKeyboardVisible;
 
   @override
   void toggleMathKeyboard() {
     if (!_mathKeyboardVisible) {
+      // 打开时检测光标是否在 LaTeX 界定符内，若在则进入编辑模式
+      final detected = _detectLatexAtCursor();
+      if (detected != null) {
+        _editingLatexRange = detected.range;
+        _initialLatexForEditor = detected.latex;
+      } else {
+        _editingLatexRange = null;
+        _initialLatexForEditor = null;
+      }
       // 打开时收起系统键盘，避免与 MathLive 面板同时出现
       FocusScope.of(context).unfocus();
       SystemChannels.textInput.invokeMethod('TextInput.hide');
@@ -2114,15 +2129,90 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
     });
   }
 
+  /// 检测光标是否在 LaTeX 界定符包裹的公式内。
+  ///
+  /// 支持的界定符格式（按优先级排序）：
+  /// - `\[...\]`（LaTeX 行间）
+  /// - `\(...\)`（LaTeX 行内）
+  /// - `$$...$$`（含换行时为行间公式，不含换行为 Zulip 行内格式）
+  /// - `$...$`（标准行内公式）
+  ///
+  /// 返回 (公式完整范围含界定符, 内部 LaTeX 内容, 模式) 或 null。
+  ({TextRange range, String latex, String mode})? _detectLatexAtCursor() {
+    final text = controller.content.value.text;
+    final cursor = controller.content.insertionIndex().start;
+
+    // 先检测 \[...\]（LaTeX 行间）
+    final displayLatexPattern = RegExp(r'\\\[([\s\S]*?)\\\]');
+    for (final match in displayLatexPattern.allMatches(text)) {
+      if (cursor > match.start && cursor < match.end) {
+        return (range: TextRange(start: match.start, end: match.end),
+          latex: match.group(1)!.trim(), mode: 'block');
+      }
+    }
+
+    // 检测 \(...\)（LaTeX 行内）
+    final inlineLatexPattern = RegExp(r'\\\(([\s\S]*?)\\\)');
+    for (final match in inlineLatexPattern.allMatches(text)) {
+      if (cursor > match.start && cursor < match.end) {
+        return (range: TextRange(start: match.start, end: match.end),
+          latex: match.group(1)!.trim(), mode: 'inline');
+      }
+    }
+
+    // 检测 $$...$$（Zulip 行内或标准行间）
+    final dollarDollarPattern = RegExp(r'\$\$([\s\S]*?)\$\$');
+    for (final match in dollarDollarPattern.allMatches(text)) {
+      if (cursor > match.start && cursor < match.end) {
+        final content = match.group(1)!;
+        if (content.contains('\n')) {
+          // 含换行 → 行间公式
+          return (range: TextRange(start: match.start, end: match.end),
+            latex: content.trim(), mode: 'block');
+        }
+        // 不含换行 → 行内公式（Zulip 格式 $$...$$）
+        return (range: TextRange(start: match.start, end: match.end),
+          latex: content, mode: 'inline');
+      }
+    }
+
+    // 检测 $...$（标准行内），排除 $$ 的情况
+    final dollarPattern = RegExp(r'(?<!\$)\$(?!\$)([^\n$]*?)\$(?!\$)');
+    for (final match in dollarPattern.allMatches(text)) {
+      if (cursor > match.start && cursor < match.end) {
+        return (range: TextRange(start: match.start, end: match.end),
+          latex: match.group(1)!, mode: 'inline');
+      }
+    }
+
+    return null;
+  }
+
 void _insertFormula(String latex, {String mode = 'block'}) {
   final controller = this.controller;
-  final i = controller.content.insertionIndex();
-  // 行内公式：前后加空格，避免界定符紧接文本导致 Zulip 不渲染
-  // 行间公式：界定符前后加换行，使 latex_converter 的 Rule 2 能检测到换行并转换为 ```math 块
-  final wrapped = mode == 'inline'
-      ? ' \$$latex\$ '
-      : '\n\$\$\n$latex\n\$\$\n';
-  controller.content.value = controller.content.value.replaced(i, wrapped);
+  if (_editingLatexRange != null) {
+    // 编辑模式：替换原有公式内容（含界定符）
+    final wrapped = mode == 'inline'
+        ? '\$$latex\$'
+        : '\n\$\$\n$latex\n\$\$\n';
+    final range = _editingLatexRange!;
+    final newValue = controller.content.value.replaced(range, wrapped);
+    // 将光标移到替换后的内容末尾
+    controller.content.value = newValue.copyWith(
+      selection: TextSelection.collapsed(offset: range.start + wrapped.length),
+    );
+    _editingLatexRange = null;
+    _initialLatexForEditor = null;
+  } else {
+    // 插入模式：在光标位置插入新公式
+    final i = controller.content.insertionIndex();
+    // 行内公式：前后加空格，避免界定符紧接文本导致 Zulip 不渲染
+    // 行间公式：界定符前后加换行，使 latex_converter 的 Rule 2 能检测到换行并转换为 ```math 块
+    final wrapped = mode == 'inline'
+        ? ' \$$latex\$ '
+        : '\n\$\$\n$latex\n\$\$\n';
+    controller.content.value = controller.content.value.replaced(i, wrapped);
+  }
 }
 
   @override
@@ -2144,6 +2234,8 @@ void _insertFormula(String latex, {String mode = 'block'}) {
       setState(() {
         _mathKeyboardVisible = false;
         _latestLatex = '';
+        _editingLatexRange = null;
+        _initialLatexForEditor = null;
       });
     }
   }
@@ -2460,6 +2552,7 @@ void _insertFormula(String latex, {String mode = 'block'}) {
     final keyboard = mathKeyboardVisible
       ? MathLiveEmbeddedEditor(
           isDark: Theme.of(context).brightness == Brightness.dark,
+          initialLatex: _initialLatexForEditor,
           onLatexChanged: onLatexChanged,
           onInsertFormula: onInsertFormula,
         )
